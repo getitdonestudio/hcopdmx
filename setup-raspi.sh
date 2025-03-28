@@ -45,18 +45,42 @@ fi
 # Navigate to app directory
 cd "$APP_DIR"
 
-# Check if the repo exists, if not clone it
-if [ ! -d "$APP_DIR/.git" ]; then
+# Check if directory is empty or contains a git repository
+if [ -d ".git" ]; then
+    echo "Git repository already exists, pulling latest changes..."
+    git pull origin main
+elif [ "$(ls -A)" ]; then
+    echo "Directory is not empty and doesn't contain a git repository."
+    echo "Please choose an option:"
+    echo "1. Clear the directory and clone the repository (data will be lost)"
+    echo "2. Exit the script"
+    read -p "Enter your choice (1 or 2): " choice
+    case $choice in
+        1)
+            echo "Clearing directory..."
+            rm -rf "$APP_DIR"/*
+            git clone https://github.com/getitdonestudio/hcopdmx.git .
+            ;;
+        2)
+            echo "Exiting script."
+            exit 0
+            ;;
+        *)
+            echo "Invalid choice. Exiting script."
+            exit 1
+            ;;
+    esac
+else
     echo "Cloning repository from GitHub..."
     git clone https://github.com/getitdonestudio/hcopdmx.git .
-else
-    echo "Repository already exists, pulling latest changes..."
-    git pull origin main
 fi
 
 # Install dependencies
 echo "Installing dependencies..."
 npm install
+
+# Create logs directory for PM2
+mkdir -p logs
 
 # Start the app with PM2
 echo "Starting application with PM2..."
