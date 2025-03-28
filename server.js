@@ -293,6 +293,55 @@ async function startServer() {
         // Add JSON parsing middleware
         app.use(express.json());
 
+        // API-Endpunkt: Direct DMX control (for pulsating and cycling modes)
+        app.post('/dmx/direct', async (req, res) => {
+            try {
+                const { channels } = req.body;
+                
+                if (!channels || !Array.isArray(channels)) {
+                    return res.status(400).json({ 
+                        success: false, 
+                        message: 'Invalid or missing channels array' 
+                    });
+                }
+                
+                // Send the channels directly
+                await sendArtNetDMX(channels);
+                
+                // Store current state
+                dmxPrograms.current = [...channels];
+                
+                res.json({ 
+                    success: true, 
+                    message: 'DMX channels set directly'
+                });
+            } catch (error) {
+                errorWithTimestamp('Error setting DMX channels directly:', error);
+                res.status(500).json({ 
+                    success: false, 
+                    message: 'Error setting DMX channels directly'
+                });
+            }
+        });
+
+        // API-Endpunkt: Get a specific DMX program (for the cycling mode)
+        app.get('/dmx/program/:key', (req, res) => {
+            const key = req.params.key.toLowerCase();
+            
+            if (dmxPrograms[key]) {
+                res.json({ 
+                    success: true, 
+                    key: key,
+                    channels: dmxPrograms[key]
+                });
+            } else {
+                res.status(404).json({ 
+                    success: false, 
+                    message: `Program ${key.toUpperCase()} not found` 
+                });
+            }
+        });
+
         // API-Endpunkt: DMX-Programm senden
         app.post('/dmx/:key', async (req, res) => {
             const key = req.params.key.toLowerCase();
@@ -471,6 +520,26 @@ async function startServer() {
                     success: false,
                     message: 'Internal server error while resetting settings'
                 });
+            }
+        });
+        
+        // API-Endpunkt: Temporary settings for testing modes
+        app.post('/api/settings/temp', (req, res) => {
+            try {
+                // Apply the settings temporarily without saving to file
+                const tempSettings = {
+                    ...appSettings,
+                    screensaver: {
+                        ...appSettings.screensaver,
+                        ...req.body.screensaver
+                    }
+                };
+                
+                res.json({ success: true, message: 'Temporary settings applied', settings: tempSettings });
+                logWithTimestamp(`Temporary settings applied: ${JSON.stringify(tempSettings.screensaver)}`);
+            } catch (err) {
+                errorWithTimestamp('Error applying temporary settings:', err);
+                res.status(500).json({ success: false, message: 'Error applying temporary settings' });
             }
         });
         

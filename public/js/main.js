@@ -394,28 +394,40 @@ async function transitionToScreensaver() {
         case 'dimToOn':
           // Dim to all lights on (q command)
           await sendDMXFadeCommand('q');
+          // Start the mode in the manager
+          screensaverModeManager.startMode('dimToOn');
           break;
           
         case 'dimToOff':
           // Dim to all lights off (z command)
           await sendDMXFadeCommand('z');
+          // Start the mode in the manager
+          screensaverModeManager.startMode('dimToOff');
           break;
           
         case 'pulsating':
-          // For pulsating, we start with 'q' and will handle the pulsating effect elsewhere
+          // For pulsating mode, first dim to all on
           await sendDMXFadeCommand('q');
-          // Future enhancement: add pulsating effect
+          // Then start the pulsating mode
+          screensaverModeManager.startMode('pulsating');
           break;
           
         case 'cycling':
-          // For cycling, we start with 'q' and will handle the cycling effect elsewhere
-          await sendDMXFadeCommand('q');
-          // Future enhancement: add cycling effect
+          // Cycling mode handles its own transitions
+          screensaverModeManager.startMode('cycling');
+          break;
+          
+        case 'disco':
+          // Disco mode - first set A program as a base
+          await sendDMXCommand('a');
+          // Start the disco mode which will handle random transitions
+          screensaverModeManager.startMode('disco');
           break;
           
         default:
           // Default to all on
           await sendDMXFadeCommand('q');
+          screensaverModeManager.startMode('dimToOn');
       }
     }
     
@@ -446,6 +458,9 @@ async function returnFromScreensaver() {
     console.error(`No DMX mapping found for page ${lastPage}`);
     return;
   }
+  
+  // Stop any active screensaver mode
+  screensaverModeManager.stopActiveMode();
   
   // Status update
   const statusElem = document.getElementById('status');
@@ -638,6 +653,11 @@ document.addEventListener('DOMContentLoaded', async function() {
   
   // Load initial content if needed
   loadContent(currentPage, currentLang);
+  
+  // Initialize the screensaver mode manager
+  if (window.screensaverModeManager) {
+    screensaverModeManager.initialize();
+  }
   
   // Start screensaver timer if enabled
   if (screensaverEnabled && currentPage !== 'screensaver') {

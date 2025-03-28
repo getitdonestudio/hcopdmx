@@ -13,13 +13,86 @@ document.addEventListener('DOMContentLoaded', async function() {
   const lightPowerValue = document.getElementById('lightPowerValue');
   const saveButton = document.getElementById('saveSettings');
   const resetButton = document.getElementById('resetSettings');
+  const tryModeButton = document.getElementById('tryMode');
+  const allOnButton = document.getElementById('allOnButton');
+  const allOffButton = document.getElementById('allOffButton');
   const statusElement = document.getElementById('settingsSaveStatus');
   const backLink = document.getElementById('backLink');
+  
+  // Track if a mode is currently being tested
+  let isTestingMode = false;
+  let originalButtonText = tryModeButton ? tryModeButton.textContent : 'Try';
+
+  // Initialize screensaver mode manager if available
+  if (window.screensaverModeManager) {
+    window.screensaverModeManager.initialize();
+    console.log('Screensaver mode manager initialized in settings page');
+  }
+
+  // Handle All On button click
+  if (allOnButton) {
+    allOnButton.addEventListener('click', async function() {
+      // Stop any current test
+      if (isTestingMode) {
+        stopTestMode();
+      }
+      
+      showStatus('Turning all lights on...', 'success');
+      
+      try {
+        // Send the 'q' command (all on)
+        await fetch('/dmx/q', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        showStatus('All lights turned ON', 'success');
+      } catch (error) {
+        console.error('Error turning lights on:', error);
+        showStatus('Error turning lights on', 'error');
+      }
+    });
+  }
+  
+  // Handle All Off button click
+  if (allOffButton) {
+    allOffButton.addEventListener('click', async function() {
+      // Stop any current test
+      if (isTestingMode) {
+        stopTestMode();
+      }
+      
+      showStatus('Turning all lights off...', 'success');
+      
+      try {
+        // Send the 'z' command (all off)
+        await fetch('/dmx/z', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        showStatus('All lights turned OFF', 'success');
+      } catch (error) {
+        console.error('Error turning lights off:', error);
+        showStatus('Error turning lights off', 'error');
+      }
+    });
+  }
 
   // Handle back button click
   if (backLink) {
     backLink.addEventListener('click', function(e) {
       e.preventDefault();
+      
+      // Stop any running test mode
+      if (isTestingMode) {
+        stopTestMode();
+      }
+      
       // Get the last page from session storage, or default to home
       const lastPage = sessionStorage.getItem('lastPage') || '0000';
       const lang = sessionStorage.getItem('currentLang') || 'de';
@@ -31,6 +104,145 @@ document.addEventListener('DOMContentLoaded', async function() {
   lightPowerInput.addEventListener('input', function() {
     lightPowerValue.textContent = this.value;
   });
+  
+  // Stop any running test when the mode selection changes
+  if (screensaverModeSelect) {
+    screensaverModeSelect.addEventListener('change', function() {
+      if (isTestingMode) {
+        stopTestMode();
+      }
+    });
+  }
+
+  // Function to stop the test mode
+  function stopTestMode() {
+    if (!isTestingMode) return;
+    
+    isTestingMode = false;
+    
+    // Restore the button text
+    if (tryModeButton) {
+      tryModeButton.textContent = originalButtonText;
+      tryModeButton.classList.remove('active');
+    }
+    
+    // Stop the active mode
+    if (window.screensaverModeManager) {
+      window.screensaverModeManager.stopActiveMode();
+    } else {
+      const cleanupScript = document.createElement('script');
+      cleanupScript.textContent = `
+        if (window.parent && window.parent.screensaverModeManager) {
+          window.parent.screensaverModeManager.stopActiveMode();
+        }
+      `;
+      document.body.appendChild(cleanupScript);
+    }
+    
+    // Return to A program to end the preview
+    fetch('/dmx/a', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(() => {
+      showStatus('Test stopped', 'success');
+    })
+    .catch(error => {
+      console.error('Error stopping test:', error);
+      showStatus('Error stopping test', 'error');
+    });
+  }
+
+  // Try/Stop button for screensaver mode testing
+  if (tryModeButton) {
+    tryModeButton.addEventListener('click', async function() {
+      // If already testing, stop the test
+      if (isTestingMode) {
+        stopTestMode();
+        return;
+      }
+      
+      const selectedMode = screensaverModeSelect.value;
+      const powerValue = parseInt(lightPowerInput.value);
+      
+      try {
+        // First, prepare the DMX by loading program A (to ensure a consistent starting point)
+        await fetch('/dmx/a', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        // For pulsating/cycling/disco modes, we need special handling
+        if (selectedMode === 'pulsating' || selectedMode === 'cycling' || selectedMode === 'disco') {
+          if (selectedMode === 'pulsating') {
+            // For pulsating, we need to set Q program first as the base
+            await fetch('/dmx/fade/q', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ duration: 1000 })
+            });
+          }
+          
+          // Apply the selected screensaver mode temporarily
+          showStatus(`Testing "${selectedMode}" mode...`, 'success');
+          
+          // Save the settings as temporary for consistency
+          const settings = {
+            screensaver: {
+              mode: selectedMode,
+              lightPower: powerValue,
+              transitionSpeed: 1000
+            }
+          };
+          
+          // Send the temp settings (even though we'll start the mode manually)
+          await fetch('/api/settings/temp', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(settings)
+          });
+          
+          // Start the mode directly using the window.screensaverModeManager
+          if (window.screensaverModeManager) {
+            // We're in the main document, so we can access the manager directly
+            window.screensaverModeManager.startMode(selectedMode);
+          } else {
+            // We're in the settings page, so we need to create a temporary mode
+            const script = document.createElement('script');
+            script.textContent = `
+              // Start the mode for testing
+              if (window.parent && window.parent.screensaverModeManager) {
+                window.parent.screensaverModeManager.startMode('${selectedMode}');
+              } else {
+                console.error('Could not access screensaver mode manager');
+              }
+            `;
+            document.body.appendChild(script);
+          }
+          
+          // Update button text and state
+          isTestingMode = true;
+          tryModeButton.textContent = 'Stop';
+          tryModeButton.classList.add('active');
+          
+        } else {
+          // For simple modes (dimToOn, dimToOff), just show a message
+          showStatus(`${selectedMode} will dim to on/off when screensaver activates`, 'success');
+        }
+      } catch (error) {
+        console.error('Error testing mode:', error);
+        showStatus('Error testing mode', 'error');
+      }
+    });
+  }
 
   // Load current settings
   try {
@@ -56,6 +268,11 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Handle form submission
   form.addEventListener('submit', async function(e) {
     e.preventDefault();
+    
+    // Stop any running test mode first
+    if (isTestingMode) {
+      stopTestMode();
+    }
     
     try {
       // Collect settings from form
@@ -94,6 +311,11 @@ document.addEventListener('DOMContentLoaded', async function() {
 
   // Reset button handler
   resetButton.addEventListener('click', async function() {
+    // Stop any running test mode first
+    if (isTestingMode) {
+      stopTestMode();
+    }
+    
     try {
       const response = await fetch('/api/settings/reset', {
         method: 'POST'

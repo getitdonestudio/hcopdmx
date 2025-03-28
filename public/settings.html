@@ -29,12 +29,16 @@
             
             <div class="setting-item">
               <label for="screensaverMode">Screensaver Mode</label>
-              <select id="screensaverMode">
-                <option value="dimToOn">Dim to all lights on</option>
-                <option value="dimToOff">Dim to all lights off</option>
-                <option value="pulsating">Pulsating</option>
-                <option value="cycling">Cycle through options</option>
-              </select>
+              <div class="mode-selection-container">
+                <select id="screensaverMode">
+                  <option value="dimToOn">Dim to all lights on</option>
+                  <option value="dimToOff">Dim to all lights off</option>
+                  <option value="pulsating">Pulsating</option>
+                  <option value="cycling">Cycle through options</option>
+                  <option value="disco">Disco (Fast Random)</option>
+                </select>
+                <button type="button" id="tryMode" class="secondary-button">Try</button>
+              </div>
             </div>
             
             <div class="setting-item">
@@ -51,10 +55,23 @@
         </form>
 
         <div id="settingsSaveStatus" class="settings-status"></div>
+        
+        <div class="settings-group quick-controls">
+          <h2>Quick Controls</h2>
+          <div class="quick-control-buttons">
+            <button type="button" id="allOnButton" class="primary-button">All On</button>
+            <button type="button" id="allOffButton" class="secondary-button">All Off</button>
+          </div>
+        </div>
       </div>
     </section>
   </main>
 
+  <script src="/js/screensaverModes/baseMode.js"></script>
+  <script src="/js/screensaverModes/pulsatingMode.js"></script>
+  <script src="/js/screensaverModes/cyclingMode.js"></script>
+  <script src="/js/screensaverModes/discoMode.js"></script>
+  <script src="/js/screensaverModes/modeManager.js"></script>
   <script src="/js/settings.js"></script>
 </body>
 </html> 

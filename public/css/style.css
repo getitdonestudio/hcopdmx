@@ -124,9 +124,11 @@ main {
   width: 40px;
   height: 20vh;
   margin: 10px 0px;
-  background-color: rgba(255, 255, 255, 0.267);
+  background-color: rgba(255, 255, 255, 0.067);
   border-radius: 50px 0px 0px 50px;
+  outline: 1px solid white;
 }
+
 
 .binary-bit.active {
   background-color: white;
@@ -181,6 +183,30 @@ body[data-page="0000"] .content {
   /* Beispiel: Spezifisches Styling für Seite 0000 */
 }
 
+/* Styles for the mode selection container and try button */
+.mode-selection-container {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.mode-selection-container select {
+  flex-grow: 1;
+}
+
+.mode-selection-container button {
+  height: 38px;
+  padding: 0 15px;
+  font-size: 14px;
+  min-width: 60px;
+}
+
+.mode-selection-container button.active {
+  background-color: #d9534f;
+  color: white;
+  font-weight: bold;
+}
+
 /* Settings page styling */
 .settings-container {
   max-width: 800px;
@@ -208,13 +234,15 @@ body[data-page="settings"] h1 {
 .settings-group h2 {
   font-size: 24pt;
   margin-bottom: 20px;
-  color: #9fdbdb;
+  color: white;
+  font-family: Stolzl, sans-serif;
 }
 
 .setting-item {
   margin-bottom: 20px;
   display: flex;
   flex-direction: column;
+  font-family: Stolzl, sans-serif;
 }
 
 .setting-item label {
@@ -297,4 +325,44 @@ body[data-page="settings"] h1 {
   background-color: rgba(244, 67, 54, 0.3);
   color: white;
   opacity: 1;
+}
+
+/* Quick Controls section in settings */
+.quick-controls {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.quick-control-buttons {
+  display: flex;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.quick-control-buttons button {
+  padding: 12px 25px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.quick-control-buttons .primary-button {
+  background-color: #4C7371;
+  color: white;
+}
+
+.quick-control-buttons .primary-button:hover {
+  background-color: #3a5857;
+}
+
+.quick-control-buttons .secondary-button {
+  background-color: #333;
+  color: white;
+}
+
+.quick-control-buttons .secondary-button:hover {
+  background-color: #222;
 }
