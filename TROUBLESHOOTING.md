@@ -48,7 +48,28 @@ chmod +x fix-pm2-debug.sh
 ```
 This script provides more detailed diagnostics about the server environment, checks for missing dependencies, and offers more verbose output for troubleshooting.
 
-### 6. Simple Server Test
+### 6. Advanced PM2 Fix Script
+```bash
+chmod +x fix-pm2-advanced.sh
+./fix-pm2-advanced.sh
+```
+This enhanced version offers additional checks for systemd conflicts, different PM2 installation types (global vs local), and more robust error handling to solve complex PM2 issues.
+
+### 7. Check File Permissions
+```bash
+chmod +x check-permissions.sh
+./check-permissions.sh
+```
+Identifies common permission issues that might prevent the server from starting, particularly focusing on file ownership problems and PM2 directory permissions.
+
+### 8. Alternative: systemd Service Setup
+```bash
+chmod +x setup-systemd.sh
+./setup-systemd.sh
+```
+Creates a systemd service file as an alternative to PM2 for starting the server on boot. This is especially useful if PM2 startup continues to have issues.
+
+### 9. Simple Server Test
 ```bash
 node server-simple.js
 ```
@@ -68,16 +89,27 @@ pm2 logs
 npm install
 ```
 
-3. Reset the PM2 configuration:
+3. Check for file permission issues:
 ```bash
-./fix-pm2.sh
+./check-permissions.sh
 ```
 
-4. Make sure PM2 is set to start on boot:
+4. Reset the PM2 configuration:
+```bash
+./fix-pm2-advanced.sh
+```
+
+5. Make sure PM2 is set to start on boot:
 ```bash
 # Run the command provided by the fix-pm2.sh script
 # It will look something like:
 sudo env PATH=$PATH:/usr/bin pm2 startup systemd -u pi --hp /home/pi
+```
+
+6. If PM2 startup continues to be problematic, try the systemd service approach:
+```bash
+./setup-systemd.sh
+# Then follow the instructions it provides
 ```
 
 ### DMX Communication Issues
@@ -112,6 +144,23 @@ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
 nvm install 18
 nvm use 18
 ```
+
+### Root vs User Permission Problems
+
+If you're experiencing PM2 permission issues when running as a normal user versus root:
+
+1. Check file ownerships:
+```bash
+./check-permissions.sh
+```
+
+2. If needed, fix permissions on important files:
+```bash
+sudo chown -R youruser:youruser .
+sudo chown -R youruser:youruser ~/.pm2
+```
+
+3. Consider using the systemd service approach which can be more reliable with permission handling.
 
 ## Additional Resources
 
