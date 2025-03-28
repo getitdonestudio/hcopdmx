@@ -1,20 +1,40 @@
 {
   "name": "hcopdmx",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "A Node.js application to control DMX lighting via Art-Net protocol, optimized for Raspberry Pi deployment",
+  "main": "server.js",
   "scripts": {
+    "start": "node server.js",
+    "dev": "node server-local.js",
+    "pm2": "pm2 start ecosystem.config.js",
+    "pm2:restart": "pm2 restart dmxserver",
+    "pm2:logs": "pm2 logs dmxserver",
+    "pm2:monitor": "pm2 monit",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "dmx",
+    "artnet",
+    "lighting",
+    "raspberry-pi",
+    "iot"
+  ],
+  "author": "studio gid <info@studio-gid.com>",
   "license": "ISC",
   "dependencies": {
     "artnet": "^1.4.0",
     "csv-parser": "^3.0.0",
+    "dmxnet": "^0.9.0",
     "ejs": "^3.1.10",
     "express": "^4.21.2",
     "express-rate-limit": "^7.5.0",
     "helmet": "^8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/getitdonestudio/hcopdmx.git"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
