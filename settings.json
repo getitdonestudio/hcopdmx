@@ -1,0 +1,11 @@
+{
+  "screensaver": {
+    "timeDelay": 10000,
+    "mode": "dimToOn",
+    "lightPower": 255,
+    "transitionSpeed": 1000
+  },
+  "system": {
+    "lastUpdated": "2025-03-28T21:20:01.421Z"
+  }
+}

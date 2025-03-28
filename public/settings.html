@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hypercube | Settings</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/fonts.css">
+</head>
+<body data-page="settings">
+  <header>
+    <nav class="language-switcher">
+      <a href="javascript:void(0)" class="back-link" id="backLink">← Back</a>
+    </nav>
+  </header>
+  
+  <main>
+    <section id="content-container" class="content">
+      <h1>Settings</h1>
+      <div class="settings-container">
+        <form id="settingsForm">
+          <div class="settings-group">
+            <h2>Screensaver</h2>
+            
+            <div class="setting-item">
+              <label for="screensaverTime">Time to Screensaver (seconds)</label>
+              <input type="number" id="screensaverTime" min="5" max="3600" step="5">
+            </div>
+            
+            <div class="setting-item">
+              <label for="screensaverMode">Screensaver Mode</label>
+              <select id="screensaverMode">
+                <option value="dimToOn">Dim to all lights on</option>
+                <option value="dimToOff">Dim to all lights off</option>
+                <option value="pulsating">Pulsating</option>
+                <option value="cycling">Cycle through options</option>
+              </select>
+            </div>
+            
+            <div class="setting-item">
+              <label for="lightPower">Light Power (0-255)</label>
+              <input type="range" id="lightPower" min="0" max="255" step="5">
+              <span id="lightPowerValue">255</span>
+            </div>
+          </div>
+          
+          <div class="setting-actions">
+            <button type="submit" id="saveSettings" class="primary-button">Save</button>
+            <button type="button" id="resetSettings" class="secondary-button">Reset</button>
+          </div>
+        </form>
+
+        <div id="settingsSaveStatus" class="settings-status"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/js/settings.js"></script>
+</body>
+</html> 

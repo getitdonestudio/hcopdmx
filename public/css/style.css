@@ -52,6 +52,44 @@ header {
   font-weight: bold;
 }
 
+.nav-separator {
+  margin: 0 5px;
+}
+
+.settings-link {
+  font-size: 20pt;
+  text-decoration: none;
+  margin-left: 5px;
+  padding: 0 5px;
+  cursor: pointer;
+}
+
+.settings-button {
+  font-size: 20pt;
+  background: none;
+  border: none;
+  color: #4C7371;
+  cursor: pointer;
+  padding: 5px 10px;
+  margin-left: 5px;
+}
+
+.settings-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 5px;
+}
+
+.back-link {
+  font-size: 16pt;
+  text-decoration: none;
+  font-weight: bold;
+  color: #4C7371;
+}
+
+.back-link:hover {
+  color: #2a4140;
+}
+
 /* Hauptinhalt */
 main {
   padding: 20px 65px;
@@ -141,4 +179,122 @@ body.screensaver #content-container {
 /* Individuelle übergeordnete Klassen für Seiten können genutzt werden */
 body[data-page="0000"] .content {
   /* Beispiel: Spezifisches Styling für Seite 0000 */
+}
+
+/* Settings page styling */
+.settings-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 30px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+body[data-page="settings"] main {
+  padding: 20px 30px;
+}
+
+body[data-page="settings"] h1 {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.settings-group {
+  margin-bottom: 40px;
+}
+
+.settings-group h2 {
+  font-size: 24pt;
+  margin-bottom: 20px;
+  color: #9fdbdb;
+}
+
+.setting-item {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.setting-item label {
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.setting-item input[type="number"],
+.setting-item select {
+  padding: 10px;
+  font-size: 16pt;
+  border-radius: 5px;
+  border: none;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  max-width: 200px;
+}
+
+.setting-item input[type="range"] {
+  max-width: 300px;
+  margin-right: 15px;
+}
+
+.setting-item input[type="range"] + span {
+  font-size: 16pt;
+  min-width: 40px;
+  display: inline-block;
+}
+
+.setting-actions {
+  margin-top: 30px;
+  display: flex;
+  gap: 15px;
+}
+
+.primary-button, 
+.secondary-button {
+  padding: 12px 25px;
+  font-size: 16pt;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.primary-button {
+  background-color: #4C7371;
+  color: white;
+}
+
+.primary-button:hover {
+  background-color: #5A8A8A;
+}
+
+.secondary-button {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.secondary-button:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.settings-status {
+  margin-top: 20px;
+  padding: 10px;
+  border-radius: 5px;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.settings-status.success {
+  background-color: rgba(76, 175, 80, 0.3);
+  color: white;
+  opacity: 1;
+}
+
+.settings-status.error {
+  background-color: rgba(244, 67, 54, 0.3);
+  color: white;
+  opacity: 1;
 }

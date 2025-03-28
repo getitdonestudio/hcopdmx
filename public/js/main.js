@@ -14,7 +14,14 @@ let currentLang = 'de';
 let isLoadingContent = false;
 let screensaverEnabled = ENABLE_SCREENSAVER; // Flag to enable/disable screensaver functionality
 let screensaverTimeout = null;
-const SCREENSAVER_DELAY = 120000; // 2 minutes of inactivity before screensaver
+let appSettings = {
+  screensaver: {
+    timeDelay: 120000, // Default 2 minutes
+    mode: 'dimToOn',
+    lightPower: 255,
+    transitionSpeed: 1000
+  }
+};
 
 // Constants
 const dimmingDuration = 1000; // Duration for transitions in ms
@@ -108,10 +115,10 @@ function resetScreensaverTimer() {
   // If we're already in screensaver mode, don't set a timer
   if (currentPage === 'screensaver') return;
   
-  // Set a new timeout
+  // Set a new timeout using the delay from settings
   screensaverTimeout = setTimeout(() => {
     transitionToScreensaver();
-  }, SCREENSAVER_DELAY);
+  }, appSettings.screensaver.timeDelay);
 }
 
 /**
@@ -198,6 +205,9 @@ async function loadContent(pageId, lang = currentLang) {
     document.body.setAttribute('data-lang', lang);
     document.body.setAttribute('data-page', pageId);
     
+    // Store current language in sessionStorage for the settings page
+    sessionStorage.setItem('currentLang', lang);
+    
     // Update classes based on page type
     if (pageId === 'screensaver') {
       document.body.classList.add('screensaver');
@@ -211,6 +221,9 @@ async function loadContent(pageId, lang = currentLang) {
     
     // Update binary display
     updateBinaryDisplay();
+    
+    // Update settings link to match the current language
+    updateSettingsLink();
     
     // Restore normal state without animation
     container.classList.remove('loading');
@@ -268,10 +281,15 @@ async function sendDMXCommand(key) {
 /**
  * Execute a DMX program change with smooth transition/fade
  * @param {string} key - The DMX program key to set
- * @param {number} duration - Duration of the fade in ms (default: 2000ms)
+ * @param {number} duration - Duration of the fade in ms (default: from settings)
  * @returns {Promise<boolean>} - Success status
  */
-async function sendDMXFadeCommand(key, duration = dimmingDuration) {
+async function sendDMXFadeCommand(key, duration) {
+  // If no duration provided, use the one from settings
+  if (duration === undefined) {
+    duration = appSettings.screensaver.transitionSpeed;
+  }
+
   const statusElem = document.getElementById('status');
   if (statusElem) {
     statusElem.textContent = `Fade zu Programm ${key.toUpperCase()}...`;
@@ -357,7 +375,7 @@ async function transitionToScreensaver() {
   // 1. Store current page for later return
   sessionStorage.setItem('lastPage', currentPage || '0000');
   
-  // 2. Load screensaver content and activate 'q' program
+  // 2. Load screensaver content and activate DMX program based on mode
   const statusElem = document.getElementById('status');
   if (statusElem) {
     statusElem.textContent = 'Wechsle zum Bildschirmschoner...';
@@ -367,13 +385,42 @@ async function transitionToScreensaver() {
     // Load the screensaver content
     const contentLoaded = await loadContent('screensaver');
     
-    // Send the 'all on' command
+    // Apply the appropriate DMX program based on screensaver mode
     if (contentLoaded) {
-      await sendDMXFadeCommand('q');
+      const mode = appSettings.screensaver.mode;
+      console.log(`Using screensaver mode: ${mode}`);
+      
+      switch (mode) {
+        case 'dimToOn':
+          // Dim to all lights on (q command)
+          await sendDMXFadeCommand('q');
+          break;
+          
+        case 'dimToOff':
+          // Dim to all lights off (z command)
+          await sendDMXFadeCommand('z');
+          break;
+          
+        case 'pulsating':
+          // For pulsating, we start with 'q' and will handle the pulsating effect elsewhere
+          await sendDMXFadeCommand('q');
+          // Future enhancement: add pulsating effect
+          break;
+          
+        case 'cycling':
+          // For cycling, we start with 'q' and will handle the cycling effect elsewhere
+          await sendDMXFadeCommand('q');
+          // Future enhancement: add cycling effect
+          break;
+          
+        default:
+          // Default to all on
+          await sendDMXFadeCommand('q');
+      }
     }
     
     if (statusElem) {
-      statusElem.textContent = 'Bildschirmschoner mit voller Beleuchtung aktiv.';
+      statusElem.textContent = 'Bildschirmschoner aktiv.';
     }
     
     console.log("Transition to screensaver completed");
@@ -516,16 +563,40 @@ document.addEventListener('mousemove', function() {
   }
 });
 
-// Initialize the application when the DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-  // Set up all event handlers
-  captureKeyboardEvents();
-  
-  // Load screensaver preference from localStorage
-  const savedScreensaverPref = localStorage.getItem('screensaverEnabled');
-  if (savedScreensaverPref !== null) {
-    screensaverEnabled = savedScreensaverPref === 'true';
+/**
+ * Load settings from the server
+ */
+async function loadSettings() {
+  try {
+    const response = await fetch('/api/settings');
+    if (!response.ok) {
+      console.error('Failed to load settings');
+      return;
+    }
+    
+    const settings = await response.json();
+    appSettings = settings;
+    console.log('Settings loaded successfully:', appSettings);
+  } catch (error) {
+    console.error('Error loading settings:', error);
   }
+}
+
+/**
+ * Update the settings link to match the current language
+ */
+function updateSettingsLink() {
+  const settingsLink = document.getElementById('settingsLink');
+  if (settingsLink) {
+    settingsLink.href = `/settings.html`;
+  }
+}
+
+// Initialize everything when DOM is loaded
+document.addEventListener('DOMContentLoaded', async function() {
+  
+  // Load settings first
+  await loadSettings();
   
   // Parse the initial URL to determine current page
   const pathname = window.location.pathname;
@@ -537,6 +608,15 @@ document.addEventListener('DOMContentLoaded', function() {
   } else {
     currentLang = 'de';
     currentPage = '0000';
+  }
+  
+  // Set up all event handlers
+  captureKeyboardEvents();
+  
+  // Load screensaver preference from localStorage
+  const savedScreensaverPref = localStorage.getItem('screensaverEnabled');
+  if (savedScreensaverPref !== null) {
+    screensaverEnabled = savedScreensaverPref === 'true';
   }
   
   // Set initial attributes
@@ -563,4 +643,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (screensaverEnabled && currentPage !== 'screensaver') {
     resetScreensaverTimer();
   }
+  
+  // Update settings link
+  updateSettingsLink();
 }); 

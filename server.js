@@ -19,6 +19,61 @@ function errorWithTimestamp(...args) {
 
 const PORT = 3000;
 const CSV_FILE = 'hcop_dmx-channel.csv';
+const SETTINGS_FILE = 'settings.json';
+
+// Default settings
+const DEFAULT_SETTINGS = {
+    screensaver: {
+        timeDelay: 120000, // 2 minutes
+        mode: 'dimToOn',
+        lightPower: 255,
+        transitionSpeed: 1000
+    },
+    system: {
+        lastUpdated: new Date().toISOString()
+    }
+};
+
+// Global settings object
+let appSettings = { ...DEFAULT_SETTINGS };
+
+// Load settings from file
+function loadSettings() {
+    try {
+        if (fs.existsSync(SETTINGS_FILE)) {
+            const data = fs.readFileSync(SETTINGS_FILE, 'utf8');
+            appSettings = JSON.parse(data);
+            logWithTimestamp('Settings loaded successfully');
+        } else {
+            // If file doesn't exist, create it with default settings
+            saveSettings(DEFAULT_SETTINGS);
+            logWithTimestamp('Created default settings file');
+        }
+    } catch (error) {
+        errorWithTimestamp('Error loading settings:', error);
+        // If there's an error, use default settings
+        appSettings = { ...DEFAULT_SETTINGS };
+    }
+}
+
+// Save settings to file
+function saveSettings(settings) {
+    try {
+        // Update last updated timestamp
+        settings.system = {
+            ...settings.system,
+            lastUpdated: new Date().toISOString()
+        };
+        
+        fs.writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2), 'utf8');
+        appSettings = { ...settings };
+        logWithTimestamp('Settings saved successfully');
+        return true;
+    } catch (error) {
+        errorWithTimestamp('Error saving settings:', error);
+        return false;
+    }
+}
 
 // ArtNet configuration
 const ARTNET_PORT = 6454;
@@ -176,7 +231,18 @@ async function fadeDMXProgram(fromChannels, toChannels, durationMs = 1000) {
         // Ensure both arrays are the same length
         const maxLength = Math.max(fromChannels.length, toChannels.length);
         const normalizedFrom = [...fromChannels];
-        const normalizedTo = [...toChannels];
+        let normalizedTo = [...toChannels];
+        
+        // If this is program 'q' (all on), apply the lightPower setting
+        // We identify if this is a 'q' program by checking if all values are the same and > 0
+        const isAllOn = normalizedTo.length > 0 && 
+            normalizedTo.every(val => val > 0 && val === normalizedTo[0]);
+        
+        if (isAllOn && appSettings.screensaver.lightPower < 255) {
+            const scaleFactor = appSettings.screensaver.lightPower / 255;
+            normalizedTo = normalizedTo.map(val => Math.round(val * scaleFactor));
+            logWithTimestamp(`Applying lightPower setting (${appSettings.screensaver.lightPower}) to DMX values`);
+        }
         
         // Pad arrays if needed
         while (normalizedFrom.length < maxLength) normalizedFrom.push(0);
@@ -218,9 +284,14 @@ async function fadeDMXProgram(fromChannels, toChannels, durationMs = 1000) {
 
 async function startServer() {
     try {
+        // Load DMX programs and settings
         dmxPrograms = await loadDMXPrograms();
+        loadSettings();
 
         const app = express();
+        
+        // Add JSON parsing middleware
+        app.use(express.json());
 
         // API-Endpunkt: DMX-Programm senden
         app.post('/dmx/:key', async (req, res) => {
@@ -331,6 +402,78 @@ async function startServer() {
             res.json({ success: true, programs });
         });
         
+        // API endpoints for settings
+        app.get('/api/settings', (req, res) => {
+            res.json(appSettings);
+        });
+        
+        app.post('/api/settings', (req, res) => {
+            try {
+                const newSettings = req.body;
+                
+                // Validate settings
+                if (!newSettings.screensaver) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Invalid settings format'
+                    });
+                }
+                
+                // Apply new settings but keep any existing settings that weren't specified
+                const updatedSettings = {
+                    ...appSettings,
+                    screensaver: {
+                        ...appSettings.screensaver,
+                        ...newSettings.screensaver
+                    }
+                };
+                
+                const success = saveSettings(updatedSettings);
+                
+                if (success) {
+                    logWithTimestamp('Settings updated:', JSON.stringify(updatedSettings.screensaver));
+                    return res.json({
+                        success: true,
+                        message: 'Settings updated successfully',
+                        settings: updatedSettings
+                    });
+                } else {
+                    return res.status(500).json({
+                        success: false,
+                        message: 'Failed to save settings'
+                    });
+                }
+            } catch (error) {
+                errorWithTimestamp('Error updating settings:', error);
+                res.status(500).json({
+                    success: false,
+                    message: 'Internal server error while updating settings'
+                });
+            }
+        });
+        
+        app.post('/api/settings/reset', (req, res) => {
+            try {
+                const success = saveSettings(DEFAULT_SETTINGS);
+                
+                if (success) {
+                    logWithTimestamp('Settings reset to defaults');
+                    return res.json(DEFAULT_SETTINGS);
+                } else {
+                    return res.status(500).json({
+                        success: false,
+                        message: 'Failed to reset settings'
+                    });
+                }
+            } catch (error) {
+                errorWithTimestamp('Error resetting settings:', error);
+                res.status(500).json({
+                    success: false,
+                    message: 'Internal server error while resetting settings'
+                });
+            }
+        });
+        
         // Redirect von / zu /de/0000.html
         app.get('/', (req, res) => {
             res.redirect('/de/0000.html');
@@ -354,6 +497,11 @@ async function startServer() {
         // SPA route handling - serve index.html for all language/page routes
         app.get('/:lang/:page.html', (req, res) => {
             res.sendFile(path.join(__dirname, 'public', 'index.html'));
+        });
+
+        // Direct settings page route
+        app.get('/settings.html', (req, res) => {
+            res.sendFile(path.join(__dirname, 'public', 'settings.html'));
         });
 
         const server = app.listen(PORT, '0.0.0.0', () => {
