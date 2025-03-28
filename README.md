@@ -20,9 +20,19 @@ A Node.js application to control DMX lighting via Art-Net protocol, optimized fo
 
 ## Installation on Raspberry Pi
 
-### Automatic Installation (Recommended)
+### One-line Bootstrap Installation (Fresh OS)
 
-The easiest way to install the application is using our automated setup script:
+If you're starting with a fresh installation of Raspberry Pi OS Lite, you can use our bootstrap script to set up everything in one step:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/getitdonestudio/hcopdmx/main/bootstrap-raspi.sh | bash
+```
+
+After the script completes, you'll need to run the PM2 startup command (which will be displayed in the terminal) to enable automatic startup on boot.
+
+### Automatic Installation (Alternative)
+
+If you already have git installed:
 
 1. SSH into your Raspberry Pi
 ```bash
@@ -219,6 +229,7 @@ The local server provides simulated DMX functionality for testing.
 - `hcop_dmx-channel.csv` - DMX program definitions
 - `ecosystem.config.js` - PM2 configuration
 - `setup-raspi.sh` - Raspberry Pi setup script
+- `bootstrap-raspi.sh` - One-line bootstrap script for fresh installations
 - `update-raspi.sh` - Raspberry Pi update script
 - `public/` - Web interface files
   - `de/` - German interface
