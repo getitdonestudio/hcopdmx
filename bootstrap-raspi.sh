@@ -66,7 +66,8 @@ pm2 save
 
 # Setup PM2 to start on system boot
 echo "Setting up PM2 to start on system boot..."
-PM2_STARTUP_CMD=$(pm2 startup | grep "sudo env" | sed -e "s/\\\/home\/pi\\\//\/home\/$(whoami)\//g")
+# Get the startup command without modifying it
+PM2_STARTUP_CMD=$(pm2 startup | grep "sudo env")
 
 echo ""
 echo "============================================================"
