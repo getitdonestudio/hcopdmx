@@ -110,7 +110,6 @@ function resetScreensaverTimer() {
   
   // Set a new timeout
   screensaverTimeout = setTimeout(() => {
-    console.log('Inactivity timeout reached, activating screensaver');
     transitionToScreensaver();
   }, SCREENSAVER_DELAY);
 }
@@ -121,13 +120,6 @@ function resetScreensaverTimer() {
  */
 function toggleScreensaver(enable) {
   screensaverEnabled = enable;
-  
-  // Update UI to show current state
-  const toggleBtn = document.getElementById('screensaver-toggle');
-  if (toggleBtn) {
-    toggleBtn.textContent = screensaverEnabled ? 'Bildschirmschoner deaktivieren' : 'Bildschirmschoner aktivieren';
-    toggleBtn.classList.toggle('active', screensaverEnabled);
-  }
   
   // If enabling, reset the timer
   if (screensaverEnabled) {
@@ -468,8 +460,19 @@ document.addEventListener('click', function(event) {
 }, true); // Use capture phase
 
 // Add mouse movement handler for screensaver
+let lastMouseMoveTime = 0;
+let mouseMoveCount = 0;
 document.addEventListener('mousemove', function() {
-  resetScreensaverTimer();
+  const now = Date.now();
+  mouseMoveCount++;
+  
+  // Only reset the timer if it's been at least 5 seconds since the last reset
+  // to avoid constant resets from rapid mouse movements
+  if (now - lastMouseMoveTime > 5000) {
+    lastMouseMoveTime = now;
+    mouseMoveCount = 0;
+    resetScreensaverTimer();
+  }
 });
 
 // Initialize the application when the DOM is ready
