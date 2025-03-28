@@ -165,6 +165,57 @@ async function setDMXProgram(programKey) {
     }
 }
 
+// Function to smoothly fade between two DMX states
+async function fadeDMXProgram(fromChannels, toChannels, durationMs = 1000) {
+    try {
+        // If no current state, use all zeros as starting point
+        if (!fromChannels || fromChannels.length === 0) {
+            fromChannels = Array(toChannels.length).fill(0);
+        }
+        
+        // Ensure both arrays are the same length
+        const maxLength = Math.max(fromChannels.length, toChannels.length);
+        const normalizedFrom = [...fromChannels];
+        const normalizedTo = [...toChannels];
+        
+        // Pad arrays if needed
+        while (normalizedFrom.length < maxLength) normalizedFrom.push(0);
+        while (normalizedTo.length < maxLength) normalizedTo.push(0);
+        
+        logWithTimestamp(`Starting DMX fade transition over ${durationMs}ms...`);
+        
+        const steps = 40; // 40Hz = 40 steps per second
+        const stepDelay = Math.floor(durationMs / steps);
+        
+        for (let step = 1; step <= steps; step++) {
+            const progress = step / steps;
+            const intermediateChannels = normalizedFrom.map((fromVal, i) => {
+                const toVal = normalizedTo[i];
+                // Calculate intermediate value with easing (cubic ease-in-out)
+                // Simple linear interpolation:
+                return Math.round(fromVal + (toVal - fromVal) * progress);
+            });
+            
+            // Send the intermediate state
+            await sendArtNetDMX(intermediateChannels);
+            
+            // Wait for the next step (if not the last step)
+            if (step < steps) {
+                await new Promise(resolve => setTimeout(resolve, stepDelay));
+            }
+        }
+        
+        // Update current state to final state
+        dmxPrograms.current = [...normalizedTo];
+        
+        logWithTimestamp(`DMX fade transition completed successfully.`);
+        return true;
+    } catch (error) {
+        errorWithTimestamp(`Fehler beim Fade-Übergang:`, error);
+        return false;
+    }
+}
+
 async function startServer() {
     try {
         dmxPrograms = await loadDMXPrograms();
@@ -225,6 +276,46 @@ async function startServer() {
             } catch (error) {
                 errorWithTimestamp('Fehler beim Setzen des DMX-Programms:', error);
                 res.status(500).json({ success: false, message: 'Interner Serverfehler beim Setzen des DMX-Programms' });
+            }
+        });
+
+        // API-Endpunkt für sanfte Übergänge mit Fading
+        app.post('/dmx/fade/:toKey', async (req, res) => {
+            const toKey = req.params.toKey.toLowerCase();
+            const durationMs = req.query.duration ? parseInt(req.query.duration, 10) : 2000;
+            
+            if (toKey !== 'z' && !dmxPrograms[toKey]) {
+                return res.status(404).json({ 
+                    success: false, 
+                    message: `Programm ${toKey.toUpperCase()} nicht gefunden` 
+                });
+            }
+
+            try {
+                // Holen des aktuellen Zustands als Ausgangsposition
+                const fromChannels = dmxPrograms.current || Array(512).fill(0);
+                const toChannels = dmxPrograms[toKey];
+                
+                // Start the fade transition
+                logWithTimestamp(`Starte Fade-Übergang zu Programm ${toKey.toUpperCase()} über ${durationMs}ms`);
+                const success = await fadeDMXProgram(fromChannels, toChannels, durationMs);
+                
+                if (success) {
+                    logWithTimestamp(`Fade-Übergang zu Programm ${toKey.toUpperCase()} erfolgreich.`);
+                    return res.json({ 
+                        success: true, 
+                        message: `Fade-Übergang zu Programm ${toKey.toUpperCase()} abgeschlossen.`,
+                        completed: true
+                    });
+                } else {
+                    return res.status(500).json({ 
+                        success: false, 
+                        message: `Fehler beim Fade-Übergang zu Programm ${toKey.toUpperCase()}.`
+                    });
+                }
+            } catch (error) {
+                errorWithTimestamp('Fehler beim Fade-Übergang:', error);
+                res.status(500).json({ success: false, message: 'Interner Serverfehler beim Fade-Übergang' });
             }
         });
 

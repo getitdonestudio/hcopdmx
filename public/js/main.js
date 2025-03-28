@@ -17,7 +17,7 @@ let screensaverTimeout = null;
 const SCREENSAVER_DELAY = 120000; // 2 minutes of inactivity before screensaver
 
 // Constants
-const dimmingDuration = 2000; // Duration for transitions in ms
+const dimmingDuration = 1000; // Duration for transitions in ms
 
 // Mapping from keyboard keys to binary values
 const keyToBinary = {
@@ -266,6 +266,47 @@ async function sendDMXCommand(key) {
 }
 
 /**
+ * Execute a DMX program change with smooth transition/fade
+ * @param {string} key - The DMX program key to set
+ * @param {number} duration - Duration of the fade in ms (default: 2000ms)
+ * @returns {Promise<boolean>} - Success status
+ */
+async function sendDMXFadeCommand(key, duration = dimmingDuration) {
+  const statusElem = document.getElementById('status');
+  if (statusElem) {
+    statusElem.textContent = `Fade zu Programm ${key.toUpperCase()}...`;
+  }
+  
+  console.log(`Sending DMX fade to program: ${key.toUpperCase()} over ${duration}ms`);
+  
+  try {
+    const response = await fetch(`/dmx/fade/${key}?duration=${duration}`, { 
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    const data = await response.json();
+    
+    if (statusElem) {
+      statusElem.textContent = data.success ? 
+        `Fade zu Programm ${key.toUpperCase()} abgeschlossen.` : 
+        `Fehler: ${data.message}`;
+    }
+    
+    console.log(`DMX fade command result: ${data.success}`);
+    return data.success;
+  } catch (error) {
+    console.error('DMX fade command error:', error);
+    if (statusElem) {
+      statusElem.textContent = 'Fehler beim Senden des Fade-Befehls.';
+    }
+    return false;
+  }
+}
+
+/**
  * Perform a direct page transition
  * @param {string} pageId - Target page ID
  * @returns {Promise<void>}
@@ -328,7 +369,7 @@ async function transitionToScreensaver() {
     
     // Send the 'all on' command
     if (contentLoaded) {
-      await sendDMXCommand('q');
+      await sendDMXFadeCommand('q');
     }
     
     if (statusElem) {
@@ -369,7 +410,7 @@ async function returnFromScreensaver() {
     // Load the content for the previous page
     const contentLoaded = await loadContent(lastPage);
     
-    // Send the DMX command for that page
+    // Send the DMX command for that page without fade
     if (contentLoaded) {
       await sendDMXCommand(targetDMXKey);
     }
