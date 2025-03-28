@@ -1,0 +1,102 @@
+/* Basis-Layout */
+body {
+  margin: 0;
+  font-family: Yorkten Slab, sans-serif;
+  color: white;
+  font-size: 22pt;
+  font-weight: 300;
+}
+body::after {
+  content: '';
+  height: 100vh;
+  width: 100vw;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-image: url(/assets/bg.jpg);
+  z-index: -1;
+}
+
+h1 {
+  font-family: Stolzl, sans-serif;
+  font-size: 50pt;
+  font-weight: normal;
+  margin: 15px 0;
+}
+
+/* Header und Language-Switcher */
+header {
+  background-color: transparent;
+  padding: 35px 0;
+}
+
+.language-switcher {
+  font-family: Stolzl, sans-serif;
+  font-size: 14pt;
+  width: max-content;
+  padding: 20px 30px 20px 15px;
+  background: #ffffff45;
+  -webkit-backdrop-filter: blur(30px);
+  backdrop-filter: blur(30px);
+  border-radius: 0 50px 50px 0;
+  box-shadow: 0 0 10px #666;
+}
+
+.language-switcher a, .language-switcher span {
+  margin-right: 5px 0;
+  text-decoration: none;
+  color: #4C7371;
+}
+
+.language-switcher a.active {
+  font-weight: bold;
+}
+
+/* Hauptinhalt */
+main {
+  padding: 20px 65px;
+}
+#binaryDisplay {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  margin: 0;
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  justify-content: center;
+}
+
+.binary-bit {
+  width: 40px;
+  height: 20vh;
+  margin: 10px 0px;
+  background-color: rgba(255, 255, 255, 0.267);
+  border-radius: 50px 0px 0px 50px;
+}
+
+.binary-bit.active {
+  background-color: white;
+}
+
+
+/* Individuelle übergeordnete Klassen für Seiten können genutzt werden */
+body[data-page="0000"] .content {
+  /* Beispiel: Spezifisches Styling für Seite 0000 */
+}
+
+/* DMX-Steuerung / Buttons */
+.button-container {
+  margin-top: 20px;
+}
+
+button {
+  padding: 10px 20px;
+  font-size: 16px;
+}
+
+.formel {
+  max-height: 150px !important;
+  margin: 50px;
+}

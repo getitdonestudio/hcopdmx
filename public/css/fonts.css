@@ -1,0 +1,108 @@
+@font-face {
+    font-family: 'Stolzl';
+    src: url('fonts/Stolzl-Light.woff2') format('woff2'),
+        url('fonts/Stolzl-Light.woff') format('woff');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+  }
+  
+  @font-face {
+    font-family: 'Stolzl Book';
+    src: url('fonts/Stolzl-Book.woff2') format('woff2'),
+        url('fonts/Stolzl-Book.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+  }
+  
+  @font-face {
+    font-family: 'Stolzl';
+    src: url('fonts/Stolzl-Regular.woff2') format('woff2'),
+        url('fonts/Stolzl-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+  }
+  
+  @font-face {
+    font-family: 'Stolzl';
+    src: url('fonts/Stolzl-Bold.woff2') format('woff2'),
+        url('fonts/Stolzl-Bold.woff') format('woff');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+  }
+  
+  @font-face {
+    font-family: 'Stolzl';
+    src: url('fonts/Stolzl-Medium.woff2') format('woff2'),
+        url('fonts/Stolzl-Medium.woff') format('woff');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+  }
+  
+  @font-face {
+    font-family: 'Stolzl';
+    src: url('fonts/Stolzl-Thin.woff2') format('woff2'),
+        url('fonts/Stolzl-Thin.woff') format('woff');
+    font-weight: 100;
+    font-style: normal;
+    font-display: swap;
+  }
+  
+  @font-face {
+    font-family: 'Yorkten Slab';
+    src: url('fonts/YorktenSlab-NorBolIt.woff2') format('woff2'),
+        url('fonts/YorktenSlab-NorBolIt.woff') format('woff');
+    font-weight: 700;
+    font-style: italic;
+    font-display: swap;
+  }
+  
+  @font-face {
+    font-family: 'Yorkten Slab';
+    src: url('fonts/YorktenSlab-NorLigIt.woff2') format('woff2'),
+        url('fonts/YorktenSlab-NorLigIt.woff') format('woff');
+    font-weight: 300;
+    font-style: italic;
+    font-display: swap;
+  }
+  
+  @font-face {
+    font-family: 'Yorkten Slab';
+    src: url('fonts/YorktenSlab-NorLig.woff2') format('woff2'),
+        url('fonts/YorktenSlab-NorLig.woff') format('woff');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+  }
+  
+  @font-face {
+    font-family: 'Yorkten Slab';
+    src: url('fonts/YorktenSlab-NorBol.woff2') format('woff2'),
+        url('fonts/YorktenSlab-NorBol.woff') format('woff');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+  }
+  
+  @font-face {
+    font-family: 'Yorkten Slab';
+    src: url('fonts/YorktenSlab-NorMed.woff2') format('woff2'),
+        url('fonts/YorktenSlab-NorMed.woff') format('woff');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+  }
+  
+  @font-face {
+    font-family: 'Yorkten Slab';
+    src: url('fonts/YorktenSlab-NorMedIt.woff2') format('woff2'),
+        url('fonts/YorktenSlab-NorMedIt.woff') format('woff');
+    font-weight: 500;
+    font-style: italic;
+    font-display: swap;
+  }
+  
