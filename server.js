@@ -2,10 +2,11 @@
 const express = require('express');
 const fs = require('fs');
 const csv = require('csv-parser');
-const dmxlib = require('dmxnet');
+const dgram = require('dgram');
 const os = require('os');
+const path = require('path');
 
-// Hilfsfunktionen für Logs mit Zeitstempel
+// Timestamps für Logs
 function logWithTimestamp(...args) {
     const timestamp = new Date().toISOString();
     console.log(`[${timestamp}]`, ...args);
@@ -19,24 +20,31 @@ function errorWithTimestamp(...args) {
 const PORT = 3000;
 const CSV_FILE = 'hcop_dmx-channel.csv';
 
-// DMXNet-Konfiguration
-const dmxnet = new dmxlib.dmxnet({
-    verbose: 2, // Bei Bedarf anpassen (0 = keine Logs, 2 = sehr ausführlich)
-    oem: 0x1234,
-    shortname: "DMXNode",
-    longname: "DMX Controller Node",
-    port: 6454,
-    refreshRate: 40
+// ArtNet configuration
+const ARTNET_PORT = 6454;
+const ARTNET_HOST = '10.0.166.102';
+const UNIVERSE = 1;
+const NET = 0; // Common default
+const SUBNET = 0; // Common default
+
+// Create UDP socket for ArtNet communication
+const socket = dgram.createSocket('udp4');
+
+// Set up socket error handling
+socket.on('error', (err) => {
+    errorWithTimestamp('UDP Socket Error:', err);
 });
 
-const sender = dmxnet.newSender({
-    ip: '10.0.166.102',
-    subnet: 0,
-    universe: 1,
-    net: 0,
-});
+// ArtNet packet header (constant part)
+const ARTNET_HEADER = Buffer.from([
+    0x41, 0x72, 0x74, 0x2d, 0x4e, 0x65, 0x74, 0x00, // "Art-Net" - 8 bytes
+    0x00, 0x50, // OpCode ArtDMX (0x5000) - 2 bytes
+    0x00, 0x0e, // Protocol version (14) - 2 bytes
+    0x00, // Sequence - 1 byte
+    0x00, // Physical - 1 byte
+]);
 
-logWithTimestamp('ArtNet-Sender gestartet. Ziel-IP: 10.0.166.102');
+logWithTimestamp('ArtNet raw UDP sender initialisiert. Ziel-IP: ' + ARTNET_HOST);
 
 // DMX-Programme aus CSV laden
 let dmxPrograms = {};
@@ -61,43 +69,99 @@ function loadDMXPrograms() {
                 reject(err);
             })
             .on('end', () => {
-                logWithTimestamp('CSV-Datei erfolgreich geladen:', tempPrograms);
+                logWithTimestamp('CSV-Datei erfolgreich geladen. Programme:', Object.keys(tempPrograms).join(', '));
                 resolve(tempPrograms);
             });
     });
 }
 
-// Funktion zum Senden des aktuellen DMX-States mit Wiederholungsversuchen bei Netzwerkfehlern
-async function sendDMXState(channels, retries = 3) {
+// Function to directly send an ArtNet DMX packet
+function sendArtNetDMX(channels) {
+    // Calculate high and low bytes for subnet/universe
+    const subUni = ((SUBNET & 0x0F) << 4) | (UNIVERSE & 0x0F);
+    const netSubUni = ((NET & 0x7F) << 8) | subUni;
+    
+    // Split netSubUni into high and low bytes
+    const highByte = (netSubUni >> 8) & 0xFF;
+    const lowByte = netSubUni & 0xFF;
+    
+    // Channel data length (2 bytes)
+    const len = channels.length;
+    const lenHi = (len >> 8) & 0xFF;
+    const lenLo = len & 0xFF;
+    
+    // Build the full ArtNet packet
+    const artnetPacket = Buffer.alloc(18 + channels.length);
+    
+    // Copy header to packet
+    ARTNET_HEADER.copy(artnetPacket, 0);
+    
+    // Add sequence number (cycle from 1-255)
+    const sequence = (global.artnetSequence || 0) + 1;
+    global.artnetSequence = sequence > 255 ? 1 : sequence;
+    artnetPacket[12] = global.artnetSequence;
+    
+    // Add universe information
+    artnetPacket[14] = lowByte;  // Universe LSB (universe, part of subnet)
+    artnetPacket[15] = highByte; // Universe MSB (net, part of subnet)
+    
+    // Add length
+    artnetPacket[16] = lenHi;    // Data length MSB
+    artnetPacket[17] = lenLo;    // Data length LSB
+    
+    // Add channel data
     for (let i = 0; i < channels.length; i++) {
-        try {
-            sender.setChannel(i, channels[i]);
-        } catch (err) {
-            errorWithTimestamp(`Fehler beim Setzen des Kanals ${i}:`, err);
-        }
+        artnetPacket[18 + i] = channels[i];
     }
-
-    // Transmit mit Retry
-    let attempt = 0;
-    while (attempt <= retries) {
-        try {
-            sender.transmit();
-            if (attempt > 0) {
-                logWithTimestamp(`DMX-Daten nach ${attempt} Wiederholungsversuch(en) erfolgreich gesendet.`);
-            }
-            break; // Erfolg, Schleife beenden
-        } catch (err) {
-            errorWithTimestamp(`Fehler beim Übertragen der DMX-Daten (Versuch ${attempt + 1}):`, err);
-            // Wenn es sich um ein Netzwerk-Problem handelt, erneut versuchen
-            if (err.code === 'ENETUNREACH' && attempt < retries) {
-                errorWithTimestamp('Netzwerkproblem erkannt. Warte 5 Sekunden vor erneutem Versuch...');
-                await new Promise(res => setTimeout(res, 5000));
+    
+    // Send the packet via UDP
+    return new Promise((resolve, reject) => {
+        socket.send(artnetPacket, 0, artnetPacket.length, ARTNET_PORT, ARTNET_HOST, (err) => {
+            if (err) {
+                errorWithTimestamp('Fehler beim Senden des ArtNet-Pakets:', err);
+                reject(err);
             } else {
-                // Bei anderen Fehlern oder nach Erschöpfung der Versuche abbrechen
-                break;
+                resolve();
+            }
+        });
+    });
+}
+
+// Function to set a DMX program directly with multiple sends for reliability
+async function setDMXProgram(programKey) {
+    if (!dmxPrograms[programKey]) {
+        errorWithTimestamp(`Programm ${programKey.toUpperCase()} nicht gefunden`);
+        return false;
+    }
+    
+    try {
+        const channels = dmxPrograms[programKey];
+        logWithTimestamp(`Setze DMX-Programm ${programKey.toUpperCase()} direkt...`);
+        
+        // Send multiple packets for reliability
+        const retries = 5; // Increased from 3 to 5
+        const waitTime = 30; // ms (reduced from 50 to 30)
+        
+        for (let i = 0; i < retries; i++) {
+            try {
+                await sendArtNetDMX(channels);
+                if (i < retries - 1) {
+                    await new Promise(resolve => setTimeout(resolve, waitTime));
+                }
+            } catch (err) {
+                errorWithTimestamp(`Fehler beim Senden des ArtNet-Pakets (Versuch ${i+1}):`, err);
+                // Continue with next retry
             }
         }
-        attempt++;
+        
+        // Store current state
+        dmxPrograms.current = [...channels];
+        
+        logWithTimestamp(`DMX-Programm ${programKey.toUpperCase()} erfolgreich gesetzt.`);
+        return true;
+    } catch (error) {
+        errorWithTimestamp(`Fehler beim Setzen des DMX-Programms ${programKey.toUpperCase()}:`, error);
+        return false;
     }
 }
 
@@ -107,43 +171,60 @@ async function startServer() {
 
         const app = express();
 
-        // Fehler-Event-Listener für den Sender
-        if (typeof sender.on === 'function') {
-            sender.on('error', (err) => {
-                errorWithTimestamp('Sender-Fehler aufgetreten:', err);
-            });
-        }
-
         // API-Endpunkt: DMX-Programm senden
         app.post('/dmx/:key', async (req, res) => {
             const key = req.params.key.toLowerCase();
 
             if (dmxPrograms[key]) {
-                const currentState = dmxPrograms[key];
-                dmxPrograms.current = currentState;
-
-                // Kanäle sequentiell aktualisieren mit setTimeout, dann senden
-                // Hier beibehalten, aber nach dem Setzen transmit via sendDMXState
-                const setChannelsSequentially = async (channels, index = 0) => {
-                    if (index < channels.length) {
-                        try {
-                            sender.setChannel(index, channels[index]);
-                            await new Promise(resolve => setTimeout(resolve, 5));
-                            return setChannelsSequentially(channels, index + 1);
-                        } catch (err) {
-                            errorWithTimestamp(`Fehler beim Setzen des Kanals ${index}:`, err);
-                            await new Promise(resolve => setTimeout(resolve, 5));
-                            return setChannelsSequentially(channels, index + 1);
-                        }
+                try {
+                    const success = await setDMXProgram(key);
+                    if (success) {
+                        logWithTimestamp(`Programm ${key.toUpperCase()} gesendet`);
+                        res.json({ success: true, message: `Programm ${key.toUpperCase()} gesendet` });
+                    } else {
+                        res.status(500).json({ success: false, message: `Fehler beim Senden von Programm ${key.toUpperCase()}` });
                     }
-                };
-
-                await setChannelsSequentially(currentState);
-                await sendDMXState(currentState, 3);
-                logWithTimestamp(`Programm ${key.toUpperCase()} gesendet:`, currentState);
-                res.json({ success: true, message: `Programm ${key.toUpperCase()} gesendet` });
+                } catch (err) {
+                    errorWithTimestamp(`Fehler beim Senden des Programms ${key.toUpperCase()}:`, err);
+                    res.status(500).json({ success: false, message: `Interner Fehler beim Senden von Programm ${key.toUpperCase()}` });
+                }
             } else {
                 return res.status(404).json({ success: false, message: `Programm ${key.toUpperCase()} nicht gefunden` });
+            }
+        });
+
+        // API-Endpunkt für Übergänge - nutzt jetzt direktes Setzen
+        app.post('/dmx/transition/:fromKey/:toKey', async (req, res) => {
+            const fromKey = req.params.fromKey.toLowerCase();
+            const toKey = req.params.toKey.toLowerCase();
+            
+            if (toKey !== 'z' && !dmxPrograms[toKey]) {
+                return res.status(404).json({ 
+                    success: false, 
+                    message: `Programm ${toKey.toUpperCase()} nicht gefunden` 
+                });
+            }
+
+            try {
+                // Direkt zum Zielzustand wechseln ohne Übergang
+                const success = await setDMXProgram(toKey);
+                
+                if (success) {
+                    logWithTimestamp(`Direkter Wechsel zu Programm ${toKey.toUpperCase()} erfolgreich.`);
+                    return res.json({ 
+                        success: true, 
+                        message: `Programm ${toKey.toUpperCase()} aktiviert.`,
+                        completed: true
+                    });
+                } else {
+                    return res.status(500).json({ 
+                        success: false, 
+                        message: `Fehler beim Setzen von Programm ${toKey.toUpperCase()}.`
+                    });
+                }
+            } catch (error) {
+                errorWithTimestamp('Fehler beim Setzen des DMX-Programms:', error);
+                res.status(500).json({ success: false, message: 'Interner Serverfehler beim Setzen des DMX-Programms' });
             }
         });
 
@@ -153,31 +234,58 @@ async function startServer() {
             res.json({ success: true, channels: currentState });
         });
         
-        // Redirect von / zu /de/0000.html
-        app.get('/', (req, res) => {
-        res.redirect('/de/0000.html');
-        });
-
-
-        // Statische Dateien (Frontend)
-        app.use(express.static('public', {
-            maxAge: '100d' // Dateien werden 100 Tag im Cache gehalten
-          }));
-        const server = app.listen(PORT, '0.0.0.0', () => {
-            logWithTimestamp(`Server läuft unter http://artnetserver:${PORT}`);
+        // API-Endpunkt zum Auflisten aller verfügbaren DMX-Programme
+        app.get('/dmx/programs', (req, res) => {
+            const programs = Object.keys(dmxPrograms).filter(key => key !== 'current');
+            res.json({ success: true, programs });
         });
         
+        // Redirect von / zu /de/0000.html
+        app.get('/', (req, res) => {
+            res.redirect('/de/0000.html');
+        });
 
+        // Redirect old SPA URLs to new clean URLs
+        app.get('/spa/:lang/:page.html', (req, res) => {
+            res.redirect(`/${req.params.lang}/${req.params.page}.html`);
+        });
+
+        // SPA Handling: Redirect spa root to language page
+        app.get('/spa', (req, res) => {
+            res.redirect('/de/0000.html');
+        });
+
+        // Ensure static files are served first (content fragments, js, css, etc)
+        app.use(express.static('public', {
+            maxAge: '100d' // Dateien werden 100 Tag im Cache gehalten
+        }));
+
+        // SPA route handling - serve index.html for all language/page routes
+        app.get('/:lang/:page.html', (req, res) => {
+            res.sendFile(path.join(__dirname, 'public', 'index.html'));
+        });
+
+        const server = app.listen(PORT, '0.0.0.0', () => {
+            logWithTimestamp(`Server läuft unter http://localhost:${PORT}`);
+        });
+        
         // Signal Handling
         function shutdown() {
-            logWithTimestamp('Sender wird gestoppt...');
-            try {
-                sender.stop();
-            } catch (err) {
-                errorWithTimestamp('Fehler beim Stoppen des Senders:', err);
-            }
-            logWithTimestamp('DMXNet beendet.');
-            process.exit(0);
+            logWithTimestamp('DMX-Server wird beendet...');
+            // Set all channels to 0 before closing
+            const zeroChannels = Array(512).fill(0);
+            sendArtNetDMX(zeroChannels)
+                .then(() => {
+                    logWithTimestamp('DMX-Kanäle auf 0 gesetzt.');
+                    socket.close(() => {
+                        process.exit(0);
+                    });
+                })
+                .catch(() => {
+                    socket.close(() => {
+                        process.exit(1);
+                    });
+                });
         }
 
         process.on('SIGINT', shutdown);
@@ -193,32 +301,50 @@ async function startServer() {
             errorWithTimestamp('Unhandled Rejection:', reason, 'Promise:', promise);
         });
 
-        // Heartbeat: Alle 360 Sekunden den letzten Zustand erneut senden (mit Retry)
-        const heartbeatInterval = 360000; // 360 * 1000 ms
-        setInterval(async () => {
+        // Heartbeat: Alle 60 Sekunden den letzten Zustand erneut senden
+        const heartbeatInterval = 30000; // 30 * 1000 ms (reduced from 60000)
+        let heartbeatErrorCount = 0;
+        
+        const heartbeatTimer = setInterval(async () => {
             try {
-                const currentState = dmxPrograms.current || Array(512).fill(0);
-                await sendDMXState(currentState, 3);
-                logWithTimestamp('Heartbeat: Letzten DMX-Wert erneut gesendet');
+                if (dmxPrograms.current) {
+                    await sendArtNetDMX(dmxPrograms.current);
+                    logWithTimestamp('Heartbeat: Letzten DMX-Wert erneut gesendet');
+                    // Reset error count on success
+                    heartbeatErrorCount = 0;
+                } else {
+                    logWithTimestamp('Heartbeat: Kein aktueller DMX-Zustand gefunden');
+                }
             } catch (err) {
-                errorWithTimestamp('Allgemeiner Fehler im Heartbeat-Intervall:', err);
+                heartbeatErrorCount++;
+                errorWithTimestamp(`Fehler im Heartbeat-Intervall (${heartbeatErrorCount}):`, err);
+                
+                // If we've had multiple failures, try resending more aggressively
+                if (heartbeatErrorCount > 3) {
+                    try {
+                        // Try to resend the current state with multiple attempts
+                        logWithTimestamp('Versuche DMX-Zustand wiederherzustellen...');
+                        
+                        // If we have a current state, resend it multiple times
+                        if (dmxPrograms.current) {
+                            for (let i = 0; i < 3; i++) {
+                                await sendArtNetDMX(dmxPrograms.current);
+                                await new Promise(resolve => setTimeout(resolve, 100));
+                            }
+                            logWithTimestamp('DMX-Zustand wiederhergestellt');
+                        }
+                        
+                        heartbeatErrorCount = 0;
+                    } catch (recoveryErr) {
+                        errorWithTimestamp('Fehler bei der Wiederherstellung des DMX-Zustands:', recoveryErr);
+                    }
+                }
             }
         }, heartbeatInterval);
 
-        // Ressourcen-Check (alle 300 Sekunden)
-        // Loggt CPU-Last und freien Speicher
-        const resourceCheckInterval = 300000; // 300 * 1000 ms (alle 5 Min)
-        setInterval(() => {
-            const load = os.loadavg(); // [1min, 5min, 15min]
-            const freeMem = os.freemem();
-            const totalMem = os.totalmem();
-            const freeMemMB = Math.round(freeMem / 1024 / 1024);
-            const totalMemMB = Math.round(totalMem / 1024 / 1024);
-            logWithTimestamp(
-                `Ressourcen-Check: Load: ${load.map(l => l.toFixed(2)).join(', ')} | ` +
-                `Speicher: ${freeMemMB}MB frei von ${totalMemMB}MB`
-            );
-        }, resourceCheckInterval);
+        // Initial program - set all channels to 0
+        await setDMXProgram('z');
+        logWithTimestamp('Server initialisiert und bereit.');
 
     } catch (error) {
         errorWithTimestamp('Fehler beim Starten des Servers:', error);
@@ -226,4 +352,4 @@ async function startServer() {
     }
 }
 
-startServer();
+startServer(); 

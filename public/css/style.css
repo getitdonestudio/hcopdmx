@@ -56,6 +56,19 @@ header {
 main {
   padding: 20px 65px;
 }
+
+/* Loading indicator */
+.loading {
+  text-align: center;
+  padding: 20px;
+  font-style: italic;
+}
+
+#content-container.loading {
+  opacity: 0.8;
+}
+
+/* Binary Display */
 #binaryDisplay {
   display: flex;
   flex-direction: column-reverse;
@@ -66,6 +79,7 @@ main {
   right: 0;
   height: 100vh;
   justify-content: center;
+  z-index: 100;
 }
 
 .binary-bit {
@@ -78,12 +92,6 @@ main {
 
 .binary-bit.active {
   background-color: white;
-}
-
-
-/* Individuelle übergeordnete Klassen für Seiten können genutzt werden */
-body[data-page="0000"] .content {
-  /* Beispiel: Spezifisches Styling für Seite 0000 */
 }
 
 /* DMX-Steuerung / Buttons */
@@ -99,4 +107,38 @@ button {
 .formel {
   max-height: 150px !important;
   margin: 50px;
+}
+
+/* Status indicator for DMX operations */
+#status {
+  margin: 20px 0;
+  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+}
+
+/* Screensaver specific styles */
+body.screensaver #content-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+}
+
+/* Position DMX controls in a fixed position */
+.dmx-controls {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 15px;
+  border-radius: 10px;
+  backdrop-filter: blur(5px);
+  z-index: 1000;
+}
+
+/* Individuelle übergeordnete Klassen für Seiten können genutzt werden */
+body[data-page="0000"] .content {
+  /* Beispiel: Spezifisches Styling für Seite 0000 */
 }
