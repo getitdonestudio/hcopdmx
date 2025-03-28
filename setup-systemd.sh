@@ -1,6 +1,6 @@
 #!/bin/bash
 # Script to set up a systemd service for the DMX server
-# This is an alternative to PM2 startup
+# This is the recommended method for autostarting the server on boot
 
 # Display script header
 echo "====================================================="
@@ -38,15 +38,17 @@ EOL
 
 echo "Service file created: dmx-server.service"
 
-# Instructions for installation
+# Installation
+echo ""
+echo "Installing the systemd service..."
+sudo cp dmx-server.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable dmx-server.service
+sudo systemctl start dmx-server.service
+
 echo ""
 echo "====================================================="
-echo "To install the service, run these commands:"
-echo ""
-echo "sudo cp dmx-server.service /etc/systemd/system/"
-echo "sudo systemctl daemon-reload"
-echo "sudo systemctl enable dmx-server.service"
-echo "sudo systemctl start dmx-server.service"
+echo "Service installed successfully!"
 echo ""
 echo "To check status:"
 echo "sudo systemctl status dmx-server.service"

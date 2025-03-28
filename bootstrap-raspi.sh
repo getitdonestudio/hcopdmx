@@ -1,11 +1,20 @@
 #!/bin/bash
-# Setup script for HCOP DMX Controller on Raspberry Pi
-# Run this script on your Raspberry Pi to clone and setup the project
+# Bootstrap script for HCOP DMX Controller on a fresh Raspberry Pi OS Lite
+# This script will install all necessary dependencies and setup the application
+# Run with: curl -sSL https://raw.githubusercontent.com/getitdonestudio/hcopdmx/main/bootstrap-raspi.sh | bash
 
 # Exit on error
 set -e
 
-echo "Setting up HCOP DMX Controller..."
+echo "============================================================"
+echo "  HCOP DMX Controller - Bootstrap Setup"
+echo "============================================================"
+echo ""
+echo "This script will install all necessary dependencies and"
+echo "set up the DMX controller application on your Raspberry Pi."
+echo ""
+echo "Starting installation..."
+echo ""
 
 # Update and upgrade system packages
 echo "Updating and upgrading system packages..."
@@ -15,34 +24,28 @@ sudo apt-get dist-upgrade -y
 sudo apt-get autoremove -y
 sudo apt-get clean
 
-# Check if git is installed
-if ! command -v git &> /dev/null; then
-    echo "Installing git..."
-    sudo apt-get update
-    sudo apt-get install -y git
-fi
+# Install essential packages
+echo "Installing essential packages..."
+sudo apt-get install -y git curl wget
 
-# Check if Node.js is installed
-if ! command -v node &> /dev/null; then
-    echo "Installing Node.js..."
-    curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-    sudo apt-get install -y nodejs
-fi
+# Install Node.js
+echo "Installing Node.js..."
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt-get install -y nodejs
 
-# Check if PM2 is installed (for monitoring only)
-if ! command -v pm2 &> /dev/null; then
-    echo "Installing PM2 for monitoring..."
-    sudo npm install -g pm2
-fi
+# Verify Node.js installation
+echo "Verifying Node.js installation..."
+node --version
+npm --version
 
-# Create app directory if it doesn't exist
+# Install PM2 (for development and monitoring only)
+echo "Installing PM2 process manager for development and monitoring..."
+sudo npm install -g pm2
+
+# Create app directory
 APP_DIR="$HOME/hcopdmx"
-if [ ! -d "$APP_DIR" ]; then
-    echo "Creating application directory..."
-    mkdir -p "$APP_DIR"
-fi
-
-# Navigate to app directory
+echo "Creating application directory at $APP_DIR..."
+mkdir -p "$APP_DIR"
 cd "$APP_DIR"
 
 # Check if directory is empty or contains a git repository
@@ -71,12 +74,13 @@ elif [ "$(ls -A)" ]; then
             ;;
     esac
 else
-    echo "Cloning repository from GitHub..."
+    # Clone the repository
+    echo "Cloning the application repository..."
     git clone https://github.com/getitdonestudio/hcopdmx.git .
 fi
 
 # Install dependencies
-echo "Installing dependencies..."
+echo "Installing application dependencies..."
 npm install
 
 # Create logs directory
@@ -118,20 +122,26 @@ echo "Systemd service installed and enabled."
 echo ""
 echo "To check systemd service status:"
 echo "sudo systemctl status dmx-server.service"
+echo ""
 
-# Start the app with PM2 for monitoring only
-echo "Starting application with PM2 for monitoring purposes..."
+# Start the application with PM2 for monitoring (does not enable PM2 on startup)
+echo "Starting the application with PM2 for monitoring..."
 pm2 start ecosystem.config.js
 
-echo "Status of the dmxserver (PM2 for monitoring only):"
+# Display application status
+echo "Application status (PM2 is for monitoring only, not startup):"
 pm2 status
 
+# Display access information
+IP_ADDRESS=$(hostname -I | awk '{print $1}')
 echo ""
-echo "Setup complete! The application is now running and managed by systemd."
-echo "You can access it at http://$(hostname -I | awk '{print $1}'):3000"
+echo "============================================================"
+echo "Installation complete!"
+echo "You can access the application at: http://$IP_ADDRESS:3000"
 echo ""
 echo "Useful commands:"
 echo "  - Check service status:  sudo systemctl status dmx-server.service"
 echo "  - View service logs:     sudo journalctl -u dmx-server.service -f"
 echo "  - Monitor with PM2:      pm2 monit"
-echo "  - View PM2 logs:         pm2 logs dmxserver" 
+echo "  - View PM2 logs:         pm2 logs dmxserver"
+echo "============================================================" 

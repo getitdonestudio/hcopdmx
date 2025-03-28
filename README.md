@@ -11,11 +11,12 @@ Eine Node.js-Anwendung zur Steuerung von DMX-Beleuchtung über das Art-Net-Proto
 - Konfigurierbare Beleuchtungsprogramme, die aus CSV-Dateien geladen werden
 - Heartbeat-Funktionalität für konsistenten Betrieb
 - Ressourcenüberwachung für die Systemzustandskontrolle
-- Prozessmanagement über PM2 oder systemd für verbesserte Zuverlässigkeit
+- Systemd-Service für zuverlässigen Autostart und PM2 für Monitoring
 
 ## Systemanforderungen
 
 - Raspberry Pi (3 oder neuer empfohlen) oder kompatibler Computer
+- Raspberry Pi OS Lite (Bullseye oder neuer empfohlen)
 - Node.js 18.x oder neuer
 - Art-Net-kompatibler DMX-Controller/Interface
 - Netzwerkverbindung zwischen Raspberry Pi und DMX-Interface
@@ -24,15 +25,15 @@ Eine Node.js-Anwendung zur Steuerung von DMX-Beleuchtung über das Art-Net-Proto
 
 ### Ein-Zeilen-Bootstrap-Installation (frisches OS)
 
-Wenn Sie mit einer frischen Installation von Raspberry Pi OS Lite beginnen, können Sie unser Bootstrap-Skript verwenden, um alles in einem Schritt einzurichten:
+Bei einer frischen Installation von Raspberry Pi OS Lite verwenden Sie unser Bootstrap-Skript, um alles in einem Schritt zu installieren:
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/getitdonestudio/hcopdmx/main/bootstrap-raspi.sh | bash
 ```
 
-Nach Abschluss des Skripts müssen Sie den PM2-Startup-Befehl ausführen (der im Terminal angezeigt wird), um den automatischen Start beim Booten zu ermöglichen.
+Das Skript installiert alle nötigen Abhängigkeiten (Node.js, Git, PM2), richtet das Projekt ein und konfiguriert den systemd-Service für automatischen Start beim Booten. Es startet außerdem PM2 für Monitoring-Zwecke, aber der eigentliche Autostart wird über systemd verwaltet.
 
-### Automatische Installation (Alternative)
+### Alternative Installation mit Setup-Skript
 
 Wenn Git bereits installiert ist:
 
@@ -56,9 +57,7 @@ chmod +x setup-raspi.sh
 ./setup-raspi.sh
 ```
 
-5. Nach Ausführung des Skripts müssen Sie den PM2-Startup-Befehl ausführen (der im Terminal angezeigt wird), um den automatischen Start beim Booten zu ermöglichen.
-
-6. Sie können auf die Anwendung unter `http://ihre-raspberry-pi-ip:3000` zugreifen.
+5. Sie können auf die Anwendung unter `http://ihre-raspberry-pi-ip:3000` zugreifen.
 
 ### Manuelle Installation
 
@@ -70,41 +69,35 @@ curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
 sudo apt-get install -y nodejs
 ```
 
-2. PM2 für das Prozessmanagement installieren
+2. Git und weitere Abhängigkeiten installieren
+```bash
+sudo apt-get install -y git curl wget
+```
+
+3. Optional: PM2 für Monitoring installieren
 ```bash
 sudo npm install -g pm2
 ```
 
-3. Das Repository klonen
+4. Das Repository klonen
 ```bash
-mkdir -p /home/pi/hcopdmx
-cd /home/pi/hcopdmx
+mkdir -p ~/hcopdmx
+cd ~/hcopdmx
 git clone https://github.com/getitdonestudio/hcopdmx.git .
 ```
 
-4. Abhängigkeiten installieren
+5. Abhängigkeiten installieren
 ```bash
 npm install
 ```
 
-5. Die Anwendung konfigurieren
+6. Die Anwendung konfigurieren
    - Bearbeiten Sie `server.js`, um die richtige IP-Adresse für Ihr Art-Net-Gerät einzustellen
    - Modifizieren Sie `hcop_dmx-channel.csv`, wenn Sie die DMX-Programme anpassen möchten
 
-6. Die Anwendung mit PM2 starten
+7. Systemd-Service für automatischen Start einrichten
 ```bash
-pm2 start ecosystem.config.js
-```
-
-7. Die PM2-Konfiguration speichern, um sie über Neustarts hinweg beizubehalten
-```bash
-pm2 save
-```
-
-8. PM2 für den Systemstart konfigurieren
-```bash
-pm2 startup
-# Führen Sie den angezeigten Befehl aus
+./setup-systemd.sh
 ```
 
 ## Aktualisieren der Anwendung
@@ -118,13 +111,13 @@ ssh pi@ihre-raspberry-pi-ip
 
 2. Das Update-Skript ausführen
 ```bash
-/home/pi/hcopdmx/update-raspi.sh
+~/hcopdmx/update-raspi.sh
 ```
 
 Das Skript wird automatisch:
 - Die neuesten Änderungen von GitHub abrufen
 - Neue Abhängigkeiten installieren
-- Die Anwendung mit PM2 neu starten
+- Die Anwendung neustarten
 
 ### Manuelles Update
 
@@ -135,7 +128,7 @@ ssh pi@ihre-raspberry-pi-ip
 
 2. In das Anwendungsverzeichnis wechseln
 ```bash
-cd /home/pi/hcopdmx
+cd ~/hcopdmx
 ```
 
 3. Die neuesten Änderungen abrufen
@@ -150,37 +143,30 @@ npm install
 
 5. Die Anwendung neu starten
 ```bash
-pm2 restart dmxserver
+sudo systemctl restart dmx-server.service
 ```
 
 ## Verwaltung der Anwendung
 
-### PM2-Befehle
+### Systemd-Befehle
 
-Die Anwendung läuft mit PM2 für zuverlässiges Prozessmanagement. Hier sind einige nützliche Befehle:
+Die Anwendung läuft als systemd-Service für zuverlässigen Autostart. Hier sind nützliche Befehle:
 
-- Anwendungsstatus prüfen: `pm2 status`
-- Anwendungsprotokolle anzeigen: `pm2 logs dmxserver`
-- Anwendung in Echtzeit überwachen: `pm2 monit`
-- Anwendung neu starten: `pm2 restart dmxserver`
-- Anwendung stoppen: `pm2 stop dmxserver`
-- Anwendung starten: `pm2 start dmxserver`
+- Service-Status prüfen: `sudo systemctl status dmx-server.service`
+- Anwendungsprotokolle anzeigen: `sudo journalctl -u dmx-server.service -f`
+- Anwendung neu starten: `sudo systemctl restart dmx-server.service`
+- Anwendung stoppen: `sudo systemctl stop dmx-server.service`
+- Anwendung starten: `sudo systemctl start dmx-server.service`
+- Autostart aktivieren: `sudo systemctl enable dmx-server.service`
+- Autostart deaktivieren: `sudo systemctl disable dmx-server.service`
 
-### Alternative: systemd-Service
+### Monitoring mit PM2
 
-Wenn Sie Probleme mit PM2 beim automatischen Start haben, können Sie alternativ einen systemd-Service einrichten:
+Obwohl der Autostart über systemd erfolgt, ist PM2 für Monitoring-Zwecke installiert:
 
-1. Gehen Sie in das Fehlersuche-Verzeichnis
-```bash
-cd /home/pi/hcopdmx/troubleshooting
-```
-
-2. Führen Sie das systemd-Setup-Skript aus
-```bash
-./setup-systemd.sh
-```
-
-3. Führen Sie die angezeigten Befehle aus, um den Service zu installieren und zu aktivieren
+- Status anzeigen: `pm2 status`
+- Echtzeit-Monitoring: `pm2 monit`
+- Logs anzeigen: `pm2 logs dmxserver`
 
 ### Konfiguration von DMX-Programmen
 
@@ -213,36 +199,85 @@ Die Oberfläche unterstützt mehrere Sprachen mit Seiten in den Verzeichnissen `
 
 ## Fehlerbehebung
 
-Falls Probleme auftreten, bietet das Repository verschiedene Diagnose-Tools im Verzeichnis `troubleshooting/`. Hier sind die wichtigsten:
+### Häufige Probleme und Lösungen
 
-### Typische Probleme
-
-1. **Anwendung startet nicht**
-   - PM2-Logs prüfen: `pm2 logs dmxserver`
+1. **Die Anwendung startet nicht nach der Installation**
+   - Systemd-Status überprüfen: `sudo systemctl status dmx-server.service`
+   - Logs anzeigen: `sudo journalctl -u dmx-server.service -f`
    - Node.js-Version überprüfen: `node --version` (sollte 18.x oder neuer sein)
-   - Berechtigungen des Anwendungsverzeichnisses prüfen: `ls -la /home/pi/hcopdmx`
+   - Berechtigungen des Anwendungsverzeichnisses prüfen: `ls -la ~/hcopdmx`
+   - Sicherstellen, dass server.js ausführbar ist: `chmod +x ~/hcopdmx/server.js`
 
-2. **DMX funktioniert nicht**
+2. **Fehler: "Port already in use" (Port bereits in Benutzung)**
+   - Prüfen, ob mehrere Instanzen der Anwendung laufen: `ps aux | grep node`
+   - Falls PM2 die Anwendung auch startet: `pm2 stop dmxserver && pm2 delete dmxserver && pm2 save`
+   - Systemd-Service neu starten: `sudo systemctl restart dmx-server.service`
+
+3. **DMX funktioniert nicht**
    - IP-Adresskonfiguration in `server.js` überprüfen
    - Sicherstellen, dass Ihr DMX-Interface eingeschaltet und mit dem Netzwerk verbunden ist
-   - Überprüfen, ob Ihr DMX-Interface das Art-Net-Protokoll unterstützt
    - Netzwerkkonnektivität prüfen: `ping ihre-dmx-interface-ip`
+   - Firewall-Einstellungen prüfen: `sudo iptables -L`
+   - Art-Net verwendet üblicherweise UDP Port 6454: `sudo lsof -i UDP:6454`
 
-3. **Automatischer Start funktioniert nicht**
-   - Benutzen Sie die Diagnose-Tools im `troubleshooting/`-Verzeichnis
-   - Prüfen Sie die Berechtigungen mit `./troubleshooting/check-permissions.sh`
-   - Versuchen Sie, PM2 zu reparieren mit `./troubleshooting/fix-pm2-advanced.sh`
-   - Alternativ verwenden Sie den systemd-Service: `./troubleshooting/setup-systemd.sh`
+4. **Raspberry Pi startet die Anwendung nicht automatisch**
+   - Systemd-Service-Status prüfen: `sudo systemctl status dmx-server.service`
+   - Autostart aktivieren, falls nicht aktiviert: `sudo systemctl enable dmx-server.service`
+   - Systemd-Logs überprüfen: `sudo journalctl -u dmx-server.service`
+   - Service neu installieren: `./setup-systemd.sh`
 
-### Erweiterte Diagnose-Tools
+5. **Node.js Fehler und Abstürze**
+   - Node.js Version überprüfen: `node --version`
+   - Speichernutzung überprüfen: `free -m`
+   - CPU-Auslastung überprüfen: `htop` (installieren mit `sudo apt install htop`)
+   - Node.js Abstürze in den Logs suchen: `sudo journalctl -u dmx-server.service | grep -i error`
 
-Im Verzeichnis `troubleshooting/` finden Sie mehrere nützliche Skripte:
+### Raspberry Pi Systemdiagnose
 
-- `check-dependencies.js` - Überprüft, ob alle erforderlichen Node.js-Abhängigkeiten installiert sind
-- `check-dmx-connectivity.js` - Testet die Netzwerkverbindung zum DMX-Controller
-- `test-artnet.js` - Sendet Testmuster, um die Art-Net-Kommunikation zu überprüfen
-- `fix-pm2-advanced.sh` - Repariert PM2-Konfigurationsprobleme und überprüft Konflikte
-- `setup-systemd.sh` - Richtet einen systemd-Service als Alternative zu PM2 ein
+1. **Überprüfen der Systemressourcen**
+   - CPU- und Speicherauslastung: `htop`
+   - Festplattenspeicher: `df -h`
+   - Temperatur: `vcgencmd measure_temp`
+   - Übertaktung und Spannungsdrosselung: `vcgencmd get_throttled`
+
+2. **Netzwerkprobleme**
+   - IP-Konfiguration anzeigen: `ip addr show`
+   - Netzwerkverbindungen testen: `ping 8.8.8.8`
+   - DNS-Auflösung testen: `nslookup google.com`
+   - Aktive Netzwerkverbindungen: `ss -tuln`
+
+3. **Systemlogs**
+   - Kernellogs: `dmesg | tail`
+   - Systemlogs: `sudo journalctl -xe`
+   - Bootvorgänge: `sudo journalctl -b`
+
+### Wiederherstellungsmaßnahmen
+
+1. **Neuinstallation der Anwendung**
+   ```bash
+   cd ~
+   mv hcopdmx hcopdmx.bak
+   curl -sSL https://raw.githubusercontent.com/getitdonestudio/hcopdmx/main/bootstrap-raspi.sh | bash
+   ```
+
+2. **Node.js neu installieren**
+   ```bash
+   sudo apt-get remove nodejs -y
+   sudo apt-get autoremove -y
+   curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+   sudo apt-get install -y nodejs
+   node --version
+   ```
+
+3. **Service-Reset**
+   ```bash
+   sudo systemctl stop dmx-server.service
+   sudo systemctl disable dmx-server.service
+   sudo rm /etc/systemd/system/dmx-server.service
+   sudo systemctl daemon-reload
+   cd ~/hcopdmx
+   ./setup-systemd.sh
+   ```
 
 ## Entwicklung
 
@@ -265,7 +300,7 @@ Der lokale Server bietet simulierte DMX-Funktionalität zum Testen.
 - `setup-raspi.sh` - Raspberry Pi-Einrichtungsskript
 - `bootstrap-raspi.sh` - Ein-Zeilen-Bootstrap-Skript für frische Installationen
 - `update-raspi.sh` - Raspberry Pi-Update-Skript
-- `troubleshooting/` - Diagnose- und Fehlerbehebungswerkzeuge
+- `setup-systemd.sh` - Script zur Einrichtung des systemd-Services
 - `public/` - Webschnittstellen-Dateien
   - `de/` - Deutsche Schnittstelle
   - `en/` - Englische Schnittstelle
@@ -291,11 +326,12 @@ A Node.js application to control DMX lighting via Art-Net protocol, optimized fo
 - Configurable lighting programs loaded from CSV files
 - Heartbeat functionality to ensure consistent operation
 - Resource monitoring for system health
-- Process management via PM2 or systemd for improved reliability
+- Systemd service for reliable autostart and PM2 for monitoring
 
 ## System Requirements
 
 - Raspberry Pi (3 or newer recommended) or compatible computer
+- Raspberry Pi OS Lite (Bullseye or newer recommended)
 - Node.js 18.x or newer
 - Art-Net compatible DMX controller/interface
 - Network connection between Raspberry Pi and DMX interface
@@ -310,9 +346,9 @@ If you're starting with a fresh installation of Raspberry Pi OS Lite, you can us
 curl -sSL https://raw.githubusercontent.com/getitdonestudio/hcopdmx/main/bootstrap-raspi.sh | bash
 ```
 
-After the script completes, you'll need to run the PM2 startup command (which will be displayed in the terminal) to enable automatic startup on boot.
+The script installs all necessary dependencies (Node.js, Git, PM2), sets up the project, and configures the systemd service for automatic startup on boot. It also starts PM2 for monitoring purposes, but the actual autostart is managed through systemd.
 
-### Automatic Installation (Alternative)
+### Alternative Installation with Setup Script
 
 If you already have git installed:
 
@@ -336,9 +372,7 @@ chmod +x setup-raspi.sh
 ./setup-raspi.sh
 ```
 
-5. After the script runs, you'll need to run the PM2 startup command (which will be displayed in the terminal) to enable automatic startup on boot.
-
-6. Access the application at `http://your-raspberry-pi-ip:3000`
+5. Access the application at `http://your-raspberry-pi-ip:3000`
 
 ### Manual Installation
 
@@ -350,41 +384,35 @@ curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
 sudo apt-get install -y nodejs
 ```
 
-2. Install PM2 for process management
+2. Install Git and other dependencies
+```bash
+sudo apt-get install -y git curl wget
+```
+
+3. Optional: Install PM2 for monitoring
 ```bash
 sudo npm install -g pm2
 ```
 
-3. Clone the repository
+4. Clone the repository
 ```bash
-mkdir -p /home/pi/hcopdmx
-cd /home/pi/hcopdmx
+mkdir -p ~/hcopdmx
+cd ~/hcopdmx
 git clone https://github.com/getitdonestudio/hcopdmx.git .
 ```
 
-4. Install dependencies
+5. Install dependencies
 ```bash
 npm install
 ```
 
-5. Configure the application
+6. Configure the application
    - Edit `server.js` to set the proper IP address for your Art-Net device
    - Modify `hcop_dmx-channel.csv` if you want to adjust the DMX programs
 
-6. Start the application with PM2
+7. Set up the systemd service for autostart
 ```bash
-pm2 start ecosystem.config.js
-```
-
-7. Save the PM2 configuration to persist across reboots
-```bash
-pm2 save
-```
-
-8. Configure PM2 to start on system boot
-```bash
-pm2 startup
-# Run the command that is displayed
+./setup-systemd.sh
 ```
 
 ## Updating the Application
@@ -398,13 +426,13 @@ ssh pi@your-raspberry-pi-ip
 
 2. Run the update script
 ```bash
-/home/pi/hcopdmx/update-raspi.sh
+~/hcopdmx/update-raspi.sh
 ```
 
 The script will automatically:
 - Pull the latest changes from GitHub
 - Install any new dependencies
-- Restart the application with PM2
+- Restart the application
 
 ### Manual Update
 
@@ -415,7 +443,7 @@ ssh pi@your-raspberry-pi-ip
 
 2. Navigate to the application directory
 ```bash
-cd /home/pi/hcopdmx
+cd ~/hcopdmx
 ```
 
 3. Pull the latest changes
@@ -430,37 +458,30 @@ npm install
 
 5. Restart the application
 ```bash
-pm2 restart dmxserver
+sudo systemctl restart dmx-server.service
 ```
 
 ## Managing the Application
 
-### PM2 Commands
+### Systemd Commands
 
-The application runs using PM2 for reliable process management. Here are some useful commands:
+The application runs as a systemd service for reliable autostart. Here are useful commands:
 
-- Check application status: `pm2 status`
-- View application logs: `pm2 logs dmxserver`
-- Monitor application in real-time: `pm2 monit`
-- Restart application: `pm2 restart dmxserver`
-- Stop application: `pm2 stop dmxserver`
-- Start application: `pm2 start dmxserver`
+- Check service status: `sudo systemctl status dmx-server.service`
+- View application logs: `sudo journalctl -u dmx-server.service -f`
+- Restart application: `sudo systemctl restart dmx-server.service`
+- Stop application: `sudo systemctl stop dmx-server.service`
+- Start application: `sudo systemctl start dmx-server.service`
+- Enable autostart: `sudo systemctl enable dmx-server.service`
+- Disable autostart: `sudo systemctl disable dmx-server.service`
 
-### Alternative: systemd Service
+### Monitoring with PM2
 
-If you're having issues with PM2 autostart, you can alternatively set up a systemd service:
+While autostart is handled by systemd, PM2 is installed for monitoring purposes:
 
-1. Go to the troubleshooting directory
-```bash
-cd /home/pi/hcopdmx/troubleshooting
-```
-
-2. Run the systemd setup script
-```bash
-./setup-systemd.sh
-```
-
-3. Follow the displayed commands to install and enable the service
+- Check status: `pm2 status`
+- Real-time monitoring: `pm2 monit`
+- View logs: `pm2 logs dmxserver`
 
 ### Configuring DMX Programs
 
@@ -493,36 +514,85 @@ The interface supports multiple languages with pages in `/de/` (German) and `/en
 
 ## Troubleshooting
 
-If issues arise, the repository provides various diagnostic tools in the `troubleshooting/` directory. Here are the most important ones:
+### Common Issues and Solutions
 
-### Common Issues
-
-1. **Application Not Starting**
-   - Check PM2 logs: `pm2 logs dmxserver`
+1. **Application Not Starting After Installation**
+   - Check systemd status: `sudo systemctl status dmx-server.service`
+   - View logs: `sudo journalctl -u dmx-server.service -f`
    - Check Node.js version: `node --version` (should be 18.x or newer)
-   - Check application directory permissions: `ls -la /home/pi/hcopdmx`
+   - Check application directory permissions: `ls -la ~/hcopdmx`
+   - Ensure server.js is executable: `chmod +x ~/hcopdmx/server.js`
 
-2. **DMX Not Working**
+2. **Error: "Port already in use"**
+   - Check if multiple instances are running: `ps aux | grep node`
+   - If PM2 is also starting the app: `pm2 stop dmxserver && pm2 delete dmxserver && pm2 save`
+   - Restart systemd service: `sudo systemctl restart dmx-server.service`
+
+3. **DMX Not Working**
    - Check the IP address configuration in `server.js`
    - Ensure your DMX interface is powered on and connected to the network
-   - Verify your DMX interface supports Art-Net protocol
    - Check network connectivity: `ping your-dmx-interface-ip`
+   - Check firewall settings: `sudo iptables -L`
+   - Art-Net typically uses UDP port 6454: `sudo lsof -i UDP:6454`
 
-3. **Autostart Not Working**
-   - Use the diagnostic tools in the `troubleshooting/` directory
-   - Check permissions with `./troubleshooting/check-permissions.sh`
-   - Try fixing PM2 with `./troubleshooting/fix-pm2-advanced.sh`
-   - Alternatively, use the systemd service: `./troubleshooting/setup-systemd.sh`
+4. **Raspberry Pi Not Auto-starting the Application**
+   - Check systemd service status: `sudo systemctl status dmx-server.service`
+   - Enable autostart if not enabled: `sudo systemctl enable dmx-server.service`
+   - Check systemd logs: `sudo journalctl -u dmx-server.service`
+   - Reinstall the service: `./setup-systemd.sh`
 
-### Advanced Diagnostic Tools
+5. **Node.js Errors and Crashes**
+   - Check Node.js version: `node --version`
+   - Check memory usage: `free -m`
+   - Check CPU usage: `htop` (install with `sudo apt install htop`)
+   - Look for Node.js crashes in logs: `sudo journalctl -u dmx-server.service | grep -i error`
 
-In the `troubleshooting/` directory, you'll find several useful scripts:
+### Raspberry Pi System Diagnostics
 
-- `check-dependencies.js` - Verifies all required Node.js dependencies are installed
-- `check-dmx-connectivity.js` - Tests network connectivity to the DMX controller
-- `test-artnet.js` - Sends test patterns to verify Art-Net communication
-- `fix-pm2-advanced.sh` - Fixes PM2 configuration issues and checks for conflicts
-- `setup-systemd.sh` - Sets up a systemd service as an alternative to PM2
+1. **Checking System Resources**
+   - CPU and memory usage: `htop`
+   - Disk space: `df -h`
+   - Temperature: `vcgencmd measure_temp`
+   - Throttling and undervoltage: `vcgencmd get_throttled`
+
+2. **Network Issues**
+   - Display IP configuration: `ip addr show`
+   - Test network connectivity: `ping 8.8.8.8`
+   - Test DNS resolution: `nslookup google.com`
+   - Active network connections: `ss -tuln`
+
+3. **System Logs**
+   - Kernel logs: `dmesg | tail`
+   - System logs: `sudo journalctl -xe`
+   - Boot processes: `sudo journalctl -b`
+
+### Recovery Measures
+
+1. **Reinstalling the Application**
+   ```bash
+   cd ~
+   mv hcopdmx hcopdmx.bak
+   curl -sSL https://raw.githubusercontent.com/getitdonestudio/hcopdmx/main/bootstrap-raspi.sh | bash
+   ```
+
+2. **Reinstalling Node.js**
+   ```bash
+   sudo apt-get remove nodejs -y
+   sudo apt-get autoremove -y
+   curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+   sudo apt-get install -y nodejs
+   node --version
+   ```
+
+3. **Service Reset**
+   ```bash
+   sudo systemctl stop dmx-server.service
+   sudo systemctl disable dmx-server.service
+   sudo rm /etc/systemd/system/dmx-server.service
+   sudo systemctl daemon-reload
+   cd ~/hcopdmx
+   ./setup-systemd.sh
+   ```
 
 ## Development
 
@@ -545,7 +615,7 @@ The local server provides simulated DMX functionality for testing.
 - `setup-raspi.sh` - Raspberry Pi setup script
 - `bootstrap-raspi.sh` - One-line bootstrap script for fresh installations
 - `update-raspi.sh` - Raspberry Pi update script
-- `troubleshooting/` - Diagnostic and troubleshooting tools
+- `setup-systemd.sh` - Script to set up the systemd service
 - `public/` - Web interface files
   - `de/` - German interface
   - `en/` - English interface
