@@ -5,7 +5,7 @@
 # Exit on error
 set -e
 
-APP_DIR="/home/pi/hcopdmx"
+APP_DIR="$HOME/hcopdmx"
 
 echo "Updating HCOP DMX Controller..."
 

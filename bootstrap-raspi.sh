@@ -16,9 +16,16 @@ echo ""
 echo "Starting installation..."
 echo ""
 
+# Update and upgrade system packages
+echo "Updating and upgrading system packages..."
+sudo apt-get update
+sudo apt-get upgrade -y
+sudo apt-get dist-upgrade -y
+sudo apt-get autoremove -y
+sudo apt-get clean
+
 # Install essential packages
 echo "Installing essential packages..."
-sudo apt-get update
 sudo apt-get install -y git curl wget
 
 # Install Node.js
@@ -36,7 +43,7 @@ echo "Installing PM2 process manager..."
 sudo npm install -g pm2
 
 # Create app directory
-APP_DIR="/home/pi/hcopdmx"
+APP_DIR="$HOME/hcopdmx"
 echo "Creating application directory at $APP_DIR..."
 mkdir -p "$APP_DIR"
 cd "$APP_DIR"

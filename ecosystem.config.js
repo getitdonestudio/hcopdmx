@@ -10,8 +10,8 @@ module.exports = {
     env: {
       "NODE_ENV": "production"
     },
-    error_file: "/home/pi/.pm2/logs/dmxserver-error.log",
-    out_file: "/home/pi/.pm2/logs/dmxserver-out.log"
+    error_file: "logs/dmxserver-error.log",
+    out_file: "logs/dmxserver-out.log"
   }],
 
   deploy : {

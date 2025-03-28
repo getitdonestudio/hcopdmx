@@ -7,6 +7,14 @@ set -e
 
 echo "Setting up HCOP DMX Controller..."
 
+# Update and upgrade system packages
+echo "Updating and upgrading system packages..."
+sudo apt-get update
+sudo apt-get upgrade -y
+sudo apt-get dist-upgrade -y
+sudo apt-get autoremove -y
+sudo apt-get clean
+
 # Check if git is installed
 if ! command -v git &> /dev/null; then
     echo "Installing git..."
@@ -28,7 +36,7 @@ if ! command -v pm2 &> /dev/null; then
 fi
 
 # Create app directory if it doesn't exist
-APP_DIR="/home/pi/hcopdmx"
+APP_DIR="$HOME/hcopdmx"
 if [ ! -d "$APP_DIR" ]; then
     echo "Creating application directory..."
     mkdir -p "$APP_DIR"
