@@ -17,8 +17,14 @@ fi
 # Check if Node.js is installed
 if ! command -v node &> /dev/null; then
     echo "Installing Node.js..."
-    curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+    curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
     sudo apt-get install -y nodejs
+fi
+
+# Check if PM2 is installed
+if ! command -v pm2 &> /dev/null; then
+    echo "Installing PM2..."
+    sudo npm install -g pm2
 fi
 
 # Create app directory if it doesn't exist
@@ -44,38 +50,35 @@ fi
 echo "Installing dependencies..."
 npm install
 
-# Create systemd service file for auto-starting the application
-echo "Creating systemd service..."
-sudo tee /etc/systemd/system/hcopdmx.service > /dev/null << EOL
-[Unit]
-Description=HCOP DMX Controller
-After=network.target
+# Start the app with PM2
+echo "Starting application with PM2..."
+pm2 start ecosystem.config.js
 
-[Service]
-ExecStart=/usr/bin/node server.js
-WorkingDirectory=$APP_DIR
-Restart=always
-User=pi
-Environment=NODE_ENV=production
+# Save PM2 configuration to start on boot
+echo "Saving PM2 configuration to start on boot..."
+pm2 save
 
-[Install]
-WantedBy=multi-user.target
-EOL
-
-# Enable and start the service
-echo "Enabling and starting service..."
-sudo systemctl daemon-reload
-sudo systemctl enable hcopdmx
-sudo systemctl restart hcopdmx
-
-echo "Status of hcopdmx service:"
-sudo systemctl status hcopdmx
+# Setup PM2 to start on system boot
+# This will output a command that needs to be run manually
+echo "Setting up PM2 to start on system boot..."
+pm2 startup
 
 echo ""
-echo "Setup complete! The application is now running as a service."
+echo "============================================================"
+echo "IMPORTANT: Copy and run the command shown above (if any)"
+echo "to enable PM2 startup on boot."
+echo "============================================================"
+echo ""
+
+echo "Status of the dmxserver:"
+pm2 status
+
+echo ""
+echo "Setup complete! The application is now running managed by PM2."
 echo "You can access it at http://$(hostname -I | awk '{print $1}'):3000"
 echo ""
 echo "Useful commands:"
-echo "  - Check service status: sudo systemctl status hcopdmx"
-echo "  - Restart service:      sudo systemctl restart hcopdmx"
-echo "  - View logs:            sudo journalctl -u hcopdmx -f" 
+echo "  - Check app status:   pm2 status"
+echo "  - Restart app:        pm2 restart dmxserver"
+echo "  - View logs:          pm2 logs dmxserver"
+echo "  - Monitor app:        pm2 monit" 

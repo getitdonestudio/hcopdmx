@@ -20,13 +20,27 @@ git pull origin main
 echo "Installing dependencies..."
 npm install
 
-# Restart the service
-echo "Restarting the service..."
-sudo systemctl restart hcopdmx
+# Restart the application with PM2
+echo "Restarting the application with PM2..."
+pm2 restart dmxserver || pm2 start ecosystem.config.js
 
-echo "Status of hcopdmx service:"
-sudo systemctl status hcopdmx
+# Check if any PM2 configuration has changed
+if [ -f "ecosystem.config.js" ]; then
+    echo "Updating PM2 configuration..."
+    pm2 delete dmxserver 2>/dev/null || true
+    pm2 start ecosystem.config.js
+    pm2 save
+fi
+
+echo "Status of dmxserver:"
+pm2 status
 
 echo ""
 echo "Update complete! The application has been restarted."
-echo "You can access it at http://$(hostname -I | awk '{print $1}'):3000" 
+echo "You can access it at http://$(hostname -I | awk '{print $1}'):3000"
+echo ""
+echo "Useful commands:"
+echo "  - Check app status:   pm2 status"
+echo "  - Restart app:        pm2 restart dmxserver"
+echo "  - View logs:          pm2 logs dmxserver"
+echo "  - Monitor app:        pm2 monit" 
