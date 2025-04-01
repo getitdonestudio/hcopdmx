@@ -364,81 +364,53 @@ async function transitionToPage(pageId) {
 }
 
 /**
- * Combined function for transition to screensaver
- * @returns {Promise<void>}
+ * Update the status text in the UI
+ * @param {string} message - The status message to display
  */
-async function transitionToScreensaver() {
-  if (isLoadingContent || currentPage === 'screensaver') return;
-  
-  console.log("Starting transition to screensaver");
-  
-  // 1. Store current page for later return
-  sessionStorage.setItem('lastPage', currentPage || '0000');
-  
-  // 2. Load screensaver content and activate DMX program based on mode
+function updateStatus(message) {
   const statusElem = document.getElementById('status');
   if (statusElem) {
-    statusElem.textContent = 'Wechsle zum Bildschirmschoner...';
+    statusElem.textContent = message;
   }
+}
+
+/**
+ * Transition to screensaver mode
+ */
+function transitionToScreensaver() {
+  if (currentPage === 'screensaver') return;
   
-  try {
-    // Load the screensaver content
-    const contentLoaded = await loadContent('screensaver');
-    
-    // Apply the appropriate DMX program based on screensaver mode
-    if (contentLoaded) {
-      const mode = appSettings.screensaver.mode;
-      console.log(`Using screensaver mode: ${mode}`);
+  // Store the last page before screensaver
+  sessionStorage.setItem('lastPage', currentPage);
+  console.log('Transitioning to screensaver, last page was:', currentPage);
+  
+  // Update UI to show screensaver mode
+  document.body.classList.add('screensaver');
+  previousPage = currentPage;
+  currentPage = 'screensaver';
+  
+  // Reset font size to default when entering screensaver
+  resetFontSize();
+  
+  // Load the screensaver content
+  loadContent('screensaver', currentLang);
+  
+  // Get chosen screensaver mode from settings
+  fetch('/api/settings')
+    .then(response => response.json())
+    .then(settings => {
+      const modeKey = settings.screensaver.mode || 'dimToOn';
+      console.log(`Starting screensaver mode: ${modeKey}`);
       
-      switch (mode) {
-        case 'dimToOn':
-          // Dim to all lights on (q command)
-          await sendDMXFadeCommand('q');
-          // Start the mode in the manager
-          screensaverModeManager.startMode('dimToOn');
-          break;
-          
-        case 'dimToOff':
-          // Dim to all lights off (z command)
-          await sendDMXFadeCommand('z');
-          // Start the mode in the manager
-          screensaverModeManager.startMode('dimToOff');
-          break;
-          
-        case 'pulsating':
-          // For pulsating mode, first dim to all on
-          await sendDMXFadeCommand('q');
-          // Then start the pulsating mode
-          screensaverModeManager.startMode('pulsating');
-          break;
-          
-        case 'cycling':
-          // Cycling mode handles its own transitions
-          screensaverModeManager.startMode('cycling');
-          break;
-          
-        case 'disco':
-          // Disco mode - first set A program as a base
-          await sendDMXCommand('a');
-          // Start the disco mode which will handle random transitions
-          screensaverModeManager.startMode('disco');
-          break;
-          
-        default:
-          // Default to all on
-          await sendDMXFadeCommand('q');
-          screensaverModeManager.startMode('dimToOn');
-      }
-    }
-    
-    if (statusElem) {
-      statusElem.textContent = 'Bildschirmschoner aktiv.';
-    }
-    
-    console.log("Transition to screensaver completed");
-  } catch (error) {
-    console.error(`Error during screensaver transition:`, error);
-  }
+      updateStatus('Screensaver aktiviert...');
+      
+      // Start the appropriate mode
+      screensaverModeManager.startMode(modeKey);
+    })
+    .catch(error => {
+      console.error('Error fetching settings:', error);
+      updateStatus('Fehler beim Starten des Bildschirmschoners');
+    });
 }
 
 /**
@@ -607,6 +579,78 @@ function updateSettingsLink() {
   }
 }
 
+/**
+ * Initialize font size controls
+ */
+function initFontSizeControls() {
+  const fontSizeToggle = document.getElementById('fontSizeToggle');
+  const decreaseFontSize = document.getElementById('decreaseFontSize');
+  const increaseFontSize = document.getElementById('increaseFontSize');
+  const fontSizeOptions = document.querySelector('.font-size-options');
+  
+  if (!fontSizeToggle || !fontSizeOptions) return;
+  
+  // Toggle expanded state
+  fontSizeToggle.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    fontSizeOptions.classList.toggle('expanded');
+  });
+  
+  // Close when clicking outside
+  document.addEventListener('click', (event) => {
+    if (!event.target.closest('.font-size-icon') && !event.target.closest('.font-size-options')) {
+      fontSizeOptions.classList.remove('expanded');
+    }
+  });
+  
+  // Handle font size decrease
+  decreaseFontSize.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const currentSize = parseInt(document.body.getAttribute('data-font-size') || '2');
+    if (currentSize > 1) {
+      setFontSize(currentSize - 1);
+    }
+  });
+  
+  // Handle font size increase
+  increaseFontSize.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const currentSize = parseInt(document.body.getAttribute('data-font-size') || '2');
+    if (currentSize < 5) {
+      setFontSize(currentSize + 1);
+    }
+  });
+}
+
+/**
+ * Set the font size and save it to session storage
+ * @param {number} size - Size level (1-5)
+ */
+function setFontSize(size) {
+  document.body.setAttribute('data-font-size', size);
+  sessionStorage.setItem('fontSizePreference', size);
+}
+
+/**
+ * Load saved font size from session storage
+ */
+function loadSavedFontSize() {
+  const savedSize = sessionStorage.getItem('fontSizePreference');
+  if (savedSize) {
+    document.body.setAttribute('data-font-size', savedSize);
+  }
+}
+
+/**
+ * Reset font size to default
+ */
+function resetFontSize() {
+  setFontSize(2); // Default size
+}
+
 // Initialize everything when DOM is loaded
 document.addEventListener('DOMContentLoaded', async function() {
   
@@ -666,4 +710,10 @@ document.addEventListener('DOMContentLoaded', async function() {
   
   // Update settings link
   updateSettingsLink();
+  
+  // Initialize font size controls
+  initFontSizeControls();
+  
+  // Load saved font size
+  loadSavedFontSize();
 }); 

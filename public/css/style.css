@@ -6,6 +6,24 @@ body {
   font-size: 22pt;
   font-weight: 300;
 }
+
+/* Font size variations */
+body[data-font-size="1"] {
+  font-size: 16pt;
+}
+body[data-font-size="2"] {
+  font-size: 22pt; /* Default */
+}
+body[data-font-size="3"] {
+  font-size: 26pt;
+}
+body[data-font-size="4"] {
+  font-size: 30pt;
+}
+body[data-font-size="5"] {
+  font-size: 34pt;
+}
+
 body::after {
   content: '';
   height: 100vh;
@@ -28,18 +46,29 @@ h1 {
 header {
   background-color: transparent;
   padding: 35px 0;
+  position: relative;
+}
+
+.nav-container {
+  position: relative;
+  width: max-content;
 }
 
 .language-switcher {
   font-family: Stolzl, sans-serif;
   font-size: 14pt;
   width: max-content;
-  padding: 20px 30px 20px 15px;
+  padding: 22px 20px 20px 15px;
   background: #ffffff45;
   -webkit-backdrop-filter: blur(30px);
   backdrop-filter: blur(30px);
   border-radius: 0 50px 50px 0;
   box-shadow: 0 0 10px #666;
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 7px;
 }
 
 .language-switcher a, .language-switcher span {
@@ -56,6 +85,72 @@ header {
   margin: 0 5px;
 }
 
+/* Font size controls */
+.font-size-icon {
+  background: none;
+  border: none;
+  color: #4C7371;
+  font-size: 18pt;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0 10px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.font-size-icon:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.font-size-icon svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+.font-size-options {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 100%;
+  background: #ffffff45;
+  -webkit-backdrop-filter: blur(30px);
+  backdrop-filter: blur(30px);
+  border-radius: 0 50px 50px 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.font-size-options.expanded {
+  width: calc(100% + 95px);
+  opacity: 1;
+}
+
+.decrease-font, .increase-font {
+  background: none;
+  border: none;
+  color: #4C7371;
+  font-size: 24pt;
+  cursor: pointer;
+  padding: 0 10px 0 0;
+  margin-right: 10px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.decrease-font:hover, .increase-font:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
 .settings-link {
   font-size: 20pt;
   text-decoration: none;
@@ -64,19 +159,30 @@ header {
   cursor: pointer;
 }
 
+/* Settings button in bottom right corner */
 .settings-button {
-  font-size: 20pt;
-  background: none;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  font-size: 24pt;
+  background: rgba(255, 255, 255, 0.3);
   border: none;
   color: #4C7371;
   cursor: pointer;
-  padding: 5px 10px;
-  margin-left: 5px;
+  padding: 15px;
+  margin: 0;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
 }
 
 .settings-button:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .back-link {

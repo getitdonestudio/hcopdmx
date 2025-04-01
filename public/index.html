@@ -7,15 +7,24 @@
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="/css/fonts.css">
 </head>
-<body data-lang="de" data-page="0000">
+<body data-lang="de" data-page="0000" data-font-size="2">
   <header>
-    <nav class="language-switcher">
-      <a href="javascript:void(0)" class="lang-de active" data-lang="de">DEU</a>
-      <span>|</span>
-      <a href="javascript:void(0)" class="lang-en" data-lang="en">EN</a>
-      <span class="nav-separator">|</span>
-      <button id="settingsLink" class="settings-button" onclick="window.location.href='/settings.html'">⚙️</button>
-    </nav>
+    <div class="nav-container">
+      <nav class="language-switcher">
+        <a href="javascript:void(0)" class="lang-de active" data-lang="de">DEU</a>
+        <span>|</span>
+        <a href="javascript:void(0)" class="lang-en" data-lang="en">EN</a>
+        <button class="font-size-icon" id="fontSizeToggle">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20">
+            <path d="M9 4v3h5v12h3V7h5V4H9zm-6 8h3v7h3v-7h3V9H3v3z"/>
+          </svg>
+        </button>
+      </nav>
+      <div class="font-size-options">
+        <button class="decrease-font" id="decreaseFontSize">−</button>
+        <button class="increase-font" id="increaseFontSize">+</button>
+      </div>
+    </div>
   </header>
   
   <main>
@@ -39,6 +48,9 @@
   <footer>
     <div id="footerContent">© 2025 Hypercube</div>
   </footer>
+
+  <!-- Settings button fixed in the bottom right -->
+  <button id="settingsLink" class="settings-button" onclick="window.location.href='/settings.html'">⚙️</button>
 
   <script src="/js/screensaverModes/baseMode.js"></script>
   <script src="/js/screensaverModes/pulsatingMode.js"></script>

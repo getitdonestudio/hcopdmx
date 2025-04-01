@@ -350,4 +350,75 @@ document.addEventListener('DOMContentLoaded', async function() {
       statusElement.className = 'settings-status';
     }, 3000);
   }
-}); 
+
+  // Initialize font size controls
+  initFontSizeControls();
+  
+  // Load saved font size
+  loadSavedFontSize();
+});
+
+/**
+ * Initialize font size controls
+ */
+function initFontSizeControls() {
+  const fontSizeToggle = document.getElementById('fontSizeToggle');
+  const decreaseFontSize = document.getElementById('decreaseFontSize');
+  const increaseFontSize = document.getElementById('increaseFontSize');
+  const fontSizeOptions = document.querySelector('.font-size-options');
+  
+  if (!fontSizeToggle || !fontSizeOptions) return;
+  
+  // Toggle expanded state
+  fontSizeToggle.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    fontSizeOptions.classList.toggle('expanded');
+  });
+  
+  // Close when clicking outside
+  document.addEventListener('click', (event) => {
+    if (!event.target.closest('.font-size-icon') && !event.target.closest('.font-size-options')) {
+      fontSizeOptions.classList.remove('expanded');
+    }
+  });
+  
+  // Handle font size decrease
+  decreaseFontSize.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const currentSize = parseInt(document.body.getAttribute('data-font-size') || '2');
+    if (currentSize > 1) {
+      setFontSize(currentSize - 1);
+    }
+  });
+  
+  // Handle font size increase
+  increaseFontSize.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const currentSize = parseInt(document.body.getAttribute('data-font-size') || '2');
+    if (currentSize < 5) {
+      setFontSize(currentSize + 1);
+    }
+  });
+}
+
+/**
+ * Set the font size and save it to session storage
+ * @param {number} size - Size level (1-5)
+ */
+function setFontSize(size) {
+  document.body.setAttribute('data-font-size', size);
+  sessionStorage.setItem('fontSizePreference', size);
+}
+
+/**
+ * Load saved font size from session storage
+ */
+function loadSavedFontSize() {
+  const savedSize = sessionStorage.getItem('fontSizePreference');
+  if (savedSize) {
+    document.body.setAttribute('data-font-size', savedSize);
+  }
+} 
