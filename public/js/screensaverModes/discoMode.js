@@ -10,7 +10,9 @@ class DiscoMode extends ScreensaverMode {
     // Default options
     this.options = Object.assign({
       changeInterval: 1000, // Time between program changes (1 second)
-      lightPower: 255 // Default light power
+      lightPower: 255, // Default light power
+      maxConsecutiveFailures: 5, // Maximum consecutive failures before attempting recovery
+      minRequestInterval: 100 // Minimum time between requests (ms)
     }, options);
     
     // All available DMX modes (a through p)
@@ -18,6 +20,10 @@ class DiscoMode extends ScreensaverMode {
     this.currentMode = null;
     this.usedModes = new Set(); // Track modes we've used to avoid immediate repeats
     this.changeCount = 0;
+    this.consecutiveFailures = 0;
+    this.recoveryMode = false;
+    this.lastRequestTime = 0;
+    this.isChanging = false;
   }
   
   /**
@@ -26,18 +32,16 @@ class DiscoMode extends ScreensaverMode {
   async start() {
     if (this.running) return;
     
-    console.log('DiscoMode: Starting...');
+    console.log('[DiscoMode] Starting...');
     
     // Get current settings
-    try {
-      const response = await fetch('/api/settings');
-      const settings = await response.json();
+    const settingsResponse = await this.safeFetch('/api/settings');
+    if (settingsResponse.success) {
+      const settings = settingsResponse.data;
       if (settings.screensaver && settings.screensaver.lightPower !== undefined) {
         this.options.lightPower = settings.screensaver.lightPower;
-        console.log(`DiscoMode: Using light power: ${this.options.lightPower}`);
+        console.log(`[DiscoMode] Using light power: ${this.options.lightPower}`);
       }
-    } catch (error) {
-      console.error('Error fetching settings:', error);
     }
     
     super.start();
@@ -45,18 +49,18 @@ class DiscoMode extends ScreensaverMode {
     // Reset tracking variables
     this.usedModes.clear();
     this.changeCount = 0;
+    this.consecutiveFailures = 0;
+    this.recoveryMode = false;
+    this.lastRequestTime = 0;
     
     // Start with a random mode
-    this.changeToRandomMode();
+    await this.changeToRandomMode();
     
     // Set up interval for changing modes
-    if (this.intervalId) {
-      clearInterval(this.intervalId);
-    }
+    const intervalId = setInterval(() => this.changeToRandomMode(), this.options.changeInterval);
+    this.registerInterval(intervalId);
     
-    this.intervalId = setInterval(() => this.changeToRandomMode(), this.options.changeInterval);
-    
-    console.log(`DiscoMode: Started with interval ${this.options.changeInterval}ms`);
+    console.log(`[DiscoMode] Started with interval ${this.options.changeInterval}ms`);
   }
   
   /**
@@ -65,52 +69,77 @@ class DiscoMode extends ScreensaverMode {
   stop() {
     if (!this.running) return;
     
-    console.log('DiscoMode: Stopping...');
+    console.log('[DiscoMode] Stopping...');
+    super.stop(); // This will clear all registered timers
     
-    if (this.intervalId) {
-      clearInterval(this.intervalId);
-      this.intervalId = null;
-    }
-    
-    super.stop();
-    
-    console.log('DiscoMode: Stopped');
+    console.log('[DiscoMode] Stopped');
   }
   
   /**
    * Change to a random DMX program
    */
-  changeToRandomMode() {
-    if (!this.running) return;
+  async changeToRandomMode() {
+    if (!this.running || this.isChanging) return;
     
-    this.changeCount++;
-    
-    let availableChoices = this.availableModes.filter(mode => !this.usedModes.has(mode));
-    
-    // If we've used too many modes, reset the used modes set
-    // but always keep the current mode in the used set to avoid immediate repeat
-    if (availableChoices.length < 3) {
-      this.usedModes.clear();
-      if (this.currentMode) {
-        this.usedModes.add(this.currentMode);
-      }
-      availableChoices = this.availableModes.filter(mode => !this.usedModes.has(mode));
+    // Rate limiting
+    const now = Date.now();
+    if (now - this.lastRequestTime < this.options.minRequestInterval) {
+      // If changing too rapidly, delay until next interval
+      return;
     }
     
-    // Choose a random mode from available choices
-    const randomIndex = Math.floor(Math.random() * availableChoices.length);
-    const randomMode = availableChoices[randomIndex];
+    this.isChanging = true;
+    this.changeCount++;
+    this.lastRequestTime = now;
     
-    // Keep track of this mode
-    this.currentMode = randomMode;
-    this.usedModes.add(randomMode);
-    
-    // Apply the mode
-    this.applyDmxMode(randomMode);
-    
-    // Log periodically, not for every change to avoid console spam
-    if (this.changeCount % 5 === 0) {
-      console.log(`DiscoMode: Switched to ${randomMode.toUpperCase()} (change #${this.changeCount})`);
+    try {
+      let availableChoices = this.availableModes.filter(mode => !this.usedModes.has(mode));
+      
+      // If we've used too many modes, reset the used modes set
+      // but always keep the current mode in the used set to avoid immediate repeat
+      if (availableChoices.length < 3) {
+        this.usedModes.clear();
+        if (this.currentMode) {
+          this.usedModes.add(this.currentMode);
+        }
+        availableChoices = this.availableModes.filter(mode => !this.usedModes.has(mode));
+      }
+      
+      // Choose a random mode from available choices
+      const randomIndex = Math.floor(Math.random() * availableChoices.length);
+      const randomMode = availableChoices[randomIndex];
+      
+      // Keep track of this mode
+      this.currentMode = randomMode;
+      this.usedModes.add(randomMode);
+      
+      // Apply the mode
+      await this.applyDmxMode(randomMode);
+      
+      // Reset failures on success
+      this.consecutiveFailures = 0;
+      
+      // Exit recovery mode if successful
+      if (this.recoveryMode && this.consecutiveFailures === 0) {
+        this.recoveryMode = false;
+        console.log('[DiscoMode] Exiting recovery mode after successful mode change');
+      }
+      
+      // Log periodically, not for every change to avoid console spam
+      if (this.changeCount % 5 === 0) {
+        console.log(`[DiscoMode] Switched to ${randomMode.toUpperCase()} (change #${this.changeCount})`);
+      }
+    } catch (error) {
+      this.consecutiveFailures++;
+      console.error(`[DiscoMode] Error changing mode (failure #${this.consecutiveFailures}):`, error);
+      
+      // Enter recovery mode if too many failures
+      if (this.consecutiveFailures >= this.options.maxConsecutiveFailures && !this.recoveryMode) {
+        this.recoveryMode = true;
+        console.warn(`[DiscoMode] Entering recovery mode after ${this.consecutiveFailures} consecutive failures`);
+      }
+    } finally {
+      this.isChanging = false;
     }
   }
   
@@ -118,46 +147,52 @@ class DiscoMode extends ScreensaverMode {
    * Apply a specific DMX program directly
    */
   async applyDmxMode(modeKey) {
-    try {
-      const response = await fetch(`/dmx/program/${modeKey}`);
-      if (!response.ok) {
-        throw new Error(`Failed to load program ${modeKey}: ${response.status}`);
+    // Rate limiting for requests in recovery mode
+    if (this.recoveryMode) {
+      const now = Date.now();
+      const timeSinceLastRequest = now - this.lastRequestTime;
+      if (timeSinceLastRequest < 2000) { // More aggressive rate limiting in recovery mode
+        throw new Error(`Rate limited in recovery mode: ${timeSinceLastRequest}ms since last request`);
       }
-      
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(`Failed to load program: ${modeKey}`);
-      }
-      
-      // The channels from the program endpoint are binary (0 or 1)
-      // We need to scale them to the desired power level
-      const scaledChannels = data.channels.map(value => 
-        value === 1 ? this.options.lightPower : 0
-      );
-      
-      // Send directly using the DMX direct endpoint
-      const directResponse = await fetch('/dmx/direct', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          channels: scaledChannels,
-          useScreensaverPower: true
-        })
-      });
-      
-      if (!directResponse.ok) {
-        throw new Error(`Failed to send direct DMX command: ${directResponse.status}`);
-      }
-      
-      const directResult = await directResponse.json();
-      if (!directResult.success) {
-        throw new Error('Failed to apply DMX values');
-      }
-    } catch (error) {
-      console.error(`DiscoMode: Error applying program ${modeKey}:`, error);
+      this.lastRequestTime = now;
     }
+    
+    // Fetch the program channels
+    const programResponse = await this.safeFetch(`/dmx/program/${modeKey}`);
+    if (!programResponse.success) {
+      throw new Error(`Failed to load program: ${modeKey}`);
+    }
+    
+    const data = programResponse.data;
+    
+    // Scale the binary channels to the configured light power
+    const scaledChannels = data.channels.map(value => 
+      value === 1 ? this.options.lightPower : 0
+    );
+    
+    // Send the channels to the DMX controller
+    const directResponse = await fetch('/dmx/direct', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        channels: scaledChannels,
+        useScreensaverPower: true
+      })
+    });
+    
+    if (!directResponse.ok) {
+      throw new Error(`Failed to send direct DMX command: ${directResponse.status}`);
+    }
+    
+    const directResult = await directResponse.json();
+    if (!directResult.success) {
+      throw new Error('Failed to apply DMX values');
+    }
+    
+    // Return true on success
+    return true;
   }
 }
 

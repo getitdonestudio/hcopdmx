@@ -6,15 +6,102 @@ const dgram = require('dgram');
 const os = require('os');
 const path = require('path');
 
-// Timestamps für Logs
-function logWithTimestamp(...args) {
-    const timestamp = new Date().toISOString();
-    console.log(`[${timestamp}]`, ...args);
+// Logging configuration
+const LOG_CONFIG = {
+    level: process.env.LOG_LEVEL || 'info', // 'debug', 'info', 'warn', 'error'
+    heartbeatInterval: 5, // Only log heartbeat every X times
+    maxFileSize: 5 * 1024 * 1024, // 5MB max log file size
+    logFile: 'dmx-server.log',
+    logToConsole: true
+};
+
+// Log levels and their priorities
+const LOG_LEVELS = {
+    debug: 0,
+    info: 1,
+    warn: 2,
+    error: 3
+};
+
+// Current heartbeat counter
+let heartbeatCounter = 0;
+
+// Check if a message should be logged based on current level
+function shouldLog(level) {
+    return LOG_LEVELS[level] >= LOG_LEVELS[LOG_CONFIG.level];
 }
 
-function errorWithTimestamp(...args) {
+// Rotate log file if it's too large
+function checkLogFileSize() {
+    try {
+        if (!LOG_CONFIG.logFile) return;
+        
+        if (fs.existsSync(LOG_CONFIG.logFile)) {
+            const stats = fs.statSync(LOG_CONFIG.logFile);
+            if (stats.size > LOG_CONFIG.maxFileSize) {
+                const backupFile = `${LOG_CONFIG.logFile}.old`;
+                if (fs.existsSync(backupFile)) {
+                    fs.unlinkSync(backupFile);
+                }
+                fs.renameSync(LOG_CONFIG.logFile, backupFile);
+            }
+        }
+    } catch (err) {
+        console.error(`Error rotating log file: ${err.message}`);
+    }
+}
+
+// Enhanced logging functions
+function logWithTimestamp(level, ...args) {
+    // Skip if log level is too low
+    if (!shouldLog(level)) return;
+    
+    // Skip some heartbeat messages to reduce log spam
+    if (level === 'info' && args[0] && args[0].includes('Heartbeat:')) {
+        heartbeatCounter++;
+        if (heartbeatCounter % LOG_CONFIG.heartbeatInterval !== 0) {
+            return;
+        }
+    }
+    
     const timestamp = new Date().toISOString();
-    console.error(`[${timestamp}]`, ...args);
+    const logMessage = `[${timestamp}] [${level.toUpperCase()}] ${args.join(' ')}`;
+    
+    // Check/rotate log file if logging to file
+    if (LOG_CONFIG.logFile) {
+        checkLogFileSize();
+        try {
+            fs.appendFileSync(LOG_CONFIG.logFile, logMessage + '\n');
+        } catch (err) {
+            console.error(`Failed to write to log file: ${err.message}`);
+        }
+    }
+    
+    // Console output if enabled
+    if (LOG_CONFIG.logToConsole) {
+        if (level === 'error') {
+            console.error(logMessage);
+        } else {
+            console.log(logMessage);
+        }
+    }
+}
+
+// Simplified logging functions with levels
+function logDebug(...args) {
+    logWithTimestamp('debug', ...args);
+}
+
+function logInfo(...args) {
+    logWithTimestamp('info', ...args);
+}
+
+function logWarn(...args) {
+    logWithTimestamp('warn', ...args);
+}
+
+function logError(...args) {
+    logWithTimestamp('error', ...args);
 }
 
 const PORT = 3000;
@@ -44,17 +131,58 @@ function loadSettings() {
     try {
         if (fs.existsSync(SETTINGS_FILE)) {
             const data = fs.readFileSync(SETTINGS_FILE, 'utf8');
-            appSettings = JSON.parse(data);
-            logWithTimestamp('Settings loaded successfully');
+            try {
+                const parsedSettings = JSON.parse(data);
+                
+                // Validate critical settings
+                if (!parsedSettings.screensaver || typeof parsedSettings.screensaver !== 'object') {
+                    throw new Error('Invalid screensaver settings');
+                }
+                
+                appSettings = parsedSettings;
+                logInfo('Settings loaded successfully');
+                
+                // Create backup of valid settings
+                const backupFile = `${SETTINGS_FILE}.backup`;
+                fs.writeFileSync(backupFile, data, 'utf8');
+                
+                return true;
+            } catch (parseError) {
+                logError('Error parsing settings file:', parseError);
+                
+                // Try to load from backup
+                const backupFile = `${SETTINGS_FILE}.backup`;
+                if (fs.existsSync(backupFile)) {
+                    try {
+                        const backupData = fs.readFileSync(backupFile, 'utf8');
+                        appSettings = JSON.parse(backupData);
+                        logInfo('Restored settings from backup file');
+                        
+                        // Save the restored settings back to main file
+                        fs.writeFileSync(SETTINGS_FILE, backupData, 'utf8');
+                        return true;
+                    } catch (backupError) {
+                        logError('Error loading backup settings:', backupError);
+                    }
+                }
+                
+                // If all else fails, use default settings
+                appSettings = { ...DEFAULT_SETTINGS };
+                saveSettings(DEFAULT_SETTINGS);
+                logInfo('Reset to default settings due to parse error');
+                return false;
+            }
         } else {
             // If file doesn't exist, create it with default settings
             saveSettings(DEFAULT_SETTINGS);
-            logWithTimestamp('Created default settings file');
+            logInfo('Created default settings file');
+            return true;
         }
     } catch (error) {
-        errorWithTimestamp('Error loading settings:', error);
+        logError('Error accessing settings file:', error);
         // If there's an error, use default settings
         appSettings = { ...DEFAULT_SETTINGS };
+        return false;
     }
 }
 
@@ -67,12 +195,44 @@ function saveSettings(settings) {
             lastUpdated: new Date().toISOString()
         };
         
-        fs.writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2), 'utf8');
-        appSettings = { ...settings };
-        logWithTimestamp('Settings saved successfully');
-        return true;
+        // Create a backup of current settings before saving new ones
+        if (fs.existsSync(SETTINGS_FILE)) {
+            try {
+                const currentData = fs.readFileSync(SETTINGS_FILE, 'utf8');
+                const backupFile = `${SETTINGS_FILE}.backup`;
+                fs.writeFileSync(backupFile, currentData, 'utf8');
+            } catch (backupError) {
+                logError('Error creating settings backup:', backupError);
+            }
+        }
+        
+        // Write settings to temp file first
+        const tempFile = `${SETTINGS_FILE}.temp`;
+        fs.writeFileSync(tempFile, JSON.stringify(settings, null, 2), 'utf8');
+        
+        // Validate the written file
+        try {
+            const checkData = fs.readFileSync(tempFile, 'utf8');
+            JSON.parse(checkData); // Try to parse to verify
+            
+            // If successful, rename temp file to settings file
+            fs.renameSync(tempFile, SETTINGS_FILE);
+            appSettings = { ...settings };
+            
+            logInfo('Settings saved successfully');
+            return true;
+        } catch (validationError) {
+            logError('Error validating settings file:', validationError);
+            
+            // Clean up temp file
+            if (fs.existsSync(tempFile)) {
+                fs.unlinkSync(tempFile);
+            }
+            
+            return false;
+        }
     } catch (error) {
-        errorWithTimestamp('Error saving settings:', error);
+        logError('Error saving settings:', error);
         return false;
     }
 }
@@ -89,7 +249,7 @@ const socket = dgram.createSocket('udp4');
 
 // Set up socket error handling
 socket.on('error', (err) => {
-    errorWithTimestamp('UDP Socket Error:', err);
+    logError('UDP Socket Error:', err);
 });
 
 // ArtNet packet header (constant part)
@@ -101,7 +261,7 @@ const ARTNET_HEADER = Buffer.from([
     0x00, // Physical - 1 byte
 ]);
 
-logWithTimestamp('ArtNet raw UDP sender initialisiert. Ziel-IP: ' + ARTNET_HOST);
+logInfo('ArtNet raw UDP sender initialisiert. Ziel-IP: ' + ARTNET_HOST);
 
 // DMX-Programme aus CSV laden
 let dmxPrograms = {};
@@ -109,30 +269,65 @@ let dmxPrograms = {};
 function loadDMXPrograms() {
     return new Promise((resolve, reject) => {
         const tempPrograms = {};
-        fs.createReadStream(CSV_FILE)
-            .pipe(csv({ separator: ';' }))
-            .on('data', (row) => {
-                const keyField = Object.keys(row).find(k => k.trim().toLowerCase() === '﻿key' || k.trim().toLowerCase() === 'key');
-                const key = keyField ? row[keyField].toLowerCase() : '';
-                
-                // Convert CSV values to binary (0/1) - any non-zero value is considered "on"
-                const channelStates = Object.values(row)
-                    .slice(1)
-                    .map(value => (parseInt(value, 10) > 0) ? 1 : 0);
-                
-                if (key) {
-                    // Store the binary states, actual DMX values will be calculated at runtime
-                    tempPrograms[key] = channelStates;
-                }
-            })
-            .on('error', (err) => {
-                errorWithTimestamp('Fehler beim Einlesen der CSV-Datei:', err);
-                reject(err);
-            })
-            .on('end', () => {
-                logWithTimestamp('CSV-Datei erfolgreich geladen. Programme:', Object.keys(tempPrograms).join(', '));
-                resolve(tempPrograms);
-            });
+        let retryCount = 0;
+        const maxRetries = 3;
+        
+        const attemptLoad = () => {
+            fs.createReadStream(CSV_FILE)
+                .on('error', (err) => {
+                    if (retryCount < maxRetries) {
+                        retryCount++;
+                        logError(`Fehler beim Öffnen der CSV-Datei (Versuch ${retryCount}/${maxRetries}):`, err);
+                        setTimeout(attemptLoad, 1000 * retryCount); // Retry with increasing delay
+                    } else {
+                        logError('Maximale Anzahl von Versuchen erreicht. Konnte CSV-Datei nicht laden:', err);
+                        reject(err);
+                    }
+                })
+                .pipe(csv({ separator: ';' }))
+                .on('data', (row) => {
+                    const keyField = Object.keys(row).find(k => k.trim().toLowerCase() === '﻿key' || k.trim().toLowerCase() === 'key');
+                    const key = keyField ? row[keyField].toLowerCase() : '';
+                    
+                    // Convert CSV values to binary (0/1) - any non-zero value is considered "on"
+                    const channelStates = Object.values(row)
+                        .slice(1)
+                        .map(value => (parseInt(value, 10) > 0) ? 1 : 0);
+                    
+                    if (key) {
+                        // Store the binary states, actual DMX values will be calculated at runtime
+                        tempPrograms[key] = channelStates;
+                    }
+                })
+                .on('error', (err) => {
+                    if (retryCount < maxRetries) {
+                        retryCount++;
+                        logError(`Fehler beim Einlesen der CSV-Datei (Versuch ${retryCount}/${maxRetries}):`, err);
+                        setTimeout(attemptLoad, 1000 * retryCount);
+                    } else {
+                        logError('Maximale Anzahl von Versuchen erreicht. Konnte CSV-Datei nicht verarbeiten:', err);
+                        reject(err);
+                    }
+                })
+                .on('end', () => {
+                    const programKeys = Object.keys(tempPrograms);
+                    if (programKeys.length === 0) {
+                        if (retryCount < maxRetries) {
+                            retryCount++;
+                            logError(`CSV-Datei enthält keine Programme (Versuch ${retryCount}/${maxRetries})`);
+                            setTimeout(attemptLoad, 1000 * retryCount);
+                        } else {
+                            logError('Maximale Anzahl von Versuchen erreicht. CSV-Datei enthält keine Programme.');
+                            reject(new Error('CSV-Datei enthält keine Programme'));
+                        }
+                    } else {
+                        logInfo('CSV-Datei erfolgreich geladen. Programme:', programKeys.join(', '));
+                        resolve(tempPrograms);
+                    }
+                });
+        };
+        
+        attemptLoad();
     });
 }
 
@@ -141,8 +336,40 @@ function scaleDMXValues(binaryChannels, lightPowerSetting = null) {
     // If no specific lightPower provided, use the normal lightPower setting
     const lightPower = lightPowerSetting !== null ? lightPowerSetting : appSettings.lightPower;
     
+    // Ensure lightPower is within valid DMX range (0-255)
+    const normalizedPower = Math.max(0, Math.min(255, Math.round(lightPower)));
+    
     // Scale binary values (0/1) to DMX values (0-255) based on lightPower setting
-    return binaryChannels.map(state => state === 1 ? Math.round(lightPower) : 0);
+    return binaryChannels.map(state => state === 1 ? normalizedPower : 0);
+}
+
+/**
+ * Utility function to scale any DMX channel values consistently
+ * @param {Array} channels - Array of channel values
+ * @param {number} targetPower - Target power level (0-255)
+ * @param {boolean} preserveZeros - If true, zeros remain zeros
+ * @returns {Array} - Scaled channel values
+ */
+function scaleDMXChannels(channels, targetPower, preserveZeros = true) {
+    // Ensure target power is within valid DMX range (0-255)
+    const normalizedPower = Math.max(0, Math.min(255, Math.round(targetPower)));
+    
+    return channels.map(value => {
+        if (value === 0 && preserveZeros) {
+            return 0; // Keep zeros as zeros if preserveZeros is true
+        }
+        
+        if (normalizedPower === 0) {
+            return 0; // Short-circuit if target power is 0
+        }
+        
+        if (normalizedPower === 255) {
+            return value; // No scaling needed if target power is maximum
+        }
+        
+        // Scale the value proportionally
+        return Math.round((value / 255) * normalizedPower);
+    });
 }
 
 // Function to directly send an ArtNet DMX packet
@@ -184,23 +411,39 @@ function sendArtNetDMX(channels) {
         artnetPacket[18 + i] = channels[i];
     }
     
-    // Send the packet via UDP
     return new Promise((resolve, reject) => {
-        socket.send(artnetPacket, 0, artnetPacket.length, ARTNET_PORT, ARTNET_HOST, (err) => {
-            if (err) {
-                errorWithTimestamp('Fehler beim Senden des ArtNet-Pakets:', err);
-                reject(err);
-            } else {
-                resolve();
-            }
-        });
+        let retryCount = 0;
+        const maxRetries = 3;
+        
+        const attemptSend = () => {
+            // Attempt to send the packet
+            socket.send(artnetPacket, 0, artnetPacket.length, ARTNET_PORT, ARTNET_HOST, (err) => {
+                if (err) {
+                    if (retryCount < maxRetries) {
+                        retryCount++;
+                        logError(`UDP send error (retry ${retryCount}/${maxRetries}):`, err);
+                        setTimeout(attemptSend, 200 * retryCount); // Increasing backoff
+                    } else {
+                        logError('Max UDP send retries reached. Error:', err);
+                        reject(err);
+                    }
+                } else {
+                    if (retryCount > 0) {
+                        logInfo(`ArtNet packet sent successfully after ${retryCount} retries`);
+                    }
+                    resolve();
+                }
+            });
+        };
+        
+        attemptSend();
     });
 }
 
 // Function to set a DMX program directly with multiple sends for reliability
 async function setDMXProgram(programKey, useScreensaverPower = false) {
     if (!dmxPrograms[programKey]) {
-        errorWithTimestamp(`Programm ${programKey.toUpperCase()} nicht gefunden`);
+        logError(`Programm ${programKey.toUpperCase()} nicht gefunden`);
         return false;
     }
     
@@ -219,7 +462,7 @@ async function setDMXProgram(programKey, useScreensaverPower = false) {
         // Scale binary values to actual DMX values
         const channels = scaleDMXValues(binaryChannels, lightPowerToUse);
         
-        logWithTimestamp(`Setze DMX-Programm ${programKey.toUpperCase()} direkt...`);
+        logInfo(`Setze DMX-Programm ${programKey.toUpperCase()} direkt...`);
         
         // Send multiple packets for reliability
         const retries = 5; // Increased from 3 to 5
@@ -232,7 +475,7 @@ async function setDMXProgram(programKey, useScreensaverPower = false) {
                     await new Promise(resolve => setTimeout(resolve, waitTime));
                 }
             } catch (err) {
-                errorWithTimestamp(`Fehler beim Senden des ArtNet-Pakets (Versuch ${i+1}):`, err);
+                logError(`Fehler beim Senden des ArtNet-Pakets (Versuch ${i+1}):`, err);
                 // Continue with next retry
             }
         }
@@ -240,10 +483,10 @@ async function setDMXProgram(programKey, useScreensaverPower = false) {
         // Store current state
         dmxPrograms.current = [...channels];
         
-        logWithTimestamp(`DMX-Programm ${programKey.toUpperCase()} erfolgreich gesetzt.`);
+        logInfo(`DMX-Programm ${programKey.toUpperCase()} erfolgreich gesetzt.`);
         return true;
     } catch (error) {
-        errorWithTimestamp(`Fehler beim Setzen des DMX-Programms ${programKey.toUpperCase()}:`, error);
+        logError(`Fehler beim Setzen des DMX-Programms ${programKey.toUpperCase()}:`, error);
         return false;
     }
 }
@@ -274,7 +517,7 @@ async function fadeDMX(startChannels, endChannels, duration) {
 // Function to fade to a DMX program
 async function fadeToProgram(programKey, duration, useScreensaverPower = false) {
     if (!dmxPrograms[programKey]) {
-        errorWithTimestamp(`Programm ${programKey.toUpperCase()} nicht gefunden`);
+        logError(`Programm ${programKey.toUpperCase()} nicht gefunden`);
         return false;
     }
     
@@ -296,7 +539,7 @@ async function fadeToProgram(programKey, duration, useScreensaverPower = false) 
         // Get current state or create zero state if none exists
         const currentChannels = dmxPrograms.current || new Array(targetChannels.length).fill(0);
         
-        logWithTimestamp(`Fade zu DMX-Programm ${programKey.toUpperCase()} über ${duration}ms...`);
+        logInfo(`Fade zu DMX-Programm ${programKey.toUpperCase()} über ${duration}ms...`);
         
         // Perform the fade
         await fadeDMX(currentChannels, targetChannels, duration);
@@ -304,10 +547,10 @@ async function fadeToProgram(programKey, duration, useScreensaverPower = false) 
         // Store new current state
         dmxPrograms.current = [...targetChannels];
         
-        logWithTimestamp(`Fade zu DMX-Programm ${programKey.toUpperCase()} erfolgreich abgeschlossen.`);
+        logInfo(`Fade zu DMX-Programm ${programKey.toUpperCase()} erfolgreich abgeschlossen.`);
         return true;
     } catch (error) {
-        errorWithTimestamp(`Fehler beim Faden zu DMX-Programm ${programKey.toUpperCase()}:`, error);
+        logError(`Fehler beim Faden zu DMX-Programm ${programKey.toUpperCase()}:`, error);
         return false;
     }
 }
@@ -328,49 +571,70 @@ async function startServer() {
             try {
                 const { channels, useScreensaverPower } = req.body;
                 
+                // Validate request body
                 if (!channels || !Array.isArray(channels)) {
+                    logError('Invalid DMX direct request: missing or invalid channels array');
                     return res.status(400).json({ 
                         success: false, 
                         message: 'Invalid or missing channels array' 
                     });
                 }
                 
-                // For direct control, we're assuming channels already contain actual DMX values
-                // and not binary states (for compatibility with existing functionality)
+                // Log the request for debugging (limit channel display to first 5 for brevity)
+                const channelSample = channels.slice(0, 5).map(v => Math.round(v)).join(', ');
+                logInfo(`Direct DMX control: Setting ${channels.length} channels directly. Sample values: [${channelSample}...]`);
                 
-                // Log the request for debugging
-                logWithTimestamp(`Direct DMX control: Setting ${channels.length} channels directly. Sample values: [${channels.slice(0, 5).join(', ')}...]`);
+                // Determine which light power setting to use if specified
+                let lightPowerToUse = null;
+                if (useScreensaverPower === true) {
+                    lightPowerToUse = appSettings.screensaver.lightPower;
+                }
                 
                 // Send multiple packets for reliability (similar to setDMXProgram)
                 const retries = 3;
                 const waitTime = 30; // ms
                 
+                let sendSuccess = false;
+                
                 for (let i = 0; i < retries; i++) {
                     try {
                         await sendArtNetDMX(channels);
+                        
+                        // Add a small delay between retries
                         if (i < retries - 1) {
                             await new Promise(resolve => setTimeout(resolve, waitTime));
                         }
+                        
+                        sendSuccess = true;
                     } catch (err) {
-                        errorWithTimestamp(`Fehler beim Senden des ArtNet-Pakets (Direktmodus, Versuch ${i+1}):`, err);
+                        logError(`Fehler beim Senden des ArtNet-Pakets (Direktmodus, Versuch ${i+1}):`, err);
                         // Continue with next retry
                     }
+                }
+                
+                if (!sendSuccess) {
+                    logError('All DMX direct packet send attempts failed');
+                    return res.status(500).json({ 
+                        success: false, 
+                        message: 'Failed to send DMX packets after multiple attempts' 
+                    });
                 }
                 
                 // Store current state
                 dmxPrograms.current = [...channels];
                 
-                logWithTimestamp(`DMX-Kanäle direkt gesetzt. Anzahl: ${channels.length}`);
+                logInfo(`DMX-Kanäle direkt gesetzt. Anzahl: ${channels.length}`);
                 
-                res.json({ 
+                return res.json({ 
                     success: true, 
-                    message: 'DMX channels set directly'
+                    message: 'DMX channels set directly',
+                    channelCount: channels.length
                 });
             } catch (error) {
-                errorWithTimestamp('Error setting DMX channels directly:', error);
-                res.status(500).json({ 
+                logError('Error setting DMX channels directly:', error);
+                return res.status(500).json({ 
                     success: false, 
-                    message: 'Error setting DMX channels directly'
+                    message: 'Internal server error while setting DMX channels' 
                 });
             }
         });
@@ -417,7 +681,7 @@ async function startServer() {
                 const success = await setDMXProgram(toKey);
                 
                 if (success) {
-                    logWithTimestamp(`Direkter Wechsel zu Programm ${toKey.toUpperCase()} erfolgreich.`);
+                    logInfo(`Direkter Wechsel zu Programm ${toKey.toUpperCase()} erfolgreich.`);
                     return res.json({ 
                         success: true, 
                         message: `Programm ${toKey.toUpperCase()} aktiviert.`,
@@ -430,18 +694,56 @@ async function startServer() {
                     });
                 }
             } catch (error) {
-                errorWithTimestamp('Fehler beim Setzen des DMX-Programms:', error);
+                logError('Fehler beim Setzen des DMX-Programms:', error);
                 res.status(500).json({ success: false, message: 'Interner Serverfehler beim Setzen des DMX-Programms' });
             }
         });
 
         // API-Endpunkt für sanfte Übergänge mit Fading
         app.post('/dmx/fade/:key', async (req, res) => {
-            const programKey = req.params.key.toLowerCase();
-            const duration = parseInt(req.query.duration) || 1000;
-            const useScreensaverPower = req.query.screensaver === 'true';
-            const success = await fadeToProgram(programKey, duration, useScreensaverPower);
-            res.json({ success });
+            try {
+                const programKey = req.params.key.toLowerCase();
+                
+                // Validate program key
+                if (!dmxPrograms[programKey]) {
+                    logError(`DMX fade request: Program ${programKey.toUpperCase()} not found`);
+                    return res.status(404).json({ 
+                        success: false, 
+                        message: `Program ${programKey.toUpperCase()} not found` 
+                    });
+                }
+                
+                // Parse and validate parameters
+                const duration = parseInt(req.query.duration, 10) || 1000;
+                const useScreensaverPower = req.query.screensaver === 'true';
+                
+                logInfo(`Fade-Anfrage: Programm ${programKey.toUpperCase()}, Dauer: ${duration}ms, Screensaver-Modus: ${useScreensaverPower}`);
+                
+                // Execute the fade transition
+                const success = await fadeToProgram(programKey, duration, useScreensaverPower);
+                
+                if (success) {
+                    logInfo(`Fade zu Programm ${programKey.toUpperCase()} erfolgreich abgeschlossen.`);
+                    return res.json({ 
+                        success: true, 
+                        message: `Fade transition to program ${programKey.toUpperCase()} completed successfully`,
+                        program: programKey,
+                        duration: duration
+                    });
+                } else {
+                    logError(`Fehler beim Fade-Übergang zu Programm ${programKey.toUpperCase()}`);
+                    return res.status(500).json({ 
+                        success: false, 
+                        message: `Error during fade transition to program ${programKey.toUpperCase()}`
+                    });
+                }
+            } catch (error) {
+                logError('Unhandled error in fade transition:', error);
+                return res.status(500).json({ 
+                    success: false, 
+                    message: 'Internal server error during fade transition'
+                });
+            }
         });
 
         // API-Endpunkt: Aktueller Zustand
@@ -499,7 +801,7 @@ async function startServer() {
                 const success = saveSettings(updatedSettings);
                 
                 if (success) {
-                    logWithTimestamp('Settings updated:', JSON.stringify({
+                    logInfo('Settings updated:', JSON.stringify({
                         lightPower: updatedSettings.lightPower,
                         linkLightPowers: updatedSettings.linkLightPowers,
                         screensaver: updatedSettings.screensaver
@@ -516,7 +818,7 @@ async function startServer() {
                     });
                 }
             } catch (error) {
-                errorWithTimestamp('Error updating settings:', error);
+                logError('Error updating settings:', error);
                 res.status(500).json({
                     success: false,
                     message: 'Internal server error while updating settings'
@@ -529,7 +831,7 @@ async function startServer() {
                 const success = saveSettings(DEFAULT_SETTINGS);
                 
                 if (success) {
-                    logWithTimestamp('Settings reset to defaults');
+                    logInfo('Settings reset to defaults');
                     return res.json(DEFAULT_SETTINGS);
                 } else {
                     return res.status(500).json({
@@ -538,7 +840,7 @@ async function startServer() {
                     });
                 }
             } catch (error) {
-                errorWithTimestamp('Error resetting settings:', error);
+                logError('Error resetting settings:', error);
                 res.status(500).json({
                     success: false,
                     message: 'Internal server error while resetting settings'
@@ -559,9 +861,9 @@ async function startServer() {
                 };
                 
                 res.json({ success: true, message: 'Temporary settings applied', settings: tempSettings });
-                logWithTimestamp(`Temporary settings applied: ${JSON.stringify(tempSettings.screensaver)}`);
+                logInfo(`Temporary settings applied: ${JSON.stringify(tempSettings.screensaver)}`);
             } catch (err) {
-                errorWithTimestamp('Error applying temporary settings:', err);
+                logError('Error applying temporary settings:', err);
                 res.status(500).json({ success: false, message: 'Error applying temporary settings' });
             }
         });
@@ -597,17 +899,17 @@ async function startServer() {
         });
 
         const server = app.listen(PORT, '0.0.0.0', () => {
-            logWithTimestamp(`Server läuft unter http://localhost:${PORT}`);
+            logInfo(`Server läuft unter http://localhost:${PORT}`);
         });
         
         // Signal Handling
         function shutdown() {
-            logWithTimestamp('DMX-Server wird beendet...');
+            logInfo('DMX-Server wird beendet...');
             // Set all channels to 0 before closing
             const zeroChannels = Array(512).fill(0);
             sendArtNetDMX(zeroChannels)
                 .then(() => {
-                    logWithTimestamp('DMX-Kanäle auf 0 gesetzt.');
+                    logInfo('DMX-Kanäle auf 0 gesetzt.');
                     socket.close(() => {
                         process.exit(0);
                     });
@@ -624,12 +926,12 @@ async function startServer() {
 
         // Unerwartete Fehler abfangen
         process.on('uncaughtException', (err) => {
-            errorWithTimestamp('Uncaught Exception:', err);
+            logError('Uncaught Exception:', err);
             // PM2 wird den Prozess ggf. neu starten
         });
 
         process.on('unhandledRejection', (reason, promise) => {
-            errorWithTimestamp('Unhandled Rejection:', reason, 'Promise:', promise);
+            logError('Unhandled Rejection:', reason, 'Promise:', promise);
         });
 
         // Heartbeat: Alle 60 Sekunden den letzten Zustand erneut senden
@@ -640,21 +942,21 @@ async function startServer() {
             try {
                 if (dmxPrograms.current) {
                     await sendArtNetDMX(dmxPrograms.current);
-                    logWithTimestamp('Heartbeat: Letzten DMX-Wert erneut gesendet');
+                    logInfo('Heartbeat: Letzten DMX-Wert erneut gesendet');
                     // Reset error count on success
                     heartbeatErrorCount = 0;
                 } else {
-                    logWithTimestamp('Heartbeat: Kein aktueller DMX-Zustand gefunden');
+                    logInfo('Heartbeat: Kein aktueller DMX-Zustand gefunden');
                 }
             } catch (err) {
                 heartbeatErrorCount++;
-                errorWithTimestamp(`Fehler im Heartbeat-Intervall (${heartbeatErrorCount}):`, err);
+                logError(`Fehler im Heartbeat-Intervall (${heartbeatErrorCount}):`, err);
                 
                 // If we've had multiple failures, try resending more aggressively
                 if (heartbeatErrorCount > 3) {
                     try {
                         // Try to resend the current state with multiple attempts
-                        logWithTimestamp('Versuche DMX-Zustand wiederherzustellen...');
+                        logInfo('Versuche DMX-Zustand wiederherzustellen...');
                         
                         // If we have a current state, resend it multiple times
                         if (dmxPrograms.current) {
@@ -662,12 +964,12 @@ async function startServer() {
                                 await sendArtNetDMX(dmxPrograms.current);
                                 await new Promise(resolve => setTimeout(resolve, 100));
                             }
-                            logWithTimestamp('DMX-Zustand wiederhergestellt');
+                            logInfo('DMX-Zustand wiederhergestellt');
                         }
                         
                         heartbeatErrorCount = 0;
                     } catch (recoveryErr) {
-                        errorWithTimestamp('Fehler bei der Wiederherstellung des DMX-Zustands:', recoveryErr);
+                        logError('Fehler bei der Wiederherstellung des DMX-Zustands:', recoveryErr);
                     }
                 }
             }
@@ -675,10 +977,10 @@ async function startServer() {
 
         // Initial program - set all channels to 0
         await setDMXProgram('z');
-        logWithTimestamp('Server initialisiert und bereit.');
+        logInfo('Server initialisiert und bereit.');
 
     } catch (error) {
-        errorWithTimestamp('Fehler beim Starten des Servers:', error);
+        logError('Fehler beim Starten des Servers:', error);
         process.exit(1);
     }
 }

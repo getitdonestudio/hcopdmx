@@ -1,181 +1,224 @@
 # HCOP DMX Controller
 
-Eine Node.js-Anwendung zur Steuerung von DMX-Beleuchtung über das Art-Net-Protokoll, optimiert für den Einsatz auf dem Raspberry Pi.
+A Node.js application for controlling DMX lighting via the Art-Net protocol, optimized for use on Raspberry Pi devices.
 
 [English version below](#english)
 
-## Funktionen
+## Features
 
-- Express-basierter Webserver mit mehrsprachiger Benutzeroberfläche
-- DMX-Beleuchtungssteuerung über das Art-Net-Protokoll
-- Konfigurierbare Beleuchtungsprogramme, die aus CSV-Dateien geladen werden
-- Heartbeat-Funktionalität für konsistenten Betrieb
-- Ressourcenüberwachung für die Systemzustandskontrolle
-- Systemd-Service für zuverlässigen Autostart und PM2 für Monitoring
+- Express-based web server with multilingual user interface
+- DMX lighting control via the Art-Net protocol
+- Configurable lighting programs loaded from CSV files
+- Screensaver modes with various animation patterns
+- DMX channel scaling for power management
+- Heartbeat functionality for consistent operation
+- Comprehensive error handling with retry mechanisms
+- Advanced logging system with rotation
+- Resource monitoring for system health control
+- Systemd service for reliable autostart and PM2 for monitoring
 
-## Systemanforderungen
+## System Requirements
 
-- Raspberry Pi (3 oder neuer empfohlen) oder kompatibler Computer
-- Raspberry Pi OS Lite (Bullseye oder neuer empfohlen)
-- Node.js 18.x oder neuer
-- Art-Net-kompatibler DMX-Controller/Interface
-- Netzwerkverbindung zwischen Raspberry Pi und DMX-Interface
+- Raspberry Pi (3 or newer recommended) or compatible computer
+- Raspberry Pi OS Lite (Bullseye or newer recommended)
+- Node.js 18.x or newer
+- Art-Net compatible DMX controller/interface
+- Network connection between Raspberry Pi and DMX interface
 
-## Installation auf dem Raspberry Pi
+## Installation on Raspberry Pi
 
-### Ein-Zeilen-Bootstrap-Installation (frisches OS)
+### One-line Bootstrap Installation (fresh OS)
 
-Bei einer frischen Installation von Raspberry Pi OS Lite verwenden Sie unser Bootstrap-Skript, um alles in einem Schritt zu installieren:
+For a fresh installation of Raspberry Pi OS Lite, use our bootstrap script to set up everything in one step:
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/getitdonestudio/hcopdmx/main/bootstrap-raspi.sh | bash
 ```
 
-Das Skript installiert alle nötigen Abhängigkeiten (Node.js, Git, PM2), richtet das Projekt ein und konfiguriert den systemd-Service für automatischen Start beim Booten. Es startet außerdem PM2 für Monitoring-Zwecke, aber der eigentliche Autostart wird über systemd verwaltet.
+The script installs all necessary dependencies (Node.js, Git, PM2), sets up the project, and configures the systemd service for automatic startup on boot. It also starts PM2 for monitoring purposes, but the actual autostart is managed through systemd.
 
-### Alternative Installation mit Setup-Skript
+### Alternative Installation with Setup Script
 
-Wenn Git bereits installiert ist:
+If Git is already installed:
 
-1. SSH auf Ihren Raspberry Pi
+1. SSH into your Raspberry Pi
 ```bash
-ssh pi@ihre-raspberry-pi-ip
+ssh pi@your-raspberry-pi-ip
 ```
 
-2. Installationsskript herunterladen
+2. Download installation script
 ```bash
 wget https://raw.githubusercontent.com/getitdonestudio/hcopdmx/main/setup-raspi.sh
 ```
 
-3. Das Skript ausführbar machen
+3. Make the script executable
 ```bash
 chmod +x setup-raspi.sh
 ```
 
-4. Das Installationsskript ausführen
+4. Run the installation script
 ```bash
 ./setup-raspi.sh
 ```
 
-5. Sie können auf die Anwendung unter `http://ihre-raspberry-pi-ip:3000` zugreifen.
+5. You can access the application at `http://your-raspberry-pi-ip:3000`.
 
-### Manuelle Installation
+### Manual Installation
 
-Wenn Sie es vorziehen, manuell zu installieren:
+If you prefer to install manually:
 
-1. Node.js installieren (Version 18.x oder höher)
+1. Install Node.js (version 18.x or higher)
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
 sudo apt-get install -y nodejs
 ```
 
-2. Git und weitere Abhängigkeiten installieren
+2. Install Git and other dependencies
 ```bash
 sudo apt-get install -y git curl wget
 ```
 
-3. Optional: PM2 für Monitoring installieren
+3. Optional: Install PM2 for monitoring
 ```bash
 sudo npm install -g pm2
 ```
 
-4. Das Repository klonen
+4. Clone the repository
 ```bash
 mkdir -p ~/hcopdmx
 cd ~/hcopdmx
 git clone https://github.com/getitdonestudio/hcopdmx.git .
 ```
 
-5. Abhängigkeiten installieren
+5. Install dependencies
 ```bash
 npm install
 ```
 
-6. Die Anwendung konfigurieren
-   - Bearbeiten Sie `server.js`, um die richtige IP-Adresse für Ihr Art-Net-Gerät einzustellen
-   - Modifizieren Sie `hcop_dmx-channel.csv`, wenn Sie die DMX-Programme anpassen möchten
+6. Configure the application
+   - Edit `server.js` to set the correct IP address for your Art-Net device
+   - Modify `hcop_dmx-channel.csv` if you want to customize the DMX programs
 
-7. Systemd-Service für automatischen Start einrichten
+7. Set up systemd service for automatic startup
 ```bash
 ./setup-systemd.sh
 ```
 
-## Aktualisieren der Anwendung
+## Updating the Application
 
-### Automatisches Update (Empfohlen)
+### Automatic Update (Recommended)
 
-1. SSH auf Ihren Raspberry Pi
+1. SSH into your Raspberry Pi
 ```bash
-ssh pi@ihre-raspberry-pi-ip
+ssh pi@your-raspberry-pi-ip
 ```
 
-2. Das Update-Skript ausführen
+2. Run the update script
 ```bash
 ~/hcopdmx/update-raspi.sh
 ```
 
-Das Skript wird automatisch:
-- Die neuesten Änderungen von GitHub abrufen
-- Neue Abhängigkeiten installieren
-- Die Anwendung neustarten
+The script will automatically:
+- Fetch the latest changes from GitHub
+- Install new dependencies
+- Restart the application
 
-### Manuelles Update
+### Manual Update
 
-1. SSH auf Ihren Raspberry Pi
+1. SSH into your Raspberry Pi
 ```bash
-ssh pi@ihre-raspberry-pi-ip
+ssh pi@your-raspberry-pi-ip
 ```
 
-2. In das Anwendungsverzeichnis wechseln
+2. Change to the application directory
 ```bash
 cd ~/hcopdmx
 ```
 
-3. Die neuesten Änderungen abrufen
+3. Fetch the latest changes
 ```bash
 git pull origin main
 ```
 
-4. Neue Abhängigkeiten installieren
+4. Install new dependencies
 ```bash
 npm install
 ```
 
-5. Die Anwendung neu starten
+5. Restart the application
 ```bash
 sudo systemctl restart dmx-server.service
 ```
 
-## Verwaltung der Anwendung
+## Managing the Application
 
-### Systemd-Befehle
+### Systemd Commands
 
-Die Anwendung läuft als systemd-Service für zuverlässigen Autostart. Hier sind nützliche Befehle:
+The application runs as a systemd service for reliable autostart. Here are useful commands:
 
-- Service-Status prüfen: `sudo systemctl status dmx-server.service`
-- Anwendungsprotokolle anzeigen: `sudo journalctl -u dmx-server.service -f`
-- Anwendung neu starten: `sudo systemctl restart dmx-server.service`
-- Anwendung stoppen: `sudo systemctl stop dmx-server.service`
-- Anwendung starten: `sudo systemctl start dmx-server.service`
-- Autostart aktivieren: `sudo systemctl enable dmx-server.service`
-- Autostart deaktivieren: `sudo systemctl disable dmx-server.service`
+- Check service status: `sudo systemctl status dmx-server.service`
+- View application logs: `sudo journalctl -u dmx-server.service -f`
+- Restart application: `sudo systemctl restart dmx-server.service`
+- Stop application: `sudo systemctl stop dmx-server.service`
+- Start application: `sudo systemctl start dmx-server.service`
+- Enable autostart: `sudo systemctl enable dmx-server.service`
+- Disable autostart: `sudo systemctl disable dmx-server.service`
 
-### Monitoring mit PM2
+### Monitoring with PM2
 
-Obwohl der Autostart über systemd erfolgt, ist PM2 für Monitoring-Zwecke installiert:
+Although autostart is done through systemd, PM2 is installed for monitoring purposes:
 
-- Status anzeigen: `pm2 status`
-- Echtzeit-Monitoring: `pm2 monit`
-- Logs anzeigen: `pm2 logs dmxserver`
+- Show status: `pm2 status`
+- Real-time monitoring: `pm2 monit`
+- View logs: `pm2 logs dmxserver`
 
-### Konfiguration von DMX-Programmen
+### Application Logs
 
-DMX-Programme werden in der Datei `hcop_dmx-channel.csv` mit folgendem Format definiert:
-- Jede Zeile stellt ein Beleuchtungsprogramm dar
-- Die erste Spalte ist der Programmschlüssel (der Identifikator, der in API-Aufrufen verwendet wird)
-- Jede weitere Spalte stellt einen DMX-Kanalwert dar (0-255)
+The application uses a built-in logging system with the following features:
 
-Beispiel:
+- Log levels: `debug`, `info`, `warn`, `error`
+- Log file rotation when size exceeds 5MB
+- Configurable heartbeat logging reduction
+- Optional console output
+
+#### Configuring Logging
+
+Edit the `LOG_CONFIG` object in `server.js` to customize logging behavior:
+
+```javascript
+const LOG_CONFIG = {
+    level: process.env.LOG_LEVEL || 'info', // 'debug', 'info', 'warn', 'error'
+    heartbeatInterval: 5, // Only log heartbeat every X times
+    maxFileSize: 5 * 1024 * 1024, // 5MB max log file size
+    logFile: 'dmx-server.log',
+    logToConsole: true
+};
+```
+
+You can also set the `LOG_LEVEL` environment variable when starting the application:
+
+```bash
+LOG_LEVEL=debug node server.js
+```
+
+### DMX Channel Scaling
+
+The application supports two types of DMX channel scaling:
+
+1. **Binary Scaling** - Scales binary (0/1) values from the CSV file to actual DMX values (0-255) based on the light power setting
+
+2. **Advanced Scaling** - Scales any DMX channel values consistently based on a target power level with an option to preserve zeros
+
+This feature allows for precise control of lighting intensity for both normal operation and screensaver modes.
+
+### Configuring DMX Programs
+
+DMX programs are defined in the `hcop_dmx-channel.csv` file with the following format:
+- Each row represents a lighting program
+- The first column is the program key (the identifier used in API calls)
+- Each subsequent column represents a DMX channel value (0-255)
+
+Example:
 ```
 Key;Channel1;Channel2;Channel3
 a;255;0;0
@@ -183,32 +226,59 @@ b;0;255;0
 c;0;0;255
 ```
 
-### API-Endpunkte
+### Screensaver Modes
 
-Die Anwendung stellt folgende API-Endpunkte bereit:
+The application features several screensaver modes:
 
-- `POST /dmx/:key` - Ein DMX-Programm aktivieren (ersetzen Sie `:key` durch den Programmbezeichner aus der CSV)
-- `GET /state` - Den aktuellen DMX-Status abrufen
+- **Dim to On** - Gradually brightens channels from zero to full brightness
+- **Dim to Off** - Gradually dims channels from full brightness to zero
+- **Cycling** - Cycles through specified DMX programs with transitions
+- **Pulsating** - Creates a breathing effect by modulating channel brightness
+- **Disco** - Randomly changes colors for a dynamic light show
 
-### Web-Interface
+Each mode is configurable through the settings interface.
 
-Die Anwendung bietet eine Weboberfläche, die zugänglich ist unter:
-- `http://ihre-raspberry-pi-ip:3000`
+### Error Recovery and Reliability Features
 
-Die Oberfläche unterstützt mehrere Sprachen mit Seiten in den Verzeichnissen `/de/` (Deutsch) und `/en/` (Englisch).
+The application includes several reliability features:
 
-## Fehlerbehebung
+- **CSV Loading Retry** - Attempts to load the CSV file multiple times with increasing delays if the initial load fails
+- **DMX Packet Transmission Retry** - Sends each DMX packet multiple times with configurable retries
+- **Settings Backup** - Automatically backs up settings and can restore from backup if the main file becomes corrupted
+- **Heartbeat Recovery** - Automatically detects and recovers from connection issues by resending DMX packets
 
-### Häufige Probleme und Lösungen
+### API Endpoints
 
-1. **Die Anwendung startet nicht nach der Installation**
-   - Systemd-Status überprüfen: `sudo systemctl status dmx-server.service`
-   - Logs anzeigen: `sudo journalctl -u dmx-server.service -f`
-   - Node.js-Version überprüfen: `node --version` (sollte 18.x oder neuer sein)
-   - Berechtigungen des Anwendungsverzeichnisses prüfen: `ls -la ~/hcopdmx`
-   - Sicherstellen, dass server.js ausführbar ist: `chmod +x ~/hcopdmx/server.js`
+The application provides the following API endpoints:
 
-2. **Fehler: "Port already in use" (Port bereits in Benutzung)**
+- `POST /dmx/:key` - Activate a DMX program (replace `:key` with the program identifier from the CSV)
+- `POST /dmx/fade/:key` - Fade to a DMX program with a specified duration
+- `POST /dmx/direct` - Directly set DMX channel values for advanced control
+- `GET /dmx/programs` - List all available DMX programs
+- `GET /state` - Get the current DMX state
+- `GET /api/settings` - Get current settings
+- `POST /api/settings` - Update settings
+- `POST /api/settings/reset` - Reset settings to defaults
+
+### Web Interface
+
+The application provides a web interface accessible at:
+- `http://your-raspberry-pi-ip:3000`
+
+The interface supports multiple languages with pages in the `/de/` (German) and `/en/` (English) directories.
+
+## Troubleshooting
+
+### Common Issues and Solutions
+
+1. **Application Not Starting After Installation**
+   - Check systemd status: `sudo systemctl status dmx-server.service`
+   - View logs: `sudo journalctl -u dmx-server.service -f`
+   - Check Node.js version: `node --version` (should be 18.x or newer)
+   - Check application directory permissions: `ls -la ~/hcopdmx`
+   - Ensure server.js is executable: `chmod +x ~/hcopdmx/server.js`
+
+2. **Fehler: "Port already in use"**
    - Prüfen, ob mehrere Instanzen der Anwendung laufen: `ps aux | grep node`
    - Falls PM2 die Anwendung auch startet: `pm2 stop dmxserver && pm2 delete dmxserver && pm2 save`
    - Systemd-Service neu starten: `sudo systemctl restart dmx-server.service`
@@ -317,15 +387,19 @@ ISC Lizenz
 <a name="english"></a>
 # HCOP DMX Controller (English)
 
-A Node.js application to control DMX lighting via Art-Net protocol, optimized for Raspberry Pi deployment.
+A Node.js application for controlling DMX lighting via the Art-Net protocol, optimized for use on Raspberry Pi devices.
 
 ## Features
 
-- Express-based web server with a multi-language interface
-- DMX lighting control via Art-Net protocol
+- Express-based web server with multilingual user interface
+- DMX lighting control via the Art-Net protocol
 - Configurable lighting programs loaded from CSV files
-- Heartbeat functionality to ensure consistent operation
-- Resource monitoring for system health
+- Screensaver modes with various animation patterns
+- DMX channel scaling for power management
+- Heartbeat functionality for consistent operation
+- Comprehensive error handling with retry mechanisms
+- Advanced logging system with rotation
+- Resource monitoring for system health control
 - Systemd service for reliable autostart and PM2 for monitoring
 
 ## System Requirements
@@ -338,9 +412,9 @@ A Node.js application to control DMX lighting via Art-Net protocol, optimized fo
 
 ## Installation on Raspberry Pi
 
-### One-line Bootstrap Installation (Fresh OS)
+### One-line Bootstrap Installation (fresh OS)
 
-If you're starting with a fresh installation of Raspberry Pi OS Lite, you can use our bootstrap script to set up everything in one step:
+For a fresh installation of Raspberry Pi OS Lite, use our bootstrap script to set up everything in one step:
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/getitdonestudio/hcopdmx/main/bootstrap-raspi.sh | bash
@@ -350,14 +424,14 @@ The script installs all necessary dependencies (Node.js, Git, PM2), sets up the 
 
 ### Alternative Installation with Setup Script
 
-If you already have git installed:
+If Git is already installed:
 
 1. SSH into your Raspberry Pi
 ```bash
 ssh pi@your-raspberry-pi-ip
 ```
 
-2. Download the setup script
+2. Download installation script
 ```bash
 wget https://raw.githubusercontent.com/getitdonestudio/hcopdmx/main/setup-raspi.sh
 ```
@@ -367,18 +441,18 @@ wget https://raw.githubusercontent.com/getitdonestudio/hcopdmx/main/setup-raspi.
 chmod +x setup-raspi.sh
 ```
 
-4. Run the setup script
+4. Run the installation script
 ```bash
 ./setup-raspi.sh
 ```
 
-5. Access the application at `http://your-raspberry-pi-ip:3000`
+5. You can access the application at `http://your-raspberry-pi-ip:3000`.
 
 ### Manual Installation
 
 If you prefer to install manually:
 
-1. Install Node.js (version 18.x or later)
+1. Install Node.js (version 18.x or higher)
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
 sudo apt-get install -y nodejs
@@ -407,10 +481,10 @@ npm install
 ```
 
 6. Configure the application
-   - Edit `server.js` to set the proper IP address for your Art-Net device
-   - Modify `hcop_dmx-channel.csv` if you want to adjust the DMX programs
+   - Edit `server.js` to set the correct IP address for your Art-Net device
+   - Modify `hcop_dmx-channel.csv` if you want to customize the DMX programs
 
-7. Set up the systemd service for autostart
+7. Set up systemd service for automatic startup
 ```bash
 ./setup-systemd.sh
 ```
@@ -430,8 +504,8 @@ ssh pi@your-raspberry-pi-ip
 ```
 
 The script will automatically:
-- Pull the latest changes from GitHub
-- Install any new dependencies
+- Fetch the latest changes from GitHub
+- Install new dependencies
 - Restart the application
 
 ### Manual Update
@@ -441,17 +515,17 @@ The script will automatically:
 ssh pi@your-raspberry-pi-ip
 ```
 
-2. Navigate to the application directory
+2. Change to the application directory
 ```bash
 cd ~/hcopdmx
 ```
 
-3. Pull the latest changes
+3. Fetch the latest changes
 ```bash
 git pull origin main
 ```
 
-4. Install any new dependencies
+4. Install new dependencies
 ```bash
 npm install
 ```
@@ -477,18 +551,57 @@ The application runs as a systemd service for reliable autostart. Here are usefu
 
 ### Monitoring with PM2
 
-While autostart is handled by systemd, PM2 is installed for monitoring purposes:
+Although autostart is done through systemd, PM2 is installed for monitoring purposes:
 
-- Check status: `pm2 status`
+- Show status: `pm2 status`
 - Real-time monitoring: `pm2 monit`
 - View logs: `pm2 logs dmxserver`
+
+### Application Logs
+
+The application uses a built-in logging system with the following features:
+
+- Log levels: `debug`, `info`, `warn`, `error`
+- Log file rotation when size exceeds 5MB
+- Configurable heartbeat logging reduction
+- Optional console output
+
+#### Configuring Logging
+
+Edit the `LOG_CONFIG` object in `server.js` to customize logging behavior:
+
+```javascript
+const LOG_CONFIG = {
+    level: process.env.LOG_LEVEL || 'info', // 'debug', 'info', 'warn', 'error'
+    heartbeatInterval: 5, // Only log heartbeat every X times
+    maxFileSize: 5 * 1024 * 1024, // 5MB max log file size
+    logFile: 'dmx-server.log',
+    logToConsole: true
+};
+```
+
+You can also set the `LOG_LEVEL` environment variable when starting the application:
+
+```bash
+LOG_LEVEL=debug node server.js
+```
+
+### DMX Channel Scaling
+
+The application supports two types of DMX channel scaling:
+
+1. **Binary Scaling** - Scales binary (0/1) values from the CSV file to actual DMX values (0-255) based on the light power setting
+
+2. **Advanced Scaling** - Scales any DMX channel values consistently based on a target power level with an option to preserve zeros
+
+This feature allows for precise control of lighting intensity for both normal operation and screensaver modes.
 
 ### Configuring DMX Programs
 
 DMX programs are defined in the `hcop_dmx-channel.csv` file with the following format:
 - Each row represents a lighting program
 - The first column is the program key (the identifier used in API calls)
-- Each additional column represents a DMX channel value (0-255)
+- Each subsequent column represents a DMX channel value (0-255)
 
 Example:
 ```
@@ -498,19 +611,46 @@ b;0;255;0
 c;0;0;255
 ```
 
+### Screensaver Modes
+
+The application features several screensaver modes:
+
+- **Dim to On** - Gradually brightens channels from zero to full brightness
+- **Dim to Off** - Gradually dims channels from full brightness to zero
+- **Cycling** - Cycles through specified DMX programs with transitions
+- **Pulsating** - Creates a breathing effect by modulating channel brightness
+- **Disco** - Randomly changes colors for a dynamic light show
+
+Each mode is configurable through the settings interface.
+
+### Error Recovery and Reliability Features
+
+The application includes several reliability features:
+
+- **CSV Loading Retry** - Attempts to load the CSV file multiple times with increasing delays if the initial load fails
+- **DMX Packet Transmission Retry** - Sends each DMX packet multiple times with configurable retries
+- **Settings Backup** - Automatically backs up settings and can restore from backup if the main file becomes corrupted
+- **Heartbeat Recovery** - Automatically detects and recovers from connection issues by resending DMX packets
+
 ### API Endpoints
 
 The application provides the following API endpoints:
 
 - `POST /dmx/:key` - Activate a DMX program (replace `:key` with the program identifier from the CSV)
+- `POST /dmx/fade/:key` - Fade to a DMX program with a specified duration
+- `POST /dmx/direct` - Directly set DMX channel values for advanced control
+- `GET /dmx/programs` - List all available DMX programs
 - `GET /state` - Get the current DMX state
+- `GET /api/settings` - Get current settings
+- `POST /api/settings` - Update settings
+- `POST /api/settings/reset` - Reset settings to defaults
 
 ### Web Interface
 
 The application provides a web interface accessible at:
 - `http://your-raspberry-pi-ip:3000`
 
-The interface supports multiple languages with pages in `/de/` (German) and `/en/` (English) directories.
+The interface supports multiple languages with pages in the `/de/` (German) and `/en/` (English) directories.
 
 ## Troubleshooting
 

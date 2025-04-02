@@ -257,19 +257,28 @@ async function loadContent(pageId, lang = currentLang) {
 }
 
 /**
- * Execute a direct DMX program change without transitions
+ * Update the status text in the UI
+ * @param {string} message - The status message to display
+ */
+function updateStatus(message) {
+  const statusElem = document.getElementById('status');
+  if (statusElem) {
+    statusElem.textContent = message;
+  } else {
+    console.warn('[Main] Status element not found when updating status:', message);
+  }
+}
+
+/**
+ * Execute a DMX program change (direct)
  * @param {string} key - The DMX program key to set
  * @returns {Promise<boolean>} - Success status
  */
 async function sendDMXCommand(key) {
-  const statusElem = document.getElementById('status');
-  if (statusElem) {
-    statusElem.textContent = `Sende Programm ${key.toUpperCase()}...`;
-  }
-  
-  console.log(`Sending DMX program: ${key.toUpperCase()}`);
-  
   try {
+    updateStatus(`Setze Programm ${key.toUpperCase()}...`);
+    console.log(`[Main] Sending DMX command: ${key.toUpperCase()}`);
+    
     const response = await fetch(`/dmx/${key}`, { 
       method: 'POST',
       headers: {
@@ -277,21 +286,24 @@ async function sendDMXCommand(key) {
       }
     });
     
+    if (!response.ok) {
+      throw new Error(`HTTP error: ${response.status}`);
+    }
+    
     const data = await response.json();
     
-    if (statusElem) {
-      statusElem.textContent = data.success ? 
-        `Programm ${key.toUpperCase()} aktiviert.` : 
-        `Fehler: ${data.message}`;
+    if (data.success) {
+      updateStatus(`Programm ${key.toUpperCase()} aktiv`);
+      console.log(`[Main] DMX command success: ${key.toUpperCase()}`);
+      return true;
+    } else {
+      updateStatus(`Fehler: ${data.message || 'Unbekannter Fehler'}`);
+      console.error(`[Main] DMX command failed: ${key.toUpperCase()}`, data.message);
+      return false;
     }
-    
-    console.log(`DMX command result: ${data.success}`);
-    return data.success;
   } catch (error) {
-    console.error('DMX command error:', error);
-    if (statusElem) {
-      statusElem.textContent = 'Fehler beim Senden des Befehls.';
-    }
+    updateStatus('Fehler beim Senden des DMX-Befehls');
+    console.error('[Main] DMX command error:', error);
     return false;
   }
 }
@@ -303,41 +315,42 @@ async function sendDMXCommand(key) {
  * @returns {Promise<boolean>} - Success status
  */
 async function sendDMXFadeCommand(key, duration) {
-  // If no duration provided, use the one from settings
-  if (duration === undefined) {
-    duration = appSettings.screensaver.transitionSpeed;
-  }
-
-  const statusElem = document.getElementById('status');
-  if (statusElem) {
-    statusElem.textContent = `Fade zu Programm ${key.toUpperCase()}...`;
-  }
-  
-  console.log(`Sending DMX fade to program: ${key.toUpperCase()} over ${duration}ms`);
-  
   try {
-    const response = await fetch(`/dmx/fade/${key}?duration=${duration}`, { 
+    // If no duration provided, use the one from settings
+    const effectiveDuration = duration || appSettings.screensaver.transitionSpeed || 1000;
+    
+    updateStatus(`Fade zu Programm ${key.toUpperCase()}...`);
+    console.log(`[Main] Sending DMX fade to program: ${key.toUpperCase()} over ${effectiveDuration}ms`);
+    
+    // Build URL with parameters
+    const params = new URLSearchParams();
+    params.append('duration', effectiveDuration);
+    
+    const response = await fetch(`/dmx/fade/${key}?${params}`, { 
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       }
     });
     
+    if (!response.ok) {
+      throw new Error(`HTTP error: ${response.status}`);
+    }
+    
     const data = await response.json();
     
-    if (statusElem) {
-      statusElem.textContent = data.success ? 
-        `Fade zu Programm ${key.toUpperCase()} abgeschlossen.` : 
-        `Fehler: ${data.message}`;
+    if (data.success) {
+      updateStatus(`Fade zu Programm ${key.toUpperCase()} abgeschlossen`);
+      console.log(`[Main] DMX fade command success: ${key.toUpperCase()}`);
+      return true;
+    } else {
+      updateStatus(`Fehler: ${data.message || 'Unbekannter Fehler'}`);
+      console.error(`[Main] DMX fade command failed: ${key.toUpperCase()}`, data.message);
+      return false;
     }
-    
-    console.log(`DMX fade command result: ${data.success}`);
-    return data.success;
   } catch (error) {
-    console.error('DMX fade command error:', error);
-    if (statusElem) {
-      statusElem.textContent = 'Fehler beim Senden des Fade-Befehls.';
-    }
+    updateStatus('Fehler beim Senden des Fade-Befehls');
+    console.error('[Main] DMX fade command error:', error);
     return false;
   }
 }
@@ -378,17 +391,6 @@ async function transitionToPage(pageId) {
     console.log(`Transition to page ${pageId} completed`);
   } catch (error) {
     console.error(`Error during transition:`, error);
-  }
-}
-
-/**
- * Update the status text in the UI
- * @param {string} message - The status message to display
- */
-function updateStatus(message) {
-  const statusElem = document.getElementById('status');
-  if (statusElem) {
-    statusElem.textContent = message;
   }
 }
 

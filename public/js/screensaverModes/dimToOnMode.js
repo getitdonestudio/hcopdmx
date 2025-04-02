@@ -22,81 +22,77 @@ class DimToOnMode extends ScreensaverMode {
    * Start the dim to on mode
    */
   async start() {
-    console.log('DimToOnMode: Starting...');
+    if (this.running) return;
+    
+    console.log('[DimToOnMode] Starting...');
     
     // Get current settings to update light power
-    try {
-      const response = await fetch('/api/settings');
-      const settings = await response.json();
+    const settingsResponse = await this.safeFetch('/api/settings');
+    if (settingsResponse.success) {
+      const settings = settingsResponse.data;
       if (settings.screensaver && settings.screensaver.lightPower !== undefined) {
         this.options.lightPower = settings.screensaver.lightPower;
-        console.log(`DimToOnMode: Using screensaver light power: ${this.options.lightPower}`);
+        console.log(`[DimToOnMode] Using screensaver light power: ${this.options.lightPower}`);
       }
-    } catch (error) {
-      console.error('Error fetching settings:', error);
     }
     
     // Fetch current DMX state
-    try {
-      const response = await fetch('/state');
-      const data = await response.json();
-      if (data.success && Array.isArray(data.channels)) {
-        this.currentChannels = [...data.channels];
-        console.log('DimToOnMode: Current state fetched, channel count:', this.currentChannels.length);
-        
-        // Set all channels to the target power
-        this.targetChannels = new Array(this.currentChannels.length).fill(this.options.lightPower);
-        console.log(`DimToOnMode: Setting all ${this.targetChannels.length} channels to target power: ${this.options.lightPower}`);
-      }
-    } catch (error) {
-      console.error('Error fetching current DMX state:', error);
+    const stateResponse = await this.safeFetch('/state');
+    if (stateResponse.success) {
+      const data = stateResponse.data;
+      this.currentChannels = [...data.channels];
+      console.log('[DimToOnMode] Current state fetched, channel count:', this.currentChannels.length);
+      
+      // Set all channels to the target power
+      this.targetChannels = new Array(this.currentChannels.length).fill(this.options.lightPower);
+      console.log(`[DimToOnMode] Setting all ${this.targetChannels.length} channels to target power: ${this.options.lightPower}`);
     }
     
     // Set up interval for updates
-    if (this.intervalId) {
-      clearInterval(this.intervalId);
-    }
-    
-    this.intervalId = setInterval(() => {
+    const intervalId = setInterval(() => {
       this.update();
     }, this.options.updateInterval);
+    
+    // Register interval for automatic cleanup
+    this.registerInterval(intervalId);
     
     this.startTime = Date.now();
     this.isTransitioning = true;
     this.updateCount = 0;
     
-    console.log('DimToOnMode: Started transition with interval:', this.options.updateInterval);
+    console.log('[DimToOnMode] Started transition with interval:', this.options.updateInterval);
     
-    return super.start();
+    super.start();
+    return true;
   }
   
   /**
    * Stop the dim to on mode
    */
-  async stop() {
-    console.log('DimToOnMode: Stopping...');
+  stop() {
+    if (!this.running) return;
     
-    if (this.intervalId) {
-      clearInterval(this.intervalId);
-      this.intervalId = null;
-    }
-    
+    console.log('[DimToOnMode] Stopping...');
     this.isTransitioning = false;
-    return super.stop();
+    
+    // clearAllTimers is called by parent's stop() method
+    super.stop();
+    console.log('[DimToOnMode] Stopped');
+    return true;
   }
   
   /**
    * Update the dim to on mode
    */
   async update() {
-    if (!this.isTransitioning) return;
+    if (!this.running || !this.isTransitioning) return;
     
     this.updateCount++;
     const elapsed = Date.now() - this.startTime;
     const progress = Math.min(elapsed / this.options.transitionTime, 1);
     
     // Calculate current values with smooth easing
-    const easedProgress = this.easeInOutCubic(progress);
+    const easedProgress = this.easeTransition(progress);
     
     // Create a new array for the updated values
     const updatedChannels = new Array(this.currentChannels.length).fill(0);
@@ -111,7 +107,7 @@ class DimToOnMode extends ScreensaverMode {
     
     // Log every 10th update for debugging
     if (this.updateCount % 10 === 0) {
-      console.log(`DimToOnMode: Update #${this.updateCount}, progress: ${Math.round(progress * 100)}%`);
+      console.log(`[DimToOnMode] Update #${this.updateCount}, progress: ${Math.round(progress * 100)}%`);
     }
     
     // Apply the current values
@@ -119,23 +115,14 @@ class DimToOnMode extends ScreensaverMode {
     
     // Check if transition is complete
     if (progress >= 1) {
-      console.log('DimToOnMode: Transition complete after', this.updateCount, 'updates');
+      console.log('[DimToOnMode] Transition complete after', this.updateCount, 'updates');
       this.isTransitioning = false;
       
       // Ensure we reach the exact target values
       await this.applyChannels(this.targetChannels);
       
-      // Clear the interval now that transition is complete
-      if (this.intervalId) {
-        clearInterval(this.intervalId);
-        this.intervalId = null;
-      }
+      // No need to clear interval here as it will be cleaned up in stop()
     }
-  }
-  
-  // Smooth easing function
-  easeInOutCubic(t) {
-    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
   }
   
   /**
@@ -160,7 +147,7 @@ class DimToOnMode extends ScreensaverMode {
         throw new Error('Failed to apply channels');
       }
     } catch (error) {
-      console.error('Error applying channels:', error);
+      console.error('[DimToOnMode] Error applying channels:', error);
     }
   }
 }

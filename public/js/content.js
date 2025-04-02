@@ -9,18 +9,29 @@ function populateLanguageSwitcher() {
     const currentLang = document.body.getAttribute('data-lang') || 'de';
     const currentPage = document.body.getAttribute('data-page') || '0000';
   
-    // Links für Deutsch und Englisch erstellen
-    let linkDE, linkEN;
-    if (currentLang === 'de') {
-      linkDE = `<a href="../de/${currentPage}.html" class="lang-de active">DEU</a>`;
-      linkEN = `<a href="../en/${currentPage}.html" class="lang-en">EN</a>`;
-    } else {
-      linkDE = `<a href="../de/${currentPage}.html" class="lang-de">DEU</a>`;
-      linkEN = `<a href="../en/${currentPage}.html" class="lang-en active">EN</a>`;
-    }
+    // DOM-Fragment für bessere Performance erstellen
+    const fragment = document.createDocumentFragment();
     
-    // HTML des Switchers setzen
-    languageSwitcher.innerHTML = `${linkDE} <span>|</span> ${linkEN}`;
+    // Links für Deutsch und Englisch erstellen
+    const linkDE = document.createElement('a');
+    linkDE.href = `../de/${currentPage}.html`;
+    linkDE.className = `lang-de${currentLang === 'de' ? ' active' : ''}`;
+    linkDE.textContent = 'DEU';
+    fragment.appendChild(linkDE);
+    
+    const separator = document.createElement('span');
+    separator.textContent = ' | ';
+    fragment.appendChild(separator);
+    
+    const linkEN = document.createElement('a');
+    linkEN.href = `../en/${currentPage}.html`;
+    linkEN.className = `lang-en${currentLang === 'en' ? ' active' : ''}`;
+    linkEN.textContent = 'EN';
+    fragment.appendChild(linkEN);
+    
+    // Fragment zum DOM hinzufügen (nur ein Reflow)
+    languageSwitcher.innerHTML = '';
+    languageSwitcher.appendChild(fragment);
   }
   
   // Die Funktion wird ausgeführt, sobald der DOM geladen wurde
@@ -38,23 +49,40 @@ function updateBinaryDisplay() {
     const pageValue = document.body.getAttribute("data-page");
     if (!pageValue || pageValue.length !== 4) return;
   
-    // Erzeuge vier Divs entsprechend der Stellen des Binärcodes.
-    // Annahme: Die erste Ziffer (links/oben) entspricht der höchsten Stelle,
-    // und die vierte (rechts/unten) der niedrigsten Stelle.
-    let html = "";
+    // DOM-Fragment für bessere Performance erstellen
+    const fragment = document.createDocumentFragment();
+    
+    // Erstelle vier Divs entsprechend der Stellen des Binärcodes
     for (let i = 0; i < pageValue.length; i++) {
-      // Falls der aktuelle Binärwert "1" ist, aktiviere das Div (weiß gefüllt)
-      html += `<div class="binary-bit${pageValue[i] === "1" ? " active" : ""}"></div>`;
+      const bitDiv = document.createElement('div');
+      bitDiv.className = `binary-bit${pageValue[i] === "1" ? " active" : ""}`;
+      fragment.appendChild(bitDiv);
     }
-    binaryDisplay.innerHTML = html;
+    
+    // Fragment zum DOM hinzufügen (nur ein Reflow)
+    binaryDisplay.innerHTML = '';
+    binaryDisplay.appendChild(fragment);
   }
   
-  // Beim Laden der Seite den Binärcode anzeigen lassen
-  document.addEventListener("DOMContentLoaded", () => {
-    // Bestehende Initialisierungen (z. B. für DMX-Befehle etc.)
-    // ...
-  
-    // Binärcode-Visualisierung aktualisieren
+  // Registriere einen Event-Listener für das DOMContentLoaded-Event
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      // Binärcode-Visualisierung aktualisieren
+      updateBinaryDisplay();
+      
+      // Event-Listener für Resize-Events hinzufügen für responsive Anpassungen
+      let resizeTimeout;
+      window.addEventListener('resize', () => {
+        // Debounce für bessere Performance
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+          // Hier responsive Anpassungen bei Bedarf
+          // Aktuell nur Platzhalter
+        }, 150);
+      });
+    });
+  } else {
+    // DOMContentLoaded wurde bereits ausgelöst
     updateBinaryDisplay();
-  });
+  }
   
