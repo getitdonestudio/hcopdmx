@@ -12,7 +12,8 @@ class CyclingMode extends ScreensaverMode {
       transitionTime: 2000, // Time to transition between modes (2 seconds)
       updateInterval: 100, // Update interval for transitions (100ms)
       retryInterval: 1000, // Retry interval if a mode fails to load (1 second)
-      maxConsecutiveFailures: 5 // Maximum consecutive failures before attempting recovery
+      maxConsecutiveFailures: 5, // Maximum consecutive failures before attempting recovery
+      lightPower: 255 // Default light power
     }, options);
     
     // All available DMX modes (a through p)
@@ -27,34 +28,34 @@ class CyclingMode extends ScreensaverMode {
     this.consecutiveFailures = 0;
     this.recoveryMode = false;
     this.lastNetworkRequestTime = 0;
+    this.transitionStartTime = 0;
   }
   
   /**
    * Start the cycling mode
    */
-  start() {
+  async start() {
     if (this.running) return;
+    
+    console.log('CyclingMode: Starting...');
+    
+    // Get current settings
+    try {
+      const response = await fetch('/api/settings');
+      const settings = await response.json();
+      if (settings.screensaver && settings.screensaver.lightPower !== undefined) {
+        this.options.lightPower = settings.screensaver.lightPower;
+        console.log(`CyclingMode: Using light power: ${this.options.lightPower}`);
+      }
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+    }
+    
     super.start();
     
-    // Reset state
-    this.failedModes = {};
-    this.clearAllTimers();
-    this.consecutiveFailures = 0;
-    this.recoveryMode = false;
-    
-    // Start with the first mode
-    this.currentModeIndex = 0;
-    this.loadInitialState()
-      .then(() => {
-        this.loadMode(this.availableModes[this.currentModeIndex]);
-      })
-      .catch(error => {
-        console.error('Error loading initial state:', error);
-        // Try to recover by moving to the next mode
-        this.transitionToNextMode();
-      });
-    
-    console.log('Cycling mode started');
+    // Start cycling through modes
+    console.log('CyclingMode: Starting to cycle through modes');
+    this.transitionToNextMode();
   }
   
   /**
@@ -233,6 +234,7 @@ class CyclingMode extends ScreensaverMode {
     
     this.isTransitioning = true;
     this.transitionProgress = 0;
+    this.transitionStartTime = Date.now();
     
     // Clear any existing transition timer
     if (this.transitionTimer) {
@@ -249,34 +251,40 @@ class CyclingMode extends ScreensaverMode {
    * Update the transition progress
    */
   updateTransition() {
-    if (!this.isTransitioning || !this.running) return;
+    if (!this.currentChannels || !this.targetChannels || !this.running) return;
     
-    // Update progress
-    this.transitionProgress += this.options.updateInterval / this.options.transitionTime;
+    // Calculate progress (0-1)
+    this.transitionProgress = Math.min(
+      (Date.now() - this.transitionStartTime) / this.options.transitionTime,
+      1
+    );
     
-    if (this.transitionProgress >= 1) {
-      // Transition complete
-      this.transitionProgress = 1;
-      this.applyTargetChannels();
-      
-      // Clear transition timer
-      clearInterval(this.transitionTimer);
-      this.transitionTimer = null;
-      this.isTransitioning = false;
-      
-      // Schedule the next transition
-      this.scheduleNextTransition();
-      return;
-    }
-    
-    // Calculate intermediate channels
-    const intermediateChannels = this.currentChannels.map((currentVal, i) => {
-      const targetVal = this.targetChannels[i] || 0;
-      return Math.round(currentVal + (targetVal - currentVal) * this.transitionProgress);
+    // Calculate current channels with easing
+    const easedProgress = this.easeTransition(this.transitionProgress);
+    const currentChannels = this.currentChannels.map((current, index) => {
+      const target = this.targetChannels[index];
+      if (current === 0 && target === 0) return 0; // Don't transition zero values
+      return Math.round(current + (target - current) * easedProgress);
     });
     
-    // Apply the intermediate channels
-    this.applyChannels(intermediateChannels);
+    // Scale the channels by light power
+    const scaledChannels = currentChannels.map(value => {
+      if (value === 0) return 0; // Don't scale zero values
+      return Math.round((value / 255) * this.options.lightPower);
+    });
+    
+    // Apply the scaled channels
+    this.applyChannels(scaledChannels);
+    
+    // Check if transition is complete
+    if (this.transitionProgress >= 1) {
+      this.isTransitioning = false;
+      if (this.transitionTimer) {
+        clearInterval(this.transitionTimer);
+        this.transitionTimer = null;
+      }
+      this.scheduleNextTransition();
+    }
   }
   
   /**
@@ -306,33 +314,43 @@ class CyclingMode extends ScreensaverMode {
   /**
    * Transition to the next mode
    */
-  transitionToNextMode() {
+  async transitionToNextMode() {
     if (!this.running) return;
     
-    // Move to the next mode
-    this.currentModeIndex = (this.currentModeIndex + 1) % this.availableModes.length;
+    // Get the next mode
+    const nextMode = this.availableModes[this.currentModeIndex];
+    console.log(`CyclingMode: Transitioning to mode ${nextMode} with power ${this.options.lightPower}`);
     
-    // If we've tried all modes and they all failed, reset the failed modes list
-    if (Object.keys(this.failedModes).length >= this.availableModes.length) {
-      console.log('All modes have failed, resetting failed modes list');
+    try {
+      // Send the DMX fade command with the correct light power
+      const response = await fetch(`/dmx/fade/${nextMode}?duration=${this.options.transitionTime}&screensaver=true`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to transition to mode ${nextMode}: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(`Failed to transition to mode ${nextMode}`);
+      }
+      
+      // Update the current mode index
+      this.currentModeIndex = (this.currentModeIndex + 1) % this.availableModes.length;
+      
+      // Reset failure tracking
+      this.consecutiveFailures = 0;
       this.failedModes = {};
-    }
-    
-    // If in recovery mode, try to reload the initial state
-    if (this.recoveryMode && this.consecutiveFailures > this.options.maxConsecutiveFailures * 2) {
-      console.log('Attempting recovery by reloading initial state');
-      this.loadInitialState()
-        .then(() => {
-          // After reloading state, load the next mode
-          this.loadMode(this.availableModes[this.currentModeIndex]);
-        })
-        .catch(() => {
-          // If reloading state fails, still try to load the next mode
-          this.loadMode(this.availableModes[this.currentModeIndex]);
-        });
-    } else {
-      // Load the next mode
-      this.loadMode(this.availableModes[this.currentModeIndex]);
+      
+      // Schedule the next transition
+      this.scheduleNextTransition();
+    } catch (error) {
+      console.error(`CyclingMode: Error transitioning to mode ${nextMode}:`, error);
+      this.handleModeFailure(nextMode);
     }
   }
   
@@ -364,7 +382,10 @@ class CyclingMode extends ScreensaverMode {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ channels })
+      body: JSON.stringify({ 
+        channels, 
+        useScreensaverPower: true 
+      })
     })
     .then(response => {
       if (!response.ok) {
@@ -378,22 +399,47 @@ class CyclingMode extends ScreensaverMode {
       
       // Exit recovery mode if we were in it
       if (this.recoveryMode && this.consecutiveFailures === 0) {
-        console.log('Exiting recovery mode after successful channel application');
+        console.log('CyclingMode: Exiting recovery mode after successful channel application');
         this.recoveryMode = false;
       }
     })
     .catch(error => {
-      console.error('Error applying channels:', error);
+      console.error('CyclingMode: Error applying channels:', error);
       
       // Increment consecutive failure count
       this.consecutiveFailures++;
       
       // Check if we need to enter recovery mode
       if (this.consecutiveFailures > this.options.maxConsecutiveFailures) {
-        console.warn('Multiple consecutive failures applying channels, entering recovery mode');
+        console.warn('CyclingMode: Multiple consecutive failures applying channels, entering recovery mode');
         this.recoveryMode = true;
       }
     });
+  }
+  
+  /**
+   * Handle mode failure
+   */
+  handleModeFailure(mode) {
+    // Record the failure
+    this.failedModes[mode] = (this.failedModes[mode] || 0) + 1;
+    this.consecutiveFailures++;
+    
+    // If we've failed too many times, enter recovery mode
+    if (this.consecutiveFailures >= this.options.maxConsecutiveFailures) {
+      console.log('Entering recovery mode due to consecutive failures');
+      this.recoveryMode = true;
+      
+      // Try to recover by moving to the next mode
+      this.currentModeIndex = (this.currentModeIndex + 1) % this.availableModes.length;
+    }
+    
+    // Schedule a retry
+    setTimeout(() => {
+      if (this.running) {
+        this.transitionToNextMode();
+      }
+    }, this.options.retryInterval);
   }
 }
 

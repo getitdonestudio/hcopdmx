@@ -20,7 +20,9 @@ let appSettings = {
     mode: 'dimToOn',
     lightPower: 255,
     transitionSpeed: 1000
-  }
+  },
+  lightPower: 255,
+  linkLightPowers: true
 };
 
 // Constants
@@ -416,28 +418,61 @@ function transitionToScreensaver() {
     .then(response => response.json())
     .then(settings => {
       const modeKey = settings.screensaver.mode || 'dimToOn';
-      console.log(`Starting screensaver mode: ${modeKey}`);
+      const lightPower = settings.screensaver.lightPower || 255;
+      const transitionSpeed = settings.screensaver.transitionSpeed || 1000;
+      console.log(`Starting screensaver mode: ${modeKey} with light power: ${lightPower}`);
       
       updateStatus('Screensaver aktiviert...');
       
-      // Handle built-in modes directly
-      if (modeKey === 'dimToOn') {
-        // Transition all lights to full on
-        const duration = settings.screensaver.transitionSpeed || 1000;
-        sendDMXFadeCommand('q', duration)
-          .then(() => {
-            updateStatus('Screensaver: Alle Lichter an');
-          });
-      } else if (modeKey === 'dimToOff') {
-        // Transition all lights to off
-        const duration = settings.screensaver.transitionSpeed || 1000;
-        sendDMXFadeCommand('z', duration)
-          .then(() => {
-            updateStatus('Screensaver: Alle Lichter aus');
-          });
-      } else {
-        // Start other modes through the mode manager
+      // Use the mode manager for all modes including built-in ones
+      if (typeof screensaverModeManager !== 'undefined') {
+        // First make sure any existing mode is stopped
+        screensaverModeManager.stopActiveMode();
+        
+        // Start the selected mode
+        console.log('Starting screensaver mode via mode manager:', modeKey);
         screensaverModeManager.startMode(modeKey);
+      } else {
+        console.error('Screensaver mode manager not found! Falling back to direct implementation.');
+        
+        // Fallback to direct implementation
+        if (modeKey === 'dimToOff') {
+          // Transition all lights to off
+          sendDMXFadeCommand('z', transitionSpeed)
+            .then(() => {
+              updateStatus('Screensaver: Alle Lichter aus');
+            });
+        } else {
+          // Default to dimToOn behavior
+          fetch('/state')
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                // Set all channels to the screensaver power level
+                const channels = new Array(data.channels.length).fill(lightPower);
+                
+                // Send with fade
+                fetch('/dmx/direct', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({
+                    channels: channels,
+                    useScreensaverPower: true
+                  })
+                })
+                .then(response => response.json())
+                .then(result => {
+                  if (result.success) {
+                    updateStatus('Screensaver: Alle Lichter gedimmt');
+                  } else {
+                    updateStatus('Fehler beim Dimmen der Lichter');
+                  }
+                });
+              }
+            });
+        }
       }
     })
     .catch(error => {
@@ -732,8 +767,11 @@ document.addEventListener('DOMContentLoaded', async function() {
   loadContent(currentPage, currentLang);
   
   // Initialize the screensaver mode manager
-  if (window.screensaverModeManager) {
+  if (typeof screensaverModeManager !== 'undefined') {
+    console.log('Initializing screensaver mode manager...');
     screensaverModeManager.initialize();
+  } else {
+    console.error('Screensaver mode manager not found!');
   }
   
   // Start screensaver timer if enabled

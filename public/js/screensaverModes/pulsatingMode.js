@@ -15,7 +15,8 @@ class PulsatingMode extends ScreensaverMode {
       fallDuration: 800, // Time to fall from max to min (0.8 seconds)
       pauseDuration: 700, // Pause at minimum power (0.7 seconds)
       updateInterval: 50, // Update interval (50ms = 20 times per second, reduced from 25ms)
-      stateRefreshInterval: 30000 // Refresh state every 30 seconds
+      stateRefreshInterval: 30000, // Refresh state every 30 seconds
+      lightPower: 255 // Default light power
     }, options);
     
     this.currentPhase = 'pause'; // 'rise', 'fall', or 'pause'
@@ -31,30 +32,121 @@ class PulsatingMode extends ScreensaverMode {
   /**
    * Start the pulsating mode
    */
-  start() {
+  async start() {
     if (this.running) return;
+    
+    console.log('PulsatingMode: Starting...');
+    
+    // Get current settings
+    try {
+      const response = await fetch('/api/settings');
+      const settings = await response.json();
+      if (settings.screensaver && settings.screensaver.lightPower !== undefined) {
+        this.options.lightPower = settings.screensaver.lightPower;
+        console.log(`PulsatingMode: Using light power: ${this.options.lightPower}`);
+      }
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+    }
+    
     super.start();
     
-    // Initialize with minimum power
-    this.currentValue = this.options.minPower;
-    this.currentPhase = 'pause';
-    this.phaseTime = 0;
-    this.failedRequests = 0;
-    this.recoveryMode = false;
+    // Start the heartbeat
+    console.log('PulsatingMode: Starting heartbeat effect');
+    this.startHeartbeat();
+  }
+  
+  /**
+   * Calculate the current power value based on the phase
+   */
+  calculateCurrentValue() {
+    const now = Date.now();
+    const elapsed = now - this.phaseTime;
     
-    // Get the initial state
-    this.fetchBaseState();
+    let power;
+    switch (this.currentPhase) {
+      case 'rise':
+        if (elapsed >= this.options.riseDuration) {
+          this.currentPhase = 'fall';
+          this.phaseTime = now;
+          power = this.options.maxPower;
+        } else {
+          power = this.options.minPower + 
+            ((this.options.maxPower - this.options.minPower) * 
+             (elapsed / this.options.riseDuration));
+        }
+        break;
+        
+      case 'fall':
+        if (elapsed >= this.options.fallDuration) {
+          this.currentPhase = 'pause';
+          this.phaseTime = now;
+          power = this.options.minPower;
+        } else {
+          power = this.options.maxPower - 
+            ((this.options.maxPower - this.options.minPower) * 
+             (elapsed / this.options.fallDuration));
+        }
+        break;
+        
+      case 'pause':
+        if (elapsed >= this.options.pauseDuration) {
+          this.currentPhase = 'rise';
+          this.phaseTime = now;
+          power = this.options.minPower;
+        } else {
+          power = this.options.minPower;
+        }
+        break;
+        
+      default:
+        power = this.options.minPower;
+    }
+
+    // Scale the power based on the configured light power
+    return Math.round((power / 100) * this.options.lightPower);
+  }
+  
+  /**
+   * Start the heartbeat effect
+   */
+  startHeartbeat() {
+    if (!this.running) return;
     
-    // Start the animation loop
-    this.intervalId = setInterval(() => this.update(), this.options.updateInterval);
+    const updatePower = async () => {
+      if (!this.running) return;
+      
+      const power = this.calculateCurrentValue();
+      
+      try {
+        // Use direct command to ensure exact power values
+        await fetch('/dmx/direct', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            channels: Array(512).fill(power)
+          })
+        });
+        
+        this.failedRequests = 0;
+      } catch (error) {
+        console.error('Error updating power:', error);
+        this.failedRequests++;
+        
+        if (this.failedRequests >= 3) {
+          console.error('Too many failed requests, stopping mode');
+          this.stop();
+        }
+      }
+      
+      // Schedule next update
+      setTimeout(updatePower, this.options.updateInterval);
+    };
     
-    // Set up periodic state refresh to prevent stale data
-    this.stateRefreshTimerId = setInterval(() => {
-      console.log('Refreshing base state for pulsating mode');
-      this.fetchBaseState();
-    }, this.options.stateRefreshInterval);
-    
-    console.log('Pulsating mode started');
+    // Start the updates
+    updatePower();
   }
   
   /**

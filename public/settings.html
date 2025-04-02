@@ -34,6 +34,43 @@
       <div class="settings-container">
         <form id="settingsForm">
           <div class="settings-group">
+            <h2>Light Power</h2>
+            
+            <div class="setting-item">
+              <label for="normalLightPower">Normal Light Power</label>
+              <div class="slider-with-value">
+                <input type="range" id="normalLightPower" min="0" max="255" step="1">
+                <span class="percentage-display">
+                  <span id="normalLightPowerValue">255</span>
+                  (<span id="normalLightPowerPercentage">100</span>%)
+                </span>
+              </div>
+            </div>
+            
+            <div class="setting-item">
+              <div class="checkbox-control">
+                <input type="checkbox" id="linkLightPowers" checked>
+                <label for="linkLightPowers">Link normal and screensaver light power</label>
+              </div>
+            </div>
+            
+            <div id="screensaverLightPowerContainer" class="setting-item" style="display: none;">
+              <label for="screensaverLightPower">Screensaver Light Power</label>
+              <div class="slider-with-value">
+                <input type="range" id="screensaverLightPower" min="0" max="255" step="1">
+                <span class="percentage-display">
+                  <span id="screensaverLightPowerValue">255</span>
+                  (<span id="screensaverLightPowerPercentage">100</span>%)
+                </span>
+              </div>
+            </div>
+
+            <div class="setting-item">
+              <button type="button" id="applyLightPower" class="primary-button">Apply Light Power</button>
+            </div>
+          </div>
+          
+          <div class="settings-group">
             <h2>Screensaver</h2>
             
             <div class="setting-item">
@@ -53,12 +90,6 @@
                 </select>
                 <button type="button" id="tryMode" class="secondary-button">Try</button>
               </div>
-            </div>
-            
-            <div class="setting-item">
-              <label for="lightPower">Light Power (0-255)</label>
-              <input type="range" id="lightPower" min="0" max="255" step="5">
-              <span id="lightPowerValue">255</span>
             </div>
           </div>
           
@@ -81,11 +112,20 @@
     </section>
   </main>
 
+  <!-- Load base mode first -->
   <script src="/js/screensaverModes/baseMode.js"></script>
+  
+  <!-- Load all mode classes -->
+  <script src="/js/screensaverModes/dimToOnMode.js"></script>
+  <script src="/js/screensaverModes/dimToOffMode.js"></script>
   <script src="/js/screensaverModes/pulsatingMode.js"></script>
   <script src="/js/screensaverModes/cyclingMode.js"></script>
   <script src="/js/screensaverModes/discoMode.js"></script>
+  
+  <!-- Load mode manager after all mode classes -->
   <script src="/js/screensaverModes/modeManager.js"></script>
+  
+  <!-- Load main settings script last -->
   <script src="/js/settings.js"></script>
 </body>
 </html> 

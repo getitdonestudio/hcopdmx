@@ -6,8 +6,8 @@ class ScreensaverModeManager {
   constructor() {
     // Available modes
     this.modes = {
-      dimToOn: null,   // Just dim to all on (built-in)
-      dimToOff: null,  // Just dim to all off (built-in)
+      dimToOn: null,   // Dim to all on mode
+      dimToOff: null,  // Dim to all off mode
       pulsating: null, // Pulsating mode
       cycling: null,   // Cycling mode
       disco: null      // Disco mode - fast random changes
@@ -31,6 +31,12 @@ class ScreensaverModeManager {
    */
   initialize() {
     try {
+      // Initialize the dim to on mode
+      this.modes.dimToOn = new DimToOnMode();
+      
+      // Initialize the dim to off mode
+      this.modes.dimToOff = new DimToOffMode();
+      
       // Initialize the pulsating mode
       this.modes.pulsating = new PulsatingMode();
       
@@ -177,20 +183,7 @@ class ScreensaverModeManager {
       // Reset the watchdog timer
       this.lastModeChangeTime = Date.now();
       
-      // Handle built-in modes
-      if (modeKey === 'dimToOn') {
-        // This is handled by the main code - just set the flag
-        console.log('Starting built-in mode: dimToOn');
-        return;
-      }
-      
-      if (modeKey === 'dimToOff') {
-        // This is handled by the main code - just set the flag
-        console.log('Starting built-in mode: dimToOff');
-        return;
-      }
-      
-      // Handle dynamic modes
+      // Handle all modes through the mode objects
       const mode = this.modes[modeKey];
       if (mode) {
         this.activeMode = mode;
@@ -201,14 +194,16 @@ class ScreensaverModeManager {
         this.errorCount = 0;
       } else {
         console.error(`Unknown screensaver mode: ${modeKey}`);
-        // Try to fall back to a built-in mode
+        // Try to fall back to dimToOn
         this.activeModeKey = 'dimToOn';
+        this.startMode('dimToOn');
       }
     } catch (error) {
       console.error(`Error starting mode ${modeKey}:`, error);
-      // Fall back to a built-in mode
+      // Fall back to dimToOn
       this.activeMode = null;
       this.activeModeKey = 'dimToOn';
+      this.startMode('dimToOn');
     }
   }
   

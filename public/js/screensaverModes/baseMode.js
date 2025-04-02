@@ -40,6 +40,17 @@ class ScreensaverMode {
   isRunning() {
     return this.running;
   }
+
+  /**
+   * Ease the transition progress for smooth dimming
+   * Uses a cubic easing function for natural-feeling transitions
+   */
+  easeTransition(progress) {
+    // Cubic easing function
+    return progress < 0.5
+      ? 4 * progress * progress * progress
+      : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+  }
 }
 
 // Export the class

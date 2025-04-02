@@ -31,7 +31,9 @@ const DEFAULT_SETTINGS = {
     },
     system: {
         lastUpdated: new Date().toISOString()
-    }
+    },
+    lightPower: 255, // Add default normal light power (100%)
+    linkLightPowers: true // Default: link normal and screensaver light power
 };
 
 // Global settings object
@@ -112,11 +114,15 @@ function loadDMXPrograms() {
             .on('data', (row) => {
                 const keyField = Object.keys(row).find(k => k.trim().toLowerCase() === '﻿key' || k.trim().toLowerCase() === 'key');
                 const key = keyField ? row[keyField].toLowerCase() : '';
-                const channels = Object.values(row)
+                
+                // Convert CSV values to binary (0/1) - any non-zero value is considered "on"
+                const channelStates = Object.values(row)
                     .slice(1)
-                    .map(value => parseInt(value, 10) || 0);
+                    .map(value => (parseInt(value, 10) > 0) ? 1 : 0);
+                
                 if (key) {
-                    tempPrograms[key] = channels;
+                    // Store the binary states, actual DMX values will be calculated at runtime
+                    tempPrograms[key] = channelStates;
                 }
             })
             .on('error', (err) => {
@@ -128,6 +134,15 @@ function loadDMXPrograms() {
                 resolve(tempPrograms);
             });
     });
+}
+
+// Function to scale binary values to actual DMX values based on settings
+function scaleDMXValues(binaryChannels, lightPowerSetting = null) {
+    // If no specific lightPower provided, use the normal lightPower setting
+    const lightPower = lightPowerSetting !== null ? lightPowerSetting : appSettings.lightPower;
+    
+    // Scale binary values (0/1) to DMX values (0-255) based on lightPower setting
+    return binaryChannels.map(state => state === 1 ? Math.round(lightPower) : 0);
 }
 
 // Function to directly send an ArtNet DMX packet
@@ -183,14 +198,27 @@ function sendArtNetDMX(channels) {
 }
 
 // Function to set a DMX program directly with multiple sends for reliability
-async function setDMXProgram(programKey) {
+async function setDMXProgram(programKey, useScreensaverPower = false) {
     if (!dmxPrograms[programKey]) {
         errorWithTimestamp(`Programm ${programKey.toUpperCase()} nicht gefunden`);
         return false;
     }
     
     try {
-        const channels = dmxPrograms[programKey];
+        // Get the binary channel states
+        const binaryChannels = dmxPrograms[programKey];
+        
+        // Determine which light power setting to use
+        let lightPowerToUse;
+        if (useScreensaverPower) {
+            lightPowerToUse = appSettings.screensaver.lightPower;
+        } else {
+            lightPowerToUse = appSettings.lightPower;
+        }
+        
+        // Scale binary values to actual DMX values
+        const channels = scaleDMXValues(binaryChannels, lightPowerToUse);
+        
         logWithTimestamp(`Setze DMX-Programm ${programKey.toUpperCase()} direkt...`);
         
         // Send multiple packets for reliability
@@ -220,64 +248,66 @@ async function setDMXProgram(programKey) {
     }
 }
 
-// Function to smoothly fade between two DMX states
-async function fadeDMXProgram(fromChannels, toChannels, durationMs = 1000) {
+// Function to interpolate between two DMX states
+function interpolateDMX(startChannels, endChannels, progress) {
+    return startChannels.map((start, i) => {
+        const end = endChannels[i];
+        return Math.round(start + (end - start) * progress);
+    });
+}
+
+// Function to fade between DMX states
+async function fadeDMX(startChannels, endChannels, duration) {
+    const steps = Math.max(2, Math.ceil(duration / 50)); // Update every 50ms
+    const stepDuration = duration / steps;
+    
+    for (let i = 0; i <= steps; i++) {
+        const progress = i / steps;
+        const currentChannels = interpolateDMX(startChannels, endChannels, progress);
+        await sendArtNetDMX(currentChannels);
+        if (i < steps) {
+            await new Promise(resolve => setTimeout(resolve, stepDuration));
+        }
+    }
+}
+
+// Function to fade to a DMX program
+async function fadeToProgram(programKey, duration, useScreensaverPower = false) {
+    if (!dmxPrograms[programKey]) {
+        errorWithTimestamp(`Programm ${programKey.toUpperCase()} nicht gefunden`);
+        return false;
+    }
+    
     try {
-        // If no current state, use all zeros as starting point
-        if (!fromChannels || fromChannels.length === 0) {
-            fromChannels = Array(toChannels.length).fill(0);
+        // Get the binary channel states
+        const binaryChannels = dmxPrograms[programKey];
+        
+        // Determine which light power setting to use
+        let lightPowerToUse;
+        if (useScreensaverPower) {
+            lightPowerToUse = appSettings.screensaver.lightPower;
+        } else {
+            lightPowerToUse = appSettings.lightPower;
         }
         
-        // Ensure both arrays are the same length
-        const maxLength = Math.max(fromChannels.length, toChannels.length);
-        const normalizedFrom = [...fromChannels];
-        let normalizedTo = [...toChannels];
+        // Scale binary values to actual DMX values
+        const targetChannels = scaleDMXValues(binaryChannels, lightPowerToUse);
         
-        // If this is program 'q' (all on), apply the lightPower setting
-        // We identify if this is a 'q' program by checking if all values are the same and > 0
-        const isAllOn = normalizedTo.length > 0 && 
-            normalizedTo.every(val => val > 0 && val === normalizedTo[0]);
+        // Get current state or create zero state if none exists
+        const currentChannels = dmxPrograms.current || new Array(targetChannels.length).fill(0);
         
-        if (isAllOn && appSettings.screensaver.lightPower < 255) {
-            const scaleFactor = appSettings.screensaver.lightPower / 255;
-            normalizedTo = normalizedTo.map(val => Math.round(val * scaleFactor));
-            logWithTimestamp(`Applying lightPower setting (${appSettings.screensaver.lightPower}) to DMX values`);
-        }
+        logWithTimestamp(`Fade zu DMX-Programm ${programKey.toUpperCase()} über ${duration}ms...`);
         
-        // Pad arrays if needed
-        while (normalizedFrom.length < maxLength) normalizedFrom.push(0);
-        while (normalizedTo.length < maxLength) normalizedTo.push(0);
+        // Perform the fade
+        await fadeDMX(currentChannels, targetChannels, duration);
         
-        logWithTimestamp(`Starting DMX fade transition over ${durationMs}ms...`);
+        // Store new current state
+        dmxPrograms.current = [...targetChannels];
         
-        const steps = 40; // 40Hz = 40 steps per second
-        const stepDelay = Math.floor(durationMs / steps);
-        
-        for (let step = 1; step <= steps; step++) {
-            const progress = step / steps;
-            const intermediateChannels = normalizedFrom.map((fromVal, i) => {
-                const toVal = normalizedTo[i];
-                // Calculate intermediate value with easing (cubic ease-in-out)
-                // Simple linear interpolation:
-                return Math.round(fromVal + (toVal - fromVal) * progress);
-            });
-            
-            // Send the intermediate state
-            await sendArtNetDMX(intermediateChannels);
-            
-            // Wait for the next step (if not the last step)
-            if (step < steps) {
-                await new Promise(resolve => setTimeout(resolve, stepDelay));
-            }
-        }
-        
-        // Update current state to final state
-        dmxPrograms.current = [...normalizedTo];
-        
-        logWithTimestamp(`DMX fade transition completed successfully.`);
+        logWithTimestamp(`Fade zu DMX-Programm ${programKey.toUpperCase()} erfolgreich abgeschlossen.`);
         return true;
     } catch (error) {
-        errorWithTimestamp(`Fehler beim Fade-Übergang:`, error);
+        errorWithTimestamp(`Fehler beim Faden zu DMX-Programm ${programKey.toUpperCase()}:`, error);
         return false;
     }
 }
@@ -296,7 +326,7 @@ async function startServer() {
         // API-Endpunkt: Direct DMX control (for pulsating and cycling modes)
         app.post('/dmx/direct', async (req, res) => {
             try {
-                const { channels } = req.body;
+                const { channels, useScreensaverPower } = req.body;
                 
                 if (!channels || !Array.isArray(channels)) {
                     return res.status(400).json({ 
@@ -305,11 +335,32 @@ async function startServer() {
                     });
                 }
                 
-                // Send the channels directly
-                await sendArtNetDMX(channels);
+                // For direct control, we're assuming channels already contain actual DMX values
+                // and not binary states (for compatibility with existing functionality)
+                
+                // Log the request for debugging
+                logWithTimestamp(`Direct DMX control: Setting ${channels.length} channels directly. Sample values: [${channels.slice(0, 5).join(', ')}...]`);
+                
+                // Send multiple packets for reliability (similar to setDMXProgram)
+                const retries = 3;
+                const waitTime = 30; // ms
+                
+                for (let i = 0; i < retries; i++) {
+                    try {
+                        await sendArtNetDMX(channels);
+                        if (i < retries - 1) {
+                            await new Promise(resolve => setTimeout(resolve, waitTime));
+                        }
+                    } catch (err) {
+                        errorWithTimestamp(`Fehler beim Senden des ArtNet-Pakets (Direktmodus, Versuch ${i+1}):`, err);
+                        // Continue with next retry
+                    }
+                }
                 
                 // Store current state
                 dmxPrograms.current = [...channels];
+                
+                logWithTimestamp(`DMX-Kanäle direkt gesetzt. Anzahl: ${channels.length}`);
                 
                 res.json({ 
                     success: true, 
@@ -344,24 +395,9 @@ async function startServer() {
 
         // API-Endpunkt: DMX-Programm senden
         app.post('/dmx/:key', async (req, res) => {
-            const key = req.params.key.toLowerCase();
-
-            if (dmxPrograms[key]) {
-                try {
-                    const success = await setDMXProgram(key);
-                    if (success) {
-                        logWithTimestamp(`Programm ${key.toUpperCase()} gesendet`);
-                        res.json({ success: true, message: `Programm ${key.toUpperCase()} gesendet` });
-                    } else {
-                        res.status(500).json({ success: false, message: `Fehler beim Senden von Programm ${key.toUpperCase()}` });
-                    }
-                } catch (err) {
-                    errorWithTimestamp(`Fehler beim Senden des Programms ${key.toUpperCase()}:`, err);
-                    res.status(500).json({ success: false, message: `Interner Fehler beim Senden von Programm ${key.toUpperCase()}` });
-                }
-            } else {
-                return res.status(404).json({ success: false, message: `Programm ${key.toUpperCase()} nicht gefunden` });
-            }
+            const programKey = req.params.key.toLowerCase();
+            const success = await setDMXProgram(programKey);
+            res.json({ success });
         });
 
         // API-Endpunkt für Übergänge - nutzt jetzt direktes Setzen
@@ -400,43 +436,12 @@ async function startServer() {
         });
 
         // API-Endpunkt für sanfte Übergänge mit Fading
-        app.post('/dmx/fade/:toKey', async (req, res) => {
-            const toKey = req.params.toKey.toLowerCase();
-            const durationMs = req.query.duration ? parseInt(req.query.duration, 10) : 2000;
-            
-            if (toKey !== 'z' && !dmxPrograms[toKey]) {
-                return res.status(404).json({ 
-                    success: false, 
-                    message: `Programm ${toKey.toUpperCase()} nicht gefunden` 
-                });
-            }
-
-            try {
-                // Holen des aktuellen Zustands als Ausgangsposition
-                const fromChannels = dmxPrograms.current || Array(512).fill(0);
-                const toChannels = dmxPrograms[toKey];
-                
-                // Start the fade transition
-                logWithTimestamp(`Starte Fade-Übergang zu Programm ${toKey.toUpperCase()} über ${durationMs}ms`);
-                const success = await fadeDMXProgram(fromChannels, toChannels, durationMs);
-                
-                if (success) {
-                    logWithTimestamp(`Fade-Übergang zu Programm ${toKey.toUpperCase()} erfolgreich.`);
-                    return res.json({ 
-                        success: true, 
-                        message: `Fade-Übergang zu Programm ${toKey.toUpperCase()} abgeschlossen.`,
-                        completed: true
-                    });
-                } else {
-                    return res.status(500).json({ 
-                        success: false, 
-                        message: `Fehler beim Fade-Übergang zu Programm ${toKey.toUpperCase()}.`
-                    });
-                }
-            } catch (error) {
-                errorWithTimestamp('Fehler beim Fade-Übergang:', error);
-                res.status(500).json({ success: false, message: 'Interner Serverfehler beim Fade-Übergang' });
-            }
+        app.post('/dmx/fade/:key', async (req, res) => {
+            const programKey = req.params.key.toLowerCase();
+            const duration = parseInt(req.query.duration) || 1000;
+            const useScreensaverPower = req.query.screensaver === 'true';
+            const success = await fadeToProgram(programKey, duration, useScreensaverPower);
+            res.json({ success });
         });
 
         // API-Endpunkt: Aktueller Zustand
@@ -461,7 +466,7 @@ async function startServer() {
                 const newSettings = req.body;
                 
                 // Validate settings
-                if (!newSettings.screensaver) {
+                if (!newSettings) {
                     return res.status(400).json({
                         success: false,
                         message: 'Invalid settings format'
@@ -473,14 +478,32 @@ async function startServer() {
                     ...appSettings,
                     screensaver: {
                         ...appSettings.screensaver,
-                        ...newSettings.screensaver
+                        ...(newSettings.screensaver || {})
                     }
                 };
+                
+                // Update lightPower and linkLightPowers if provided
+                if (newSettings.lightPower !== undefined) {
+                    updatedSettings.lightPower = newSettings.lightPower;
+                }
+                
+                if (newSettings.linkLightPowers !== undefined) {
+                    updatedSettings.linkLightPowers = newSettings.linkLightPowers;
+                    
+                    // If linking is enabled, synchronize screensaver lightPower with normal lightPower
+                    if (newSettings.linkLightPowers && newSettings.lightPower !== undefined) {
+                        updatedSettings.screensaver.lightPower = newSettings.lightPower;
+                    }
+                }
                 
                 const success = saveSettings(updatedSettings);
                 
                 if (success) {
-                    logWithTimestamp('Settings updated:', JSON.stringify(updatedSettings.screensaver));
+                    logWithTimestamp('Settings updated:', JSON.stringify({
+                        lightPower: updatedSettings.lightPower,
+                        linkLightPowers: updatedSettings.linkLightPowers,
+                        screensaver: updatedSettings.screensaver
+                    }));
                     return res.json({
                         success: true,
                         message: 'Settings updated successfully',

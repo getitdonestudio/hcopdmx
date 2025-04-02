@@ -334,21 +334,25 @@ body[data-page="settings"] h1 {
 }
 
 .settings-group {
-  margin-bottom: 40px;
+  margin-bottom: 30px;
+  padding: 20px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
 }
 
 .settings-group h2 {
-  font-size: 24pt;
-  margin-bottom: 20px;
-  color: white;
-  font-family: Stolzl, sans-serif;
+  margin-top: 0;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .setting-item {
   margin-bottom: 20px;
-  display: flex;
-  flex-direction: column;
-  font-family: Stolzl, sans-serif;
+}
+
+.setting-item:last-child {
+  margin-bottom: 0;
 }
 
 .setting-item label {
@@ -415,22 +419,18 @@ body[data-page="settings"] h1 {
 .settings-status {
   margin-top: 20px;
   padding: 10px;
-  border-radius: 5px;
-  text-align: center;
-  opacity: 0;
+  border-radius: 4px;
   transition: opacity 0.3s ease;
 }
 
 .settings-status.success {
-  background-color: rgba(76, 175, 80, 0.3);
-  color: white;
-  opacity: 1;
+  background-color: rgba(0, 128, 0, 0.1);
+  color: darkgreen;
 }
 
 .settings-status.error {
-  background-color: rgba(244, 67, 54, 0.3);
-  color: white;
-  opacity: 1;
+  background-color: rgba(220, 0, 0, 0.1);
+  color: darkred;
 }
 
 /* Quick Controls section in settings */
@@ -471,4 +471,62 @@ body[data-page="settings"] h1 {
 
 .quick-control-buttons .secondary-button:hover {
   background-color: #222;
+}
+
+/* Add styles for our new settings UI components */
+
+/* Slider with value display */
+.slider-with-value {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  width: 100%;
+}
+
+.slider-with-value input[type="range"] {
+  flex-grow: 1;
+  height: 10px;
+  border-radius: 5px;
+  background: #e0e0e0;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.slider-with-value input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--primary-color);
+  cursor: pointer;
+}
+
+.slider-with-value input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--primary-color);
+  cursor: pointer;
+}
+
+.percentage-display {
+  min-width: 80px;
+  text-align: right;
+  font-weight: bold;
+}
+
+/* Checkbox control */
+.checkbox-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.checkbox-control input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+}
+
+.checkbox-control label {
+  cursor: pointer;
 }

@@ -9,8 +9,18 @@ document.addEventListener('DOMContentLoaded', async function() {
   const form = document.getElementById('settingsForm');
   const screensaverTimeInput = document.getElementById('screensaverTime');
   const screensaverModeSelect = document.getElementById('screensaverMode');
-  const lightPowerInput = document.getElementById('lightPower');
-  const lightPowerValue = document.getElementById('lightPowerValue');
+  
+  // New light power controls
+  const normalLightPowerInput = document.getElementById('normalLightPower');
+  const normalLightPowerValue = document.getElementById('normalLightPowerValue');
+  const normalLightPowerPercentage = document.getElementById('normalLightPowerPercentage');
+  const linkLightPowersCheckbox = document.getElementById('linkLightPowers');
+  const screensaverLightPowerContainer = document.getElementById('screensaverLightPowerContainer');
+  const screensaverLightPowerInput = document.getElementById('screensaverLightPower');
+  const screensaverLightPowerValue = document.getElementById('screensaverLightPowerValue');
+  const screensaverLightPowerPercentage = document.getElementById('screensaverLightPowerPercentage');
+  const applyLightPowerButton = document.getElementById('applyLightPower');
+  
   const saveButton = document.getElementById('saveSettings');
   const resetButton = document.getElementById('resetSettings');
   const tryModeButton = document.getElementById('tryMode');
@@ -100,9 +110,71 @@ document.addEventListener('DOMContentLoaded', async function() {
     });
   }
 
-  // Update the displayed value when the range input changes
-  lightPowerInput.addEventListener('input', function() {
-    lightPowerValue.textContent = this.value;
+  // Update the displayed values when the normal light power range input changes
+  normalLightPowerInput.addEventListener('input', async function() {
+    const value = parseInt(this.value);
+    normalLightPowerValue.textContent = value;
+    normalLightPowerPercentage.textContent = Math.round((value / 255) * 100);
+    
+    // If link is checked, update the screensaver value too
+    if (linkLightPowersCheckbox.checked) {
+      screensaverLightPowerInput.value = value;
+      screensaverLightPowerValue.textContent = value;
+      screensaverLightPowerPercentage.textContent = Math.round((value / 255) * 100);
+    }
+
+    // Apply the changes immediately
+    try {
+      await fetch('/dmx/direct', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          channels: Array(512).fill(value)
+        })
+      });
+    } catch (error) {
+      console.error('Error applying light power:', error);
+    }
+  });
+  
+  // Update the displayed values when the screensaver light power range input changes
+  screensaverLightPowerInput.addEventListener('input', async function() {
+    const value = parseInt(this.value);
+    screensaverLightPowerValue.textContent = value;
+    screensaverLightPowerPercentage.textContent = Math.round((value / 255) * 100);
+
+    // Apply the changes immediately if in screensaver mode
+    if (document.body.classList.contains('screensaver')) {
+      try {
+        await fetch('/dmx/direct', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            channels: Array(512).fill(value)
+          })
+        });
+      } catch (error) {
+        console.error('Error applying screensaver light power:', error);
+      }
+    }
+  });
+  
+  // Handle linking/unlinking light power controls
+  linkLightPowersCheckbox.addEventListener('change', function() {
+    if (this.checked) {
+      // When linked, hide the screensaver control and set its value to match normal
+      screensaverLightPowerContainer.style.display = 'none';
+      screensaverLightPowerInput.value = normalLightPowerInput.value;
+      screensaverLightPowerValue.textContent = normalLightPowerValue.textContent;
+      screensaverLightPowerPercentage.textContent = normalLightPowerPercentage.textContent;
+    } else {
+      // When unlinked, show the screensaver control
+      screensaverLightPowerContainer.style.display = 'block';
+    }
   });
   
   // Stop any running test when the mode selection changes
@@ -113,6 +185,43 @@ document.addEventListener('DOMContentLoaded', async function() {
       }
     });
   }
+
+  // Handle Apply Light Power button click
+  applyLightPowerButton.addEventListener('click', async function() {
+    const normalValue = parseInt(normalLightPowerInput.value);
+    const screensaverValue = parseInt(screensaverLightPowerInput.value);
+    
+    try {
+      // Apply normal light power using direct command
+      await fetch('/dmx/direct', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          channels: Array(512).fill(normalValue)
+        })
+      });
+
+      // If we're in screensaver mode, also apply screensaver power
+      if (document.body.classList.contains('screensaver')) {
+        await fetch('/dmx/direct', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            channels: Array(512).fill(screensaverValue)
+          })
+        });
+      }
+
+      showStatus('Light power applied successfully', 'success');
+    } catch (error) {
+      console.error('Error applying light power:', error);
+      showStatus('Error applying light power', 'error');
+    }
+  });
 
   // Function to stop the test mode
   function stopTestMode() {
@@ -165,7 +274,7 @@ document.addEventListener('DOMContentLoaded', async function() {
       }
       
       const selectedMode = screensaverModeSelect.value;
-      const powerValue = parseInt(lightPowerInput.value);
+      const powerValue = parseInt(screensaverLightPowerInput.value);
       
       try {
         // First, prepare the DMX by loading program A (to ensure a consistent starting point)
@@ -176,18 +285,9 @@ document.addEventListener('DOMContentLoaded', async function() {
           }
         });
         
-        // For pulsating/cycling/disco modes, we need special handling
-        if (selectedMode === 'pulsating' || selectedMode === 'cycling' || selectedMode === 'disco') {
-          if (selectedMode === 'pulsating') {
-            // For pulsating, we need to set Q program first as the base
-            await fetch('/dmx/fade/q', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({ duration: 1000 })
-            });
-          }
+        // For all modes, we need special handling
+        if (selectedMode === 'pulsating' || selectedMode === 'cycling' || selectedMode === 'disco' || 
+            selectedMode === 'dimToOn' || selectedMode === 'dimToOff') {
           
           // Apply the selected screensaver mode temporarily
           showStatus(`Testing "${selectedMode}" mode...`, 'success');
@@ -232,7 +332,6 @@ document.addEventListener('DOMContentLoaded', async function() {
           isTestingMode = true;
           tryModeButton.textContent = 'Stop';
           tryModeButton.classList.add('active');
-          
         } else {
           // For simple modes (dimToOn, dimToOff), just show a message
           showStatus(`${selectedMode} will dim to on/off when screensaver activates`, 'success');
@@ -248,176 +347,237 @@ document.addEventListener('DOMContentLoaded', async function() {
   try {
     const response = await fetch('/api/settings');
     if (!response.ok) {
-      throw new Error('Failed to load settings');
+      throw new Error('Failed to fetch settings');
     }
     
     const settings = await response.json();
     
-    // Apply settings to form
-    screensaverTimeInput.value = settings.screensaver.timeDelay / 1000; // Convert ms to seconds
-    screensaverModeSelect.value = settings.screensaver.mode;
-    lightPowerInput.value = settings.screensaver.lightPower;
-    lightPowerValue.textContent = settings.screensaver.lightPower;
+    // Load screensaver settings
+    if (settings.screensaver) {
+      // Convert from ms to seconds for the UI
+      if (screensaverTimeInput) {
+        screensaverTimeInput.value = settings.screensaver.timeDelay / 1000;
+      }
+      
+      if (screensaverModeSelect) {
+        screensaverModeSelect.value = settings.screensaver.mode || 'dimToOn';
+      }
+      
+      if (screensaverLightPowerInput) {
+        const value = settings.screensaver.lightPower || 255;
+        screensaverLightPowerInput.value = value;
+        screensaverLightPowerValue.textContent = value;
+        screensaverLightPowerPercentage.textContent = Math.round((value / 255) * 100);
+      }
+    }
     
-    console.log('Settings loaded successfully');
+    // Load normal light power setting
+    if (normalLightPowerInput) {
+      const value = settings.lightPower || 255;
+      normalLightPowerInput.value = value;
+      normalLightPowerValue.textContent = value;
+      normalLightPowerPercentage.textContent = Math.round((value / 255) * 100);
+    }
+    
+    // Load link setting
+    if (linkLightPowersCheckbox) {
+      const linked = settings.linkLightPowers !== undefined ? settings.linkLightPowers : true;
+      linkLightPowersCheckbox.checked = linked;
+      
+      // Update display of screensaver control based on link state
+      screensaverLightPowerContainer.style.display = linked ? 'none' : 'block';
+    }
   } catch (error) {
     console.error('Error loading settings:', error);
-    showStatus('Error loading settings', 'error');
+    showStatus('Error loading settings. Using defaults.', 'error');
   }
 
-  // Handle form submission
-  form.addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    // Stop any running test mode first
-    if (isTestingMode) {
-      stopTestMode();
-    }
-    
-    try {
-      // Collect settings from form
+  // Handle form submission (save settings)
+  if (form) {
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      // Stop any running test mode
+      if (isTestingMode) {
+        stopTestMode();
+      }
+      
+      // Gather settings from form
       const settings = {
         screensaver: {
-          timeDelay: parseInt(screensaverTimeInput.value) * 1000, // Convert seconds to ms
+          timeDelay: parseInt(screensaverTimeInput.value) * 1000, // Convert to ms
           mode: screensaverModeSelect.value,
-          lightPower: parseInt(lightPowerInput.value),
-          transitionSpeed: 1000 // Default to 1 second
-        }
+          transitionSpeed: 1000 // Default transition speed
+        },
+        lightPower: parseInt(normalLightPowerInput.value),
+        linkLightPowers: linkLightPowersCheckbox.checked
       };
       
-      // Save settings via API
-      const response = await fetch('/api/settings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(settings)
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to save settings');
+      // Add screensaver light power if not linked
+      if (!linkLightPowersCheckbox.checked) {
+        settings.screensaver.lightPower = parseInt(screensaverLightPowerInput.value);
+      } else {
+        // If linked, use the same value for both
+        settings.screensaver.lightPower = parseInt(normalLightPowerInput.value);
       }
       
-      const result = await response.json();
-      console.log('Settings saved:', result);
-      
-      // Show success message
-      showStatus('Settings saved successfully', 'success');
-    } catch (error) {
-      console.error('Error saving settings:', error);
-      showStatus('Error saving settings', 'error');
-    }
-  });
+      // Save to server
+      try {
+        showStatus('Saving settings...', 'success');
+        
+        const response = await fetch('/api/settings', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(settings)
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to save settings');
+        }
+        
+        showStatus('Settings saved successfully!', 'success');
+      } catch (error) {
+        console.error('Error saving settings:', error);
+        showStatus('Error saving settings', 'error');
+      }
+    });
+  }
 
-  // Reset button handler
-  resetButton.addEventListener('click', async function() {
-    // Stop any running test mode first
-    if (isTestingMode) {
-      stopTestMode();
-    }
-    
-    try {
-      const response = await fetch('/api/settings/reset', {
-        method: 'POST'
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to reset settings');
+  // Handle reset button
+  if (resetButton) {
+    resetButton.addEventListener('click', async function() {
+      // Stop any running test mode
+      if (isTestingMode) {
+        stopTestMode();
       }
       
-      const settings = await response.json();
-      
-      // Apply reset settings to form
-      screensaverTimeInput.value = settings.screensaver.timeDelay / 1000;
-      screensaverModeSelect.value = settings.screensaver.mode;
-      lightPowerInput.value = settings.screensaver.lightPower;
-      lightPowerValue.textContent = settings.screensaver.lightPower;
-      
-      showStatus('Settings reset to defaults', 'success');
-    } catch (error) {
-      console.error('Error resetting settings:', error);
-      showStatus('Error resetting settings', 'error');
-    }
-  });
-
-  // Helper function to show status messages
-  function showStatus(message, type) {
-    statusElement.textContent = message;
-    statusElement.className = 'settings-status ' + type;
-    
-    // Clear the status after 3 seconds
-    setTimeout(() => {
-      statusElement.className = 'settings-status';
-    }, 3000);
+      try {
+        showStatus('Resetting to defaults...', 'success');
+        
+        const response = await fetch('/api/settings/reset', {
+          method: 'POST'
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to reset settings');
+        }
+        
+        const settings = await response.json();
+        
+        // Load screensaver settings
+        if (settings.screensaver) {
+          // Convert from ms to seconds for the UI
+          if (screensaverTimeInput) {
+            screensaverTimeInput.value = settings.screensaver.timeDelay / 1000;
+          }
+          
+          if (screensaverModeSelect) {
+            screensaverModeSelect.value = settings.screensaver.mode || 'dimToOn';
+          }
+          
+          if (screensaverLightPowerInput) {
+            const value = settings.screensaver.lightPower || 255;
+            screensaverLightPowerInput.value = value;
+            screensaverLightPowerValue.textContent = value;
+            screensaverLightPowerPercentage.textContent = Math.round((value / 255) * 100);
+          }
+        }
+        
+        // Load normal light power setting
+        if (normalLightPowerInput) {
+          const value = settings.lightPower || 255;
+          normalLightPowerInput.value = value;
+          normalLightPowerValue.textContent = value;
+          normalLightPowerPercentage.textContent = Math.round((value / 255) * 100);
+        }
+        
+        // Reset link setting
+        if (linkLightPowersCheckbox) {
+          const linked = settings.linkLightPowers !== undefined ? settings.linkLightPowers : true;
+          linkLightPowersCheckbox.checked = linked;
+          
+          // Update display of screensaver control based on link state
+          screensaverLightPowerContainer.style.display = linked ? 'none' : 'block';
+        }
+        
+        showStatus('Settings reset to defaults', 'success');
+      } catch (error) {
+        console.error('Error resetting settings:', error);
+        showStatus('Error resetting settings', 'error');
+      }
+    });
   }
 
   // Initialize font size controls
   initFontSizeControls();
   
-  // Load saved font size
-  loadSavedFontSize();
+  // Function to show status message
+  function showStatus(message, type) {
+    if (!statusElement) return;
+    
+    statusElement.textContent = message;
+    statusElement.className = 'settings-status';
+    statusElement.classList.add(type);
+    
+    // Make the status visible
+    statusElement.style.opacity = '1';
+    
+    // Automatically hide after 3 seconds unless it's an error
+    if (type !== 'error') {
+      setTimeout(() => {
+        statusElement.style.opacity = '0';
+      }, 3000);
+    }
+  }
 });
 
-/**
- * Initialize font size controls
- */
+// Font size controls
 function initFontSizeControls() {
+  const increaseFontBtn = document.getElementById('increaseFontSize');
+  const decreaseFontBtn = document.getElementById('decreaseFontSize');
   const fontSizeToggle = document.getElementById('fontSizeToggle');
-  const decreaseFontSize = document.getElementById('decreaseFontSize');
-  const increaseFontSize = document.getElementById('increaseFontSize');
   const fontSizeOptions = document.querySelector('.font-size-options');
   
-  if (!fontSizeToggle || !fontSizeOptions) return;
+  // Load saved font size
+  loadSavedFontSize();
   
-  // Toggle expanded state
-  fontSizeToggle.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    fontSizeOptions.classList.toggle('expanded');
-  });
+  // Toggle font size options display
+  if (fontSizeToggle && fontSizeOptions) {
+    fontSizeToggle.addEventListener('click', function() {
+      fontSizeOptions.classList.toggle('visible');
+    });
+  }
   
-  // Close when clicking outside
-  document.addEventListener('click', (event) => {
-    if (!event.target.closest('.font-size-icon') && !event.target.closest('.font-size-options')) {
-      fontSizeOptions.classList.remove('expanded');
-    }
-  });
+  // Increase font size
+  if (increaseFontBtn) {
+    increaseFontBtn.addEventListener('click', function() {
+      const currentSize = parseInt(document.body.getAttribute('data-font-size')) || 2;
+      if (currentSize < 4) {
+        setFontSize(currentSize + 1);
+      }
+    });
+  }
   
-  // Handle font size decrease
-  decreaseFontSize.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const currentSize = parseInt(document.body.getAttribute('data-font-size') || '2');
-    if (currentSize > 1) {
-      setFontSize(currentSize - 1);
-    }
-  });
-  
-  // Handle font size increase
-  increaseFontSize.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const currentSize = parseInt(document.body.getAttribute('data-font-size') || '2');
-    if (currentSize < 5) {
-      setFontSize(currentSize + 1);
-    }
-  });
+  // Decrease font size
+  if (decreaseFontBtn) {
+    decreaseFontBtn.addEventListener('click', function() {
+      const currentSize = parseInt(document.body.getAttribute('data-font-size')) || 2;
+      if (currentSize > 1) {
+        setFontSize(currentSize - 1);
+      }
+    });
+  }
 }
 
-/**
- * Set the font size and save it to session storage
- * @param {number} size - Size level (1-5)
- */
 function setFontSize(size) {
   document.body.setAttribute('data-font-size', size);
-  sessionStorage.setItem('fontSizePreference', size);
+  localStorage.setItem('fontSize', size);
 }
 
-/**
- * Load saved font size from session storage
- */
 function loadSavedFontSize() {
-  const savedSize = sessionStorage.getItem('fontSizePreference');
+  const savedSize = localStorage.getItem('fontSize');
   if (savedSize) {
     document.body.setAttribute('data-font-size', savedSize);
   }
