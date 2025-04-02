@@ -15,22 +15,151 @@ class ScreensaverModeManager {
     
     this.activeMode = null;
     this.activeModeKey = null;
+    
+    // Watchdog to detect and recover from stuck modes
+    this.watchdogTimer = null;
+    this.lastModeChangeTime = 0;
+    this.watchdogTimeout = 120000; // 2 minutes
+    
+    // Error tracking
+    this.errorCount = 0;
+    this.maxErrors = 3;
   }
   
   /**
    * Initialize the mode manager
    */
   initialize() {
-    // Initialize the pulsating mode
-    this.modes.pulsating = new PulsatingMode();
+    try {
+      // Initialize the pulsating mode
+      this.modes.pulsating = new PulsatingMode();
+      
+      // Initialize the cycling mode
+      this.modes.cycling = new CyclingMode();
+      
+      // Initialize the disco mode
+      this.modes.disco = new DiscoMode();
+      
+      // Start the watchdog
+      this.startWatchdog();
+      
+      console.log('Screensaver mode manager initialized');
+    } catch (error) {
+      console.error('Error initializing screensaver mode manager:', error);
+    }
+  }
+  
+  /**
+   * Start the watchdog timer to detect stuck modes
+   */
+  startWatchdog() {
+    // Clear any existing watchdog
+    this.stopWatchdog();
     
-    // Initialize the cycling mode
-    this.modes.cycling = new CyclingMode();
+    // Set the current time as the last mode change time
+    this.lastModeChangeTime = Date.now();
     
-    // Initialize the disco mode
-    this.modes.disco = new DiscoMode();
+    // Start the watchdog timer
+    this.watchdogTimer = setInterval(() => {
+      this.checkActiveMode();
+    }, 30000); // Check every 30 seconds
     
-    console.log('Screensaver mode manager initialized');
+    console.log('Screensaver watchdog started');
+  }
+  
+  /**
+   * Stop the watchdog timer
+   */
+  stopWatchdog() {
+    if (this.watchdogTimer) {
+      clearInterval(this.watchdogTimer);
+      this.watchdogTimer = null;
+    }
+  }
+  
+  /**
+   * Check if the active mode is working properly
+   */
+  checkActiveMode() {
+    // Only check if we have an active mode
+    if (!this.activeMode || !this.activeModeKey) {
+      return;
+    }
+    
+    const now = Date.now();
+    const timeSinceLastChange = now - this.lastModeChangeTime;
+    
+    // If it's been too long since the last mode change or update, restart the mode
+    if (timeSinceLastChange > this.watchdogTimeout) {
+      console.warn(`Watchdog detected potential stuck mode: ${this.activeModeKey}. Restarting...`);
+      
+      // Record the error
+      this.errorCount++;
+      
+      // Attempt to restart the mode
+      this.restartActiveMode();
+      
+      // Reset the timer
+      this.lastModeChangeTime = now;
+    }
+  }
+  
+  /**
+   * Restart the active mode to recover from issues
+   */
+  restartActiveMode() {
+    if (!this.activeMode || !this.activeModeKey) {
+      return;
+    }
+    
+    try {
+      // If we've exceeded the max error count, try a different mode
+      if (this.errorCount > this.maxErrors) {
+        console.warn(`Too many errors with mode ${this.activeModeKey}, switching to a different mode`);
+        
+        // Switch to a different mode
+        let newModeKey = this.activeModeKey;
+        const modeKeys = Object.keys(this.modes).filter(key => 
+          key !== 'dimToOn' && key !== 'dimToOff' && this.modes[key]
+        );
+        
+        if (modeKeys.length > 1) {
+          while (newModeKey === this.activeModeKey && modeKeys.length > 1) {
+            const randomIndex = Math.floor(Math.random() * modeKeys.length);
+            newModeKey = modeKeys[randomIndex];
+          }
+        }
+        
+        // Stop the current mode
+        this.stopActiveMode();
+        
+        // Start the new mode
+        this.startMode(newModeKey);
+        
+        // Reset error count
+        this.errorCount = 0;
+      } else {
+        // Stop and restart the current mode
+        const currentModeKey = this.activeModeKey;
+        this.stopActiveMode();
+        
+        // Wait a short time before restarting
+        setTimeout(() => {
+          if (!this.activeMode) { // Only restart if no other mode has been started
+            this.startMode(currentModeKey);
+          }
+        }, 1000);
+      }
+    } catch (error) {
+      console.error('Error restarting mode:', error);
+      
+      // If all else fails, try to default to dimToOn
+      setTimeout(() => {
+        if (!this.activeMode) {
+          this.startMode('dimToOn');
+        }
+      }, 2000);
+    }
   }
   
   /**
@@ -38,33 +167,48 @@ class ScreensaverModeManager {
    * @param {string} modeKey - The mode to start (dimToOn, dimToOff, pulsating, cycling, disco)
    */
   startMode(modeKey) {
-    // Stop any active mode
-    this.stopActiveMode();
-    
-    // Remember the active mode
-    this.activeModeKey = modeKey;
-    
-    // Handle built-in modes
-    if (modeKey === 'dimToOn') {
-      // This is handled by the main code - just set the flag
-      console.log('Starting built-in mode: dimToOn');
-      return;
-    }
-    
-    if (modeKey === 'dimToOff') {
-      // This is handled by the main code - just set the flag
-      console.log('Starting built-in mode: dimToOff');
-      return;
-    }
-    
-    // Handle dynamic modes
-    const mode = this.modes[modeKey];
-    if (mode) {
-      this.activeMode = mode;
-      mode.start();
-      console.log(`Started screensaver mode: ${modeKey}`);
-    } else {
-      console.error(`Unknown screensaver mode: ${modeKey}`);
+    try {
+      // Stop any active mode
+      this.stopActiveMode();
+      
+      // Remember the active mode
+      this.activeModeKey = modeKey;
+      
+      // Reset the watchdog timer
+      this.lastModeChangeTime = Date.now();
+      
+      // Handle built-in modes
+      if (modeKey === 'dimToOn') {
+        // This is handled by the main code - just set the flag
+        console.log('Starting built-in mode: dimToOn');
+        return;
+      }
+      
+      if (modeKey === 'dimToOff') {
+        // This is handled by the main code - just set the flag
+        console.log('Starting built-in mode: dimToOff');
+        return;
+      }
+      
+      // Handle dynamic modes
+      const mode = this.modes[modeKey];
+      if (mode) {
+        this.activeMode = mode;
+        mode.start();
+        console.log(`Started screensaver mode: ${modeKey}`);
+        
+        // Reset error count when successfully starting a mode
+        this.errorCount = 0;
+      } else {
+        console.error(`Unknown screensaver mode: ${modeKey}`);
+        // Try to fall back to a built-in mode
+        this.activeModeKey = 'dimToOn';
+      }
+    } catch (error) {
+      console.error(`Error starting mode ${modeKey}:`, error);
+      // Fall back to a built-in mode
+      this.activeMode = null;
+      this.activeModeKey = 'dimToOn';
     }
   }
   
@@ -72,13 +216,18 @@ class ScreensaverModeManager {
    * Stop the active mode
    */
   stopActiveMode() {
-    if (this.activeMode && this.activeMode.isRunning()) {
-      this.activeMode.stop();
-      console.log(`Stopped screensaver mode: ${this.activeModeKey}`);
+    try {
+      if (this.activeMode && this.activeMode.isRunning()) {
+        this.activeMode.stop();
+        console.log(`Stopped screensaver mode: ${this.activeModeKey}`);
+      }
+    } catch (error) {
+      console.error(`Error stopping mode ${this.activeModeKey}:`, error);
+    } finally {
+      // Always reset the state even if there's an error
+      this.activeMode = null;
+      this.activeModeKey = null;
     }
-    
-    this.activeMode = null;
-    this.activeModeKey = null;
   }
   
   /**
@@ -87,10 +236,26 @@ class ScreensaverModeManager {
   getActiveModeKey() {
     return this.activeModeKey;
   }
+  
+  /**
+   * Clean up resources when done
+   */
+  cleanup() {
+    this.stopActiveMode();
+    this.stopWatchdog();
+    console.log('Screensaver mode manager cleaned up');
+  }
 }
 
 // Create a singleton instance
 const screensaverModeManager = new ScreensaverModeManager();
+
+// Ensure cleanup on page unload
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeunload', () => {
+    screensaverModeManager.cleanup();
+  });
+}
 
 // Export the instance
 if (typeof module !== 'undefined') {

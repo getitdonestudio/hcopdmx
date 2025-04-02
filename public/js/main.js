@@ -45,11 +45,27 @@ for (const key in keyToBinary) {
  */
 function captureKeyboardEvents() {
   document.addEventListener('keydown', function(event) {
-    // In screensaver mode, any key returns to the previous page
+    // In screensaver mode, handle key presses specially
     if (currentPage === 'screensaver') {
       event.preventDefault();
       event.stopPropagation();
-      console.log('Key pressed in screensaver mode, returning to previous page');
+      
+      const key = event.key.toLowerCase();
+      
+      // If the key corresponds to a DMX program (a-p), go to that program
+      if (keyToBinary.hasOwnProperty(key)) {
+        console.log(`Key pressed in screensaver mode: ${key.toUpperCase()} - transitioning to page ${keyToBinary[key]}`);
+        
+        // Stop any active screensaver mode
+        screensaverModeManager.stopActiveMode();
+        
+        // Transition to the page corresponding to this key's binary value
+        transitionToPage(keyToBinary[key]);
+        return;
+      }
+      
+      // For other keys, return to the previous page
+      console.log('Non-program key pressed in screensaver mode, returning to previous page');
       returnFromScreensaver();
       return;
     }
@@ -404,8 +420,25 @@ function transitionToScreensaver() {
       
       updateStatus('Screensaver aktiviert...');
       
-      // Start the appropriate mode
-      screensaverModeManager.startMode(modeKey);
+      // Handle built-in modes directly
+      if (modeKey === 'dimToOn') {
+        // Transition all lights to full on
+        const duration = settings.screensaver.transitionSpeed || 1000;
+        sendDMXFadeCommand('q', duration)
+          .then(() => {
+            updateStatus('Screensaver: Alle Lichter an');
+          });
+      } else if (modeKey === 'dimToOff') {
+        // Transition all lights to off
+        const duration = settings.screensaver.transitionSpeed || 1000;
+        sendDMXFadeCommand('z', duration)
+          .then(() => {
+            updateStatus('Screensaver: Alle Lichter aus');
+          });
+      } else {
+        // Start other modes through the mode manager
+        screensaverModeManager.startMode(modeKey);
+      }
     })
     .catch(error => {
       console.error('Error fetching settings:', error);

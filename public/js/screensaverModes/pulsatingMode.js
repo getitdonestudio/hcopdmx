@@ -14,13 +14,18 @@ class PulsatingMode extends ScreensaverMode {
       riseDuration: 1500, // Time to rise from min to max (1.5 seconds)
       fallDuration: 800, // Time to fall from max to min (0.8 seconds)
       pauseDuration: 700, // Pause at minimum power (0.7 seconds)
-      updateInterval: 25 // Update interval (25ms = 40 times per second)
+      updateInterval: 50, // Update interval (50ms = 20 times per second, reduced from 25ms)
+      stateRefreshInterval: 30000 // Refresh state every 30 seconds
     }, options);
     
     this.currentPhase = 'pause'; // 'rise', 'fall', or 'pause'
     this.currentValue = this.options.minPower;
     this.phaseTime = 0;
     this.baseChannels = null; // Store base channel values
+    this.lastDmxSendTime = 0;
+    this.failedRequests = 0;
+    this.stateRefreshTimerId = null;
+    this.recoveryMode = false;
   }
   
   /**
@@ -34,12 +39,20 @@ class PulsatingMode extends ScreensaverMode {
     this.currentValue = this.options.minPower;
     this.currentPhase = 'pause';
     this.phaseTime = 0;
+    this.failedRequests = 0;
+    this.recoveryMode = false;
     
     // Get the initial state
     this.fetchBaseState();
     
     // Start the animation loop
     this.intervalId = setInterval(() => this.update(), this.options.updateInterval);
+    
+    // Set up periodic state refresh to prevent stale data
+    this.stateRefreshTimerId = setInterval(() => {
+      console.log('Refreshing base state for pulsating mode');
+      this.fetchBaseState();
+    }, this.options.stateRefreshInterval);
     
     console.log('Pulsating mode started');
   }
@@ -49,11 +62,17 @@ class PulsatingMode extends ScreensaverMode {
    */
   fetchBaseState() {
     fetch('/dmx/program/q')
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Failed to fetch base state: ${response.status}`);
+        }
+        return response.json();
+      })
       .then(data => {
         if (data.success) {
           this.baseChannels = data.channels;
           console.log('Base channels loaded for pulsating mode');
+          this.recoveryMode = false;
         } else {
           // Fallback: get current state
           return fetch('/state');
@@ -61,18 +80,35 @@ class PulsatingMode extends ScreensaverMode {
       })
       .then(response => {
         if (!response) return null;
+        if (!response.ok) {
+          throw new Error(`Failed to fetch current state: ${response.status}`);
+        }
         return response.json();
       })
       .then(data => {
         if (data && data.success && !this.baseChannels) {
           this.baseChannels = data.channels;
           console.log('Current state loaded as base for pulsating mode');
+          this.recoveryMode = false;
         }
       })
       .catch(error => {
         console.error('Error fetching base state for pulsating mode:', error);
-        // Create a fallback state with all channels on
-        this.baseChannels = Array(512).fill(255);
+        
+        if (!this.baseChannels) {
+          // Create a fallback state with all channels on
+          this.baseChannels = Array(512).fill(255);
+          console.log('Using fallback channels for pulsating mode');
+        } else {
+          console.log('Keeping existing channels after fetch error');
+        }
+        
+        // Enter recovery mode if we have multiple failures
+        this.failedRequests++;
+        if (this.failedRequests > 3) {
+          console.warn('Multiple fetch failures detected, entering recovery mode');
+          this.recoveryMode = true;
+        }
       });
   }
   
@@ -81,7 +117,18 @@ class PulsatingMode extends ScreensaverMode {
    */
   stop() {
     if (!this.running) return;
+    
+    // Clear the state refresh timer
+    if (this.stateRefreshTimerId) {
+      clearInterval(this.stateRefreshTimerId);
+      this.stateRefreshTimerId = null;
+    }
+    
     super.stop();
+    
+    // Clear any other resources
+    this.baseChannels = null;
+    this.failedRequests = 0;
     
     console.log('Pulsating mode stopped');
   }
@@ -107,6 +154,18 @@ class PulsatingMode extends ScreensaverMode {
    */
   update() {
     if (!this.running) return;
+    
+    // Skip updates if we're in recovery mode and it's not time to try again
+    if (this.recoveryMode) {
+      // In recovery mode, only update every 5 seconds to reduce load
+      const now = Date.now();
+      if (now - this.lastDmxSendTime < 5000) {
+        return;
+      }
+      
+      // When in recovery mode, try to fetch the base state again
+      this.fetchBaseState();
+    }
     
     const timeStep = this.options.updateInterval;
     const { minPower, maxPower, riseDuration, fallDuration, pauseDuration } = this.options;
@@ -171,6 +230,13 @@ class PulsatingMode extends ScreensaverMode {
   applyPulseToDmx() {
     if (!this.running) return;
     
+    // Rate limiting - don't send DMX commands too frequently
+    const now = Date.now();
+    if (now - this.lastDmxSendTime < 80) { // At most 12.5 updates per second
+      return;
+    }
+    this.lastDmxSendTime = now;
+    
     // Calculate the power factor (0.7 to 1.0)
     const powerFactor = this.currentValue / 100;
     
@@ -182,7 +248,7 @@ class PulsatingMode extends ScreensaverMode {
         return Math.round(value * powerFactor);
       });
       
-      // Send the modified channels to DMX
+      // Send the modified channels to DMX with proper error handling
       fetch(`/dmx/direct`, {
         method: 'POST',
         headers: {
@@ -190,10 +256,33 @@ class PulsatingMode extends ScreensaverMode {
         },
         body: JSON.stringify({ channels })
       })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`DMX direct send failed with status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(() => {
+        // Reset failed requests counter on success
+        this.failedRequests = 0;
+        
+        // Exit recovery mode if we were in it
+        if (this.recoveryMode) {
+          console.log('Exiting recovery mode after successful DMX send');
+          this.recoveryMode = false;
+        }
+      })
       .catch(error => {
-        console.error('Error in pulsating mode:', error);
+        console.error('Error in pulsating mode DMX send:', error);
+        
+        // Count failures and enter recovery mode if too many
+        this.failedRequests++;
+        if (this.failedRequests > 3) {
+          console.warn('Multiple DMX send failures, entering recovery mode');
+          this.recoveryMode = true;
+        }
       });
-    } else {
+    } else if (!this.recoveryMode) {
       // If we don't have base channels yet, try to fetch them again
       this.fetchBaseState();
     }
