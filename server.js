@@ -12,7 +12,8 @@ const LOG_CONFIG = {
     heartbeatInterval: 5, // Only log heartbeat every X times
     maxFileSize: 5 * 1024 * 1024, // 5MB max log file size
     logFile: 'dmx-server.log',
-    logToConsole: true
+    logToConsole: true,
+    dmxDirectLogInterval: 100 // Only log every 100th direct DMX command (rate limiting)
 };
 
 // Log levels and their priorities
@@ -25,6 +26,7 @@ const LOG_LEVELS = {
 
 // Current heartbeat counter
 let heartbeatCounter = 0;
+let dmxDirectCounter = 0;
 
 // Check if a message should be logged based on current level
 function shouldLog(level) {
@@ -56,16 +58,39 @@ function logWithTimestamp(level, ...args) {
     // Skip if log level is too low
     if (!shouldLog(level)) return;
     
-    // Skip some heartbeat messages to reduce log spam
-    if (level === 'info' && args[0] && args[0].includes('Heartbeat:')) {
+    // Filter out high-frequency messages
+    const message = args.join(' ');
+    
+    // Rate-limit heartbeat messages
+    if (level === 'info' && message.includes('Heartbeat:')) {
         heartbeatCounter++;
         if (heartbeatCounter % LOG_CONFIG.heartbeatInterval !== 0) {
             return;
         }
     }
     
+    // Rate-limit direct DMX control messages
+    if (level === 'info' && message.includes('Direct DMX control:')) {
+        dmxDirectCounter++;
+        if (dmxDirectCounter % LOG_CONFIG.dmxDirectLogInterval !== 0) {
+            return;
+        }
+    }
+    
+    // Rate-limit DMX channels directly set messages
+    if (level === 'info' && message.includes('DMX-Kanäle direkt gesetzt.')) {
+        // Skip completely since this is redundant with the Direct DMX control message
+        return;
+    }
+    
+    // Always log screensaver mode starts, but skip interval updates
+    if (level === 'info' && message.includes('screensaverMode') && !message.includes('Starting')) {
+        // Skip interval update logs for screensaver mode
+        return;
+    }
+    
     const timestamp = new Date().toISOString();
-    const logMessage = `[${timestamp}] [${level.toUpperCase()}] ${args.join(' ')}`;
+    const logMessage = `[${timestamp}] [${level.toUpperCase()}] ${message}`;
     
     // Check/rotate log file if logging to file
     if (LOG_CONFIG.logFile) {
@@ -580,9 +605,9 @@ async function startServer() {
                     });
                 }
                 
-                // Log the request for debugging (limit channel display to first 5 for brevity)
-                const channelSample = channels.slice(0, 5).map(v => Math.round(v)).join(', ');
-                logInfo(`Direct DMX control: Setting ${channels.length} channels directly. Sample values: [${channelSample}...]`);
+                // Log the request with minimal info - just log the count without channel samples
+                // This reduces log verbosity for screensaver modes
+                logInfo(`Direct DMX control: Setting ${channels.length} channels`);
                 
                 // Determine which light power setting to use if specified
                 let lightPowerToUse = null;
@@ -623,7 +648,8 @@ async function startServer() {
                 // Store current state
                 dmxPrograms.current = [...channels];
                 
-                logInfo(`DMX-Kanäle direkt gesetzt. Anzahl: ${channels.length}`);
+                // Skip this log message to reduce verbosity - it's redundant with the one above
+                // logInfo(`DMX-Kanäle direkt gesetzt. Anzahl: ${channels.length}`);
                 
                 return res.json({ 
                     success: true, 
@@ -756,6 +782,51 @@ async function startServer() {
         app.get('/dmx/programs', (req, res) => {
             const programs = Object.keys(dmxPrograms).filter(key => key !== 'current');
             res.json({ success: true, programs });
+        });
+        
+        // API endpoint for client-side logging
+        app.post('/api/log', (req, res) => {
+            try {
+                const { level, message } = req.body;
+                
+                // Validate input
+                if (!message || !level || !['debug', 'info', 'warn', 'error'].includes(level)) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Invalid log data. Required: level (debug|info|warn|error) and message'
+                    });
+                }
+                
+                // Log the message using the appropriate log level
+                switch (level) {
+                    case 'debug':
+                        logDebug(message);
+                        break;
+                    case 'info':
+                        logInfo(message);
+                        break;
+                    case 'warn':
+                        logWarn(message);
+                        break;
+                    case 'error':
+                        logError(message);
+                        break;
+                }
+                
+                // Also log directly to console for immediate visibility
+                console.log(`[CLIENT] ${message}`);
+                
+                return res.json({
+                    success: true,
+                    message: 'Log message recorded'
+                });
+            } catch (error) {
+                logError('Error in client logging endpoint:', error);
+                return res.status(500).json({
+                    success: false,
+                    message: 'Error processing log request'
+                });
+            }
         });
         
         // API endpoints for settings

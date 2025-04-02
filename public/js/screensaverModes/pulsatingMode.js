@@ -35,7 +35,19 @@ class PulsatingMode extends ScreensaverMode {
   async start() {
     if (this.running) return;
     
-    console.log('PulsatingMode: Starting...');
+    console.log('Starting pulsating screensaver mode');
+    
+    // Also log to terminal for monitoring
+    fetch('/api/log', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        level: 'info',
+        message: 'Starting PULSATING screensaver mode'
+      })
+    }).catch(err => console.error('Failed to log to server:', err));
     
     // Get current settings
     try {
@@ -43,7 +55,6 @@ class PulsatingMode extends ScreensaverMode {
       const settings = await response.json();
       if (settings.screensaver && settings.screensaver.lightPower !== undefined) {
         this.options.lightPower = settings.screensaver.lightPower;
-        console.log(`PulsatingMode: Using light power: ${this.options.lightPower}`);
       }
     } catch (error) {
       console.error('Error fetching settings:', error);
@@ -52,7 +63,6 @@ class PulsatingMode extends ScreensaverMode {
     super.start();
     
     // Start the heartbeat
-    console.log('PulsatingMode: Starting heartbeat effect');
     this.startHeartbeat();
   }
   
@@ -136,7 +146,7 @@ class PulsatingMode extends ScreensaverMode {
         this.failedRequests++;
         
         if (this.failedRequests >= 3) {
-          console.error('Too many failed requests, stopping mode');
+          console.error('Too many failed requests, stopping pulsating mode');
           this.stop();
         }
       }
@@ -163,7 +173,6 @@ class PulsatingMode extends ScreensaverMode {
       .then(data => {
         if (data.success) {
           this.baseChannels = data.channels;
-          console.log('Base channels loaded for pulsating mode');
           this.recoveryMode = false;
         } else {
           // Fallback: get current state
@@ -180,7 +189,6 @@ class PulsatingMode extends ScreensaverMode {
       .then(data => {
         if (data && data.success && !this.baseChannels) {
           this.baseChannels = data.channels;
-          console.log('Current state loaded as base for pulsating mode');
           this.recoveryMode = false;
         }
       })
@@ -190,15 +198,11 @@ class PulsatingMode extends ScreensaverMode {
         if (!this.baseChannels) {
           // Create a fallback state with all channels on
           this.baseChannels = Array(512).fill(255);
-          console.log('Using fallback channels for pulsating mode');
-        } else {
-          console.log('Keeping existing channels after fetch error');
         }
         
         // Enter recovery mode if we have multiple failures
         this.failedRequests++;
         if (this.failedRequests > 3) {
-          console.warn('Multiple fetch failures detected, entering recovery mode');
           this.recoveryMode = true;
         }
       });

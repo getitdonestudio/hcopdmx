@@ -57,7 +57,7 @@ class ScreensaverMode {
     if (this.running) return;
     this.running = true;
     
-    console.log('[ScreensaverMode] Base mode started');
+    // Base mode started - no logging needed here as specific modes will log
   }
 
   /**
@@ -70,7 +70,7 @@ class ScreensaverMode {
     this.clearAllTimers();
     
     this.running = false;
-    console.log('[ScreensaverMode] Base mode stopped');
+    // Base mode stopped - no logging needed here as specific modes will log
   }
 
   /**

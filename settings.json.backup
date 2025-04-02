@@ -1,12 +1,12 @@
 {
   "screensaver": {
     "timeDelay": 10000,
-    "mode": "cycling",
-    "lightPower": 32,
+    "mode": "disco",
+    "lightPower": 41,
     "transitionSpeed": 1000
   },
   "system": {
-    "lastUpdated": "2025-04-02T11:07:51.998Z"
+    "lastUpdated": "2025-04-02T14:52:11.887Z"
   },
   "lightPower": 32,
   "linkLightPowers": true

@@ -187,8 +187,24 @@ class ScreensaverModeManager {
       const mode = this.modes[modeKey];
       if (mode) {
         this.activeMode = mode;
+        
+        // Log to server/terminal before starting the mode
+        fetch('/api/log', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            level: 'info',
+            message: `Starting screensaver mode: ${modeKey.toUpperCase()}`
+          })
+        }).catch(err => console.error('Failed to log to server:', err));
+        
+        // Start the mode
         mode.start();
-        console.log(`Started screensaver mode: ${modeKey}`);
+        
+        // Only log to console if in development
+        console.log(`Starting screensaver mode: ${modeKey}`);
         
         // Reset error count when successfully starting a mode
         this.errorCount = 0;

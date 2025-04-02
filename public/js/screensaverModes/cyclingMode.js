@@ -1,6 +1,6 @@
 /**
  * Cycling Screensaver Mode
- * Cycles through all modes (a-p) with smooth fading transitions
+ * Cycles through DMX program modes in sequence with transitions
  */
 class CyclingMode extends ScreensaverMode {
   constructor(options = {}) {
@@ -8,27 +8,22 @@ class CyclingMode extends ScreensaverMode {
     
     // Default options
     this.options = Object.assign({
-      dwellTime: 10000, // Time to stay on each mode (10 seconds)
-      transitionTime: 2000, // Time to transition between modes (2 seconds)
-      updateInterval: 100, // Update interval for transitions (100ms)
-      retryInterval: 1000, // Retry interval if a mode fails to load (1 second)
-      maxConsecutiveFailures: 5, // Maximum consecutive failures before attempting recovery
-      lightPower: 255 // Default light power
+      programKeys: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p'],
+      transitionTime: 2000, // Time in ms to transition between modes
+      holdTime: 5000, // Time in ms to hold each mode
+      maxConsecutiveFailures: 3 // Max failures before entering recovery mode
     }, options);
     
-    // All available DMX modes (a through p)
-    this.availableModes = 'abcdefghijklmnop'.split('');
-    this.currentModeIndex = 0;
-    this.isTransitioning = false;
-    this.currentChannels = null;
-    this.targetChannels = null;
-    this.transitionProgress = 0;
-    this.failedModes = {};
-    this.activeTimers = [];
+    this.currentIndex = 0;
+    this.currentMode = null;
+    this.channels = null;
+    this.loading = false;
+    this.scheduledChange = null;
+    this.failedModes = new Set();
     this.consecutiveFailures = 0;
     this.recoveryMode = false;
-    this.lastNetworkRequestTime = 0;
-    this.transitionStartTime = 0;
+    this.lastRequestTime = 0;
+    this.requestThrottle = 100; // ms between requests
   }
   
   /**
@@ -37,63 +32,63 @@ class CyclingMode extends ScreensaverMode {
   async start() {
     if (this.running) return;
     
-    console.log('CyclingMode: Starting...');
+    console.log('Starting cycling screensaver mode');
     
-    // Get current settings
-    try {
-      const response = await fetch('/api/settings');
-      const settings = await response.json();
-      if (settings.screensaver && settings.screensaver.lightPower !== undefined) {
-        this.options.lightPower = settings.screensaver.lightPower;
-        console.log(`CyclingMode: Using light power: ${this.options.lightPower}`);
-      }
-    } catch (error) {
-      console.error('Error fetching settings:', error);
-    }
+    // Also log to terminal for monitoring
+    fetch('/api/log', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        level: 'info',
+        message: 'Starting CYCLING screensaver mode'
+      })
+    }).catch(err => console.error('Failed to log to server:', err));
     
     super.start();
     
-    // Start cycling through modes
-    console.log('CyclingMode: Starting to cycle through modes');
-    this.transitionToNextMode();
+    // Reset state
+    this.currentIndex = 0;
+    this.currentMode = null;
+    this.failedModes.clear();
+    this.consecutiveFailures = 0;
+    this.recoveryMode = false;
+    
+    // Start by loading the initial state
+    await this.loadInitialState();
+    
+    // Then start cycling
+    this.scheduleNextMode();
   }
   
   /**
-   * Load initial state to ensure we have a valid starting point
+   * Load initial DMX state
    */
-  loadInitialState() {
-    return fetch('/state')
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`Failed to load initial state: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        if (data.success) {
-          this.currentChannels = [...data.channels];
-          console.log('Initial state loaded for cycling mode');
-          this.consecutiveFailures = 0;
-          this.recoveryMode = false;
-        } else {
-          // Create a fallback state
-          this.currentChannels = Array(512).fill(0);
-          console.warn('Using fallback state for cycling mode');
-        }
-      })
-      .catch(error => {
-        console.error('Error loading initial state:', error);
-        // Create a fallback state
-        this.currentChannels = Array(512).fill(0);
-        this.consecutiveFailures++;
-        
-        if (this.consecutiveFailures > this.options.maxConsecutiveFailures) {
-          console.warn('Multiple failures detected, entering recovery mode');
-          this.recoveryMode = true;
-        }
-        
-        throw error; // Rethrow for the caller to handle
-      });
+  async loadInitialState() {
+    try {
+      const response = await fetch('/state');
+      if (!response.ok) {
+        throw new Error('Failed to load initial state');
+      }
+      
+      const data = await response.json();
+      
+      if (data.success && data.channels) {
+        this.channels = [...data.channels];
+      } else {
+        throw new Error('Invalid state data received');
+      }
+    } catch (error) {
+      console.error('Error loading initial state:', error);
+      
+      // Create a fallback state with all zeros
+      this.channels = Array(512).fill(0);
+      
+      // Enter recovery mode immediately
+      this.consecutiveFailures++;
+      this.recoveryMode = true;
+    }
   }
   
   /**
@@ -101,345 +96,211 @@ class CyclingMode extends ScreensaverMode {
    */
   stop() {
     if (!this.running) return;
+    
+    // Clear any scheduled changes
+    if (this.scheduledChange) {
+      clearTimeout(this.scheduledChange);
+      this.scheduledChange = null;
+    }
+    
     super.stop();
     
-    this.clearAllTimers();
-    this.recoveryMode = false;
-    this.consecutiveFailures = 0;
     console.log('Cycling mode stopped');
   }
   
   /**
-   * Clear all active timers
+   * Schedule loading the next mode
    */
-  clearAllTimers() {
-    // Clear mode change timer
-    if (this.modeChangeTimer) {
-      clearTimeout(this.modeChangeTimer);
-      this.modeChangeTimer = null;
+  scheduleNextMode() {
+    if (!this.running) return;
+    
+    // Clear any existing scheduled change
+    if (this.scheduledChange) {
+      clearTimeout(this.scheduledChange);
     }
     
-    // Clear transition timer
-    if (this.transitionTimer) {
-      clearInterval(this.transitionTimer);
-      this.transitionTimer = null;
-    }
+    // Determine the next index, skipping modes that have failed multiple times
+    let nextIndex = this.currentIndex;
+    let attempts = 0;
+    const maxAttempts = this.options.programKeys.length;
     
-    // Clear any other active timers
-    this.activeTimers.forEach(timer => clearTimeout(timer));
-    this.activeTimers = [];
+    do {
+      nextIndex = (nextIndex + 1) % this.options.programKeys.length;
+      attempts++;
+      
+      // If we've tried all modes and they've all failed, reset the failed modes set
+      if (attempts > maxAttempts) {
+        this.failedModes.clear();
+        break;
+      }
+    } while (
+      this.failedModes.has(this.options.programKeys[nextIndex]) && 
+      attempts < maxAttempts
+    );
+    
+    this.currentIndex = nextIndex;
+    
+    // Schedule the change after the hold time
+    const delay = this.recoveryMode ? 
+      this.options.holdTime * 2 : // Longer delay in recovery mode
+      this.options.holdTime;
+      
+    this.scheduledChange = setTimeout(() => {
+      this.loadMode(this.options.programKeys[this.currentIndex]);
+    }, delay);
   }
   
   /**
-   * Load a specific DMX mode
+   * Load a specific DMX program mode
+   * @param {string} key - DMX program key
    */
-  loadMode(modeKey) {
+  async loadMode(key) {
     if (!this.running) return;
     
-    // If in recovery mode, limit request frequency
-    if (this.recoveryMode) {
-      const now = Date.now();
-      if (now - this.lastNetworkRequestTime < 5000) {
-        // In recovery mode, schedule the next transition after a delay
-        console.log('In recovery mode, delaying next transition');
-        this.scheduleNextTransition();
-        return;
-      }
-    }
-    
-    // If this mode previously failed and we haven't tried all modes,
-    // skip to the next one
-    if (this.failedModes[modeKey] && Object.keys(this.failedModes).length < this.availableModes.length) {
-      console.log(`Skipping previously failed mode: ${modeKey}`);
-      this.transitionToNextMode();
+    // Skip loading if already loading
+    if (this.loading) {
+      this.scheduleNextMode();
       return;
     }
     
-    console.log(`Loading mode: ${modeKey}`);
-    this.lastNetworkRequestTime = Date.now();
-    
-    // Get the mode's channels
-    fetch(`/dmx/program/${modeKey}`)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`Failed to load mode ${modeKey}: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        if (!data.success || !this.running) {
-          throw new Error(`Failed to load mode: ${modeKey}`);
-        }
-        
-        // Store the target channels
-        this.targetChannels = data.channels;
-        
-        if (!this.currentChannels) {
-          // If we don't have current channels, initialize with zeros
-          this.currentChannels = Array(this.targetChannels.length).fill(0);
-        }
-        
-        if (this.options.transitionTime > 0) {
-          // Start the transition
-          this.startTransition();
-        } else {
-          // Apply immediately
-          this.applyTargetChannels();
-          this.scheduleNextTransition();
-        }
-        
-        // Clear this mode from failed modes if it was there
-        delete this.failedModes[modeKey];
-        
-        // Reset consecutive failures on success
-        this.consecutiveFailures = 0;
-        
-        // Exit recovery mode if we were in it
-        if (this.recoveryMode) {
-          console.log('Exiting recovery mode after successful mode load');
-          this.recoveryMode = false;
-        }
-      })
-      .catch(error => {
-        console.error(`Error loading mode ${modeKey}:`, error);
-        
-        // Mark this mode as failed
-        this.failedModes[modeKey] = true;
-        
-        // Increment consecutive failure count
-        this.consecutiveFailures++;
-        
-        // Check if we need to enter recovery mode
-        if (this.consecutiveFailures > this.options.maxConsecutiveFailures) {
-          console.warn('Multiple consecutive failures, entering recovery mode');
-          this.recoveryMode = true;
-        }
-        
-        // Try the next mode after a short delay
-        const retryTimer = setTimeout(() => {
-          if (this.running) {
-            this.transitionToNextMode();
-          }
-        }, this.recoveryMode ? 5000 : this.options.retryInterval); // Longer delay in recovery mode
-        
-        this.activeTimers.push(retryTimer);
-      });
-  }
-  
-  /**
-   * Start a transition to the next mode
-   */
-  startTransition() {
-    if (!this.currentChannels || !this.targetChannels || !this.running) return;
-    
-    this.isTransitioning = true;
-    this.transitionProgress = 0;
-    this.transitionStartTime = Date.now();
-    
-    // Clear any existing transition timer
-    if (this.transitionTimer) {
-      clearInterval(this.transitionTimer);
-    }
-    
-    // Set up the transition timer
-    this.transitionTimer = setInterval(() => {
-      this.updateTransition();
-    }, this.options.updateInterval);
-  }
-  
-  /**
-   * Update the transition progress
-   */
-  updateTransition() {
-    if (!this.currentChannels || !this.targetChannels || !this.running) return;
-    
-    // Calculate progress (0-1)
-    this.transitionProgress = Math.min(
-      (Date.now() - this.transitionStartTime) / this.options.transitionTime,
-      1
-    );
-    
-    // Calculate current channels with easing
-    const easedProgress = this.easeTransition(this.transitionProgress);
-    const currentChannels = this.currentChannels.map((current, index) => {
-      const target = this.targetChannels[index];
-      if (current === 0 && target === 0) return 0; // Don't transition zero values
-      return Math.round(current + (target - current) * easedProgress);
-    });
-    
-    // Scale the channels by light power
-    const scaledChannels = currentChannels.map(value => {
-      if (value === 0) return 0; // Don't scale zero values
-      return Math.round((value / 255) * this.options.lightPower);
-    });
-    
-    // Apply the scaled channels
-    this.applyChannels(scaledChannels);
-    
-    // Check if transition is complete
-    if (this.transitionProgress >= 1) {
-      this.isTransitioning = false;
-      if (this.transitionTimer) {
-        clearInterval(this.transitionTimer);
-        this.transitionTimer = null;
+    // If in recovery mode, rate limit requests
+    if (this.recoveryMode) {
+      const now = Date.now();
+      const elapsed = now - this.lastRequestTime;
+      
+      if (elapsed < this.requestThrottle * 5) { // 5x normal throttle in recovery
+        console.log(`Rate limiting in recovery mode (${elapsed}ms)`);
+        this.scheduleNextMode();
+        return;
       }
-      this.scheduleNextTransition();
-    }
-  }
-  
-  /**
-   * Schedule the next mode transition
-   */
-  scheduleNextTransition() {
-    if (!this.running) return;
-    
-    // Clear any existing timer
-    if (this.modeChangeTimer) {
-      clearTimeout(this.modeChangeTimer);
     }
     
-    // Use a shorter dwell time in recovery mode
-    const dwellTime = this.recoveryMode ? 
-      Math.max(5000, this.options.dwellTime / 2) : 
-      this.options.dwellTime;
+    // Check if this mode has failed before
+    if (this.failedModes.has(key)) {
+      // Skip this mode if it's failed before
+      this.scheduleNextMode();
+      return;
+    }
     
-    // Schedule the next mode change
-    this.modeChangeTimer = setTimeout(() => {
-      if (this.running) {
-        this.transitionToNextMode();
-      }
-    }, dwellTime);
-  }
-  
-  /**
-   * Transition to the next mode
-   */
-  async transitionToNextMode() {
-    if (!this.running) return;
-    
-    // Get the next mode
-    const nextMode = this.availableModes[this.currentModeIndex];
-    console.log(`CyclingMode: Transitioning to mode ${nextMode} with power ${this.options.lightPower}`);
+    this.loading = true;
+    this.lastRequestTime = Date.now();
     
     try {
-      // Send the DMX fade command with the correct light power
-      const response = await fetch(`/dmx/fade/${nextMode}?duration=${this.options.transitionTime}&screensaver=true`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await fetch(`/dmx/program/${key}`);
       
       if (!response.ok) {
-        throw new Error(`Failed to transition to mode ${nextMode}: ${response.status}`);
+        throw new Error(`Failed to load program ${key}: ${response.status}`);
       }
       
       const data = await response.json();
-      if (!data.success) {
-        throw new Error(`Failed to transition to mode ${nextMode}`);
+      
+      if (!data.success || !data.channels) {
+        throw new Error(`Invalid program data for ${key}`);
       }
       
-      // Update the current mode index
-      this.currentModeIndex = (this.currentModeIndex + 1) % this.availableModes.length;
+      // Store the target mode
+      this.currentMode = key;
       
-      // Reset failure tracking
+      // Apply the new channels gradually
+      await this.applyChannels(data.channels);
+      
+      // Reset failure count after success
       this.consecutiveFailures = 0;
-      this.failedModes = {};
+      this.recoveryMode = false;
       
-      // Schedule the next transition
-      this.scheduleNextTransition();
+      // Schedule the next change
+      this.scheduleNextMode();
     } catch (error) {
-      console.error(`CyclingMode: Error transitioning to mode ${nextMode}:`, error);
-      this.handleModeFailure(nextMode);
-    }
-  }
-  
-  /**
-   * Apply the target channels directly
-   */
-  applyTargetChannels() {
-    if (!this.targetChannels) return;
-    
-    this.currentChannels = [...this.targetChannels];
-    this.applyChannels(this.currentChannels);
-  }
-  
-  /**
-   * Apply channels to DMX
-   */
-  applyChannels(channels) {
-    // Rate limit in recovery mode
-    if (this.recoveryMode) {
-      const now = Date.now();
-      if (now - this.lastNetworkRequestTime < 1000) { // Max once per second in recovery mode
-        return;
-      }
-      this.lastNetworkRequestTime = now;
-    }
-    
-    fetch('/dmx/direct', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ 
-        channels, 
-        useScreensaverPower: true 
-      })
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`Failed to apply channels: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then(() => {
-      // Reset consecutive failures on success
-      this.consecutiveFailures = 0;
+      console.error(`Error loading program ${key}:`, error);
       
-      // Exit recovery mode if we were in it
-      if (this.recoveryMode && this.consecutiveFailures === 0) {
-        console.log('CyclingMode: Exiting recovery mode after successful channel application');
-        this.recoveryMode = false;
-      }
-    })
-    .catch(error => {
-      console.error('CyclingMode: Error applying channels:', error);
+      // Mark this mode as failed
+      this.failedModes.add(key);
       
-      // Increment consecutive failure count
+      // Count the failure
       this.consecutiveFailures++;
       
-      // Check if we need to enter recovery mode
-      if (this.consecutiveFailures > this.options.maxConsecutiveFailures) {
-        console.warn('CyclingMode: Multiple consecutive failures applying channels, entering recovery mode');
+      // Enter recovery mode if we've had multiple consecutive failures
+      if (this.consecutiveFailures >= this.options.maxConsecutiveFailures) {
+        console.warn(`Multiple consecutive failures (${this.consecutiveFailures}), entering recovery mode`);
         this.recoveryMode = true;
       }
-    });
+      
+      // Try the next mode
+      this.scheduleNextMode();
+    } finally {
+      this.loading = false;
+    }
   }
   
   /**
-   * Handle mode failure
+   * Apply channels with a smooth transition
+   * @param {number[]} targetChannels - Target channel values
    */
-  handleModeFailure(mode) {
-    // Record the failure
-    this.failedModes[mode] = (this.failedModes[mode] || 0) + 1;
-    this.consecutiveFailures++;
+  async applyChannels(targetChannels) {
+    if (!this.running) return;
     
-    // If we've failed too many times, enter recovery mode
-    if (this.consecutiveFailures >= this.options.maxConsecutiveFailures) {
-      console.log('Entering recovery mode due to consecutive failures');
-      this.recoveryMode = true;
-      
-      // Try to recover by moving to the next mode
-      this.currentModeIndex = (this.currentModeIndex + 1) % this.availableModes.length;
+    // Ensure we have current channels to transition from
+    if (!this.channels) {
+      this.channels = Array(targetChannels.length).fill(0);
     }
     
-    // Schedule a retry
-    setTimeout(() => {
-      if (this.running) {
-        this.transitionToNextMode();
+    // Ensure both arrays are the same length
+    while (this.channels.length < targetChannels.length) {
+      this.channels.push(0);
+    }
+    
+    // Calculate the transition step based on transition time and interval
+    const steps = Math.max(2, Math.ceil(this.options.transitionTime / 50)); // 50ms per step
+    const stepDelay = Math.floor(this.options.transitionTime / steps);
+    
+    for (let i = 0; i <= steps; i++) {
+      if (!this.running) return;
+      
+      // In recovery mode, rate limit DMX sends
+      if (this.recoveryMode && i > 0 && i < steps) {
+        // Only send every 4th step in recovery mode to reduce load
+        if (i % 4 !== 0) {
+          continue;
+        }
       }
-    }, this.options.retryInterval);
+      
+      // Calculate transition progress (0.0 to 1.0)
+      const progress = i / steps;
+      
+      // Interpolate between current and target values
+      const currentValues = this.channels.map((current, index) => {
+        const target = targetChannels[index] || 0;
+        return Math.round(current + (target - current) * progress);
+      });
+      
+      try {
+        // Send the DMX update
+        await fetch('/dmx/direct', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            channels: currentValues
+          })
+        });
+        
+        // Update the current channels
+        this.channels = currentValues;
+        
+        // Small delay between steps (except final step)
+        if (i < steps) {
+          await new Promise(resolve => setTimeout(resolve, stepDelay));
+        }
+      } catch (error) {
+        console.error('Error applying channels during transition:', error);
+        // If we hit an error during transition, just finish up
+        break;
+      }
+    }
+    
+    // Ensure final state matches target exactly
+    this.channels = [...targetChannels];
   }
 }
 

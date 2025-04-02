@@ -32,7 +32,19 @@ class DiscoMode extends ScreensaverMode {
   async start() {
     if (this.running) return;
     
-    console.log('[DiscoMode] Starting...');
+    console.log('Starting disco screensaver mode');
+    
+    // Log to server/terminal
+    fetch('/api/log', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        level: 'info',
+        message: 'Starting DISCO screensaver mode'
+      })
+    }).catch(err => console.error('Failed to log to server:', err));
     
     // Get current settings
     const settingsResponse = await this.safeFetch('/api/settings');
@@ -40,7 +52,6 @@ class DiscoMode extends ScreensaverMode {
       const settings = settingsResponse.data;
       if (settings.screensaver && settings.screensaver.lightPower !== undefined) {
         this.options.lightPower = settings.screensaver.lightPower;
-        console.log(`[DiscoMode] Using light power: ${this.options.lightPower}`);
       }
     }
     
@@ -59,8 +70,6 @@ class DiscoMode extends ScreensaverMode {
     // Set up interval for changing modes
     const intervalId = setInterval(() => this.changeToRandomMode(), this.options.changeInterval);
     this.registerInterval(intervalId);
-    
-    console.log(`[DiscoMode] Started with interval ${this.options.changeInterval}ms`);
   }
   
   /**
@@ -69,10 +78,8 @@ class DiscoMode extends ScreensaverMode {
   stop() {
     if (!this.running) return;
     
-    console.log('[DiscoMode] Stopping...');
+    console.log('Stopping disco screensaver mode');
     super.stop(); // This will clear all registered timers
-    
-    console.log('[DiscoMode] Stopped');
   }
   
   /**
@@ -122,21 +129,17 @@ class DiscoMode extends ScreensaverMode {
       // Exit recovery mode if successful
       if (this.recoveryMode && this.consecutiveFailures === 0) {
         this.recoveryMode = false;
-        console.log('[DiscoMode] Exiting recovery mode after successful mode change');
       }
       
-      // Log periodically, not for every change to avoid console spam
-      if (this.changeCount % 5 === 0) {
-        console.log(`[DiscoMode] Switched to ${randomMode.toUpperCase()} (change #${this.changeCount})`);
-      }
+      // Don't log individual mode changes to reduce console spam
     } catch (error) {
       this.consecutiveFailures++;
-      console.error(`[DiscoMode] Error changing mode (failure #${this.consecutiveFailures}):`, error);
+      console.error(`Error in disco mode (failure #${this.consecutiveFailures}):`, error);
       
       // Enter recovery mode if too many failures
       if (this.consecutiveFailures >= this.options.maxConsecutiveFailures && !this.recoveryMode) {
         this.recoveryMode = true;
-        console.warn(`[DiscoMode] Entering recovery mode after ${this.consecutiveFailures} consecutive failures`);
+        console.warn(`Entering recovery mode after ${this.consecutiveFailures} consecutive failures`);
       }
     } finally {
       this.isChanging = false;
