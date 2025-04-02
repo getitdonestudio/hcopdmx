@@ -50,8 +50,8 @@ document.addEventListener('DOMContentLoaded', async function() {
       showStatus('Turning all lights on...', 'success');
       
       try {
-        // Send the 'q' command (all on)
-        await fetch('/dmx/q', {
+        // Send the 'y' command (all on - sets channels to values in CSV) 
+        await fetch('/dmx/y', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

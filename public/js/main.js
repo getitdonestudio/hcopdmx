@@ -75,7 +75,7 @@ function captureKeyboardEvents() {
     const key = event.key.toLowerCase();
     
     // Prevent default for all DMX-related keys
-    if (keyToBinary.hasOwnProperty(key) || key === 'q' || key === 'z') {
+    if (keyToBinary.hasOwnProperty(key) || key === 'q' || key === 'y' || key === 'z') {
       event.preventDefault();
       event.stopPropagation();
       
@@ -91,14 +91,28 @@ function captureKeyboardEvents() {
         return;
       }
       
-      // For DMX-Steuerung: q (All On) und z (All Off)
+      // Special keys: q (screensaver), y (all on), z (all off)
       if (key === 'q') {
-        console.log('Q key pressed - All On - transitioning to screensaver');
+        console.log('Q key pressed - activating screensaver');
         transitionToScreensaver();
-      } else if (key === 'z') {
-        console.log('Z key pressed - All Off');
+      } else if (key === 'y') {
+        console.log('Y key pressed - All On (without page navigation)');
         
-        // For Z, we just turn off the lights
+        // For Y, we just turn on all lights without page navigation
+        const statusElem = document.getElementById('status');
+        if (statusElem) {
+          statusElem.textContent = 'Schalte alle Lichter ein...';
+        }
+        sendDMXCommand('y')
+          .then(() => {
+            if (statusElem) {
+              statusElem.textContent = 'Alle Lichter eingeschaltet.';
+            }
+          });
+      } else if (key === 'z') {
+        console.log('Z key pressed - All Off (without page navigation)');
+        
+        // For Z, we just turn off the lights without page navigation
         const statusElem = document.getElementById('status');
         if (statusElem) {
           statusElem.textContent = 'Schalte alle Lichter aus...';
@@ -561,9 +575,9 @@ document.addEventListener('click', function(event) {
     }
     
     // Handle "All On" button clicks
-    if (link.id === 'all-on' || href.includes('screensaver')) {
-      console.log('All On button clicked, transitioning to screensaver');
-      transitionToScreensaver();
+    if (link.id === 'all-on' || href.includes('all-on')) {
+      console.log('All On button clicked, sending DMX command Y');
+      sendDMXCommand('y');
       return;
     }
     
