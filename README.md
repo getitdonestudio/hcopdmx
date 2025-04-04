@@ -13,7 +13,6 @@ A Node.js application for controlling DMX lighting via the Art-Net protocol, opt
 - [Managing the Application](#managing-the-application)
   - [Systemd Commands](#systemd-commands)
   - [Monitoring with PM2](#monitoring-with-pm2)
-  - [Enabling HTTPS](#enabling-https)
 - [Configuration](#configuration)
   - [DMX Programs](#configuring-dmx-programs)
   - [Screensaver Modes](#screensaver-modes)
@@ -209,41 +208,6 @@ Although autostart is done through systemd, PM2 is installed for monitoring purp
 - Show status: `pm2 status`
 - Real-time monitoring: `pm2 monit`
 - View logs: `pm2 logs dmxserver`
-
-## Enabling HTTPS
-
-By default, the application uses HTTP on port 3000. If you want to use HTTPS (for example, to avoid browser security warnings), follow these steps:
-
-### Automatic HTTPS Setup
-
-1. Download the HTTPS setup script:
-```bash
-wget https://raw.githubusercontent.com/getitdonestudio/hcopdmx/main/setup-https.sh
-chmod +x setup-https.sh
-```
-
-2. Run the setup script:
-```bash
-./setup-https.sh
-```
-
-This script will:
-- Generate a self-signed SSL certificate
-- Configure the server to support both HTTP and HTTPS
-- Restart the service to apply changes
-
-After running the script, you can access your application securely at:
-```
-https://your-device-ip:3001
-```
-
-### Self-Signed Certificate Warning
-
-Since this setup uses a self-signed certificate, browsers will display a security warning. This is normal and expected. You can:
-
-- Click "Advanced" and then "Proceed to site" (or similar, depending on your browser)
-- Add the certificate to your browser's trusted certificates
-- For production use, consider obtaining a proper SSL certificate from a certificate authority
 
 ## Configuration
 
