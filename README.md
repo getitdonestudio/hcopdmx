@@ -417,6 +417,17 @@ The interface supports multiple languages with pages in the `/de/` (German) and 
    ./setup-systemd.sh
    ```
 
+### Native Module Compilation Errors
+
+If you encounter errors during installation related to native module compilation (e.g., errors with `node-gyp` or `not found: make`), you need to install build tools:
+
+```bash
+sudo apt-get update
+sudo apt-get install -y build-essential
+```
+
+Then try the installation again.
+
 ## Development
 
 ### Local Development Setup

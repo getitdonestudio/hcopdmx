@@ -26,7 +26,7 @@ sudo apt-get clean
 
 # Install essential packages
 echo "Installing essential packages..."
-sudo apt-get install -y git curl wget
+sudo apt-get install -y git curl wget build-essential
 
 # Install Node.js
 echo "Installing Node.js..."

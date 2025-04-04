@@ -22,6 +22,10 @@ if ! command -v git &> /dev/null; then
     sudo apt-get install -y git
 fi
 
+# Install build tools for native modules
+echo "Installing build tools for native modules..."
+sudo apt-get install -y build-essential
+
 # Check if Node.js is installed
 if ! command -v node &> /dev/null; then
     echo "Installing Node.js..."
