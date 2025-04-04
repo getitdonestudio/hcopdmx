@@ -40,9 +40,9 @@ A Node.js application for controlling DMX lighting via the Art-Net protocol, opt
 
 ## System Requirements
 
-- Raspberry Pi (3 or newer recommended) or compatible computer
-- Raspberry Pi OS Lite (Bullseye or newer recommended)
-- Node.js 18.x or newer
+- Raspberry Pi (3 or newer recommended), RevPi, or compatible computer
+- Raspberry Pi OS Lite (Bullseye or newer) or Debian Bookworm
+- Node.js 20.x or newer
 - Art-Net compatible DMX controller/interface
 - Network connection between Raspberry Pi and DMX interface
 
@@ -50,10 +50,26 @@ A Node.js application for controlling DMX lighting via the Art-Net protocol, opt
 
 ### One-line Bootstrap Installation (fresh OS)
 
-For a fresh installation of Raspberry Pi OS Lite, use our bootstrap script to set up everything in one step:
+For a fresh installation of Raspberry Pi OS Lite or RevPi with Debian Bookworm, use our bootstrap script to set up everything in one step:
+
+> **Note for RevPi/Bookworm users:** You may need to install curl first:
+> ```bash
+> sudo apt-get update
+> sudo apt-get install -y curl
+> ```
+
+Then run the bootstrap script:
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/getitdonestudio/hcopdmx/main/bootstrap-raspi.sh | bash
+```
+
+Alternatively, if curl is not available, you can use wget (usually pre-installed):
+
+```bash
+wget https://raw.githubusercontent.com/getitdonestudio/hcopdmx/main/bootstrap-raspi.sh
+chmod +x bootstrap-raspi.sh
+./bootstrap-raspi.sh
 ```
 
 The script installs all necessary dependencies (Node.js, Git, PM2), sets up the project, and configures the systemd service for automatic startup on boot. It also starts PM2 for monitoring purposes, but the actual autostart is managed through systemd.
@@ -88,9 +104,9 @@ chmod +x setup-raspi.sh
 
 If you prefer to install manually:
 
-1. Install Node.js (version 18.x or higher)
+1. Install Node.js (version 20.x or higher)
 ```bash
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt-get install -y nodejs
 ```
 
@@ -425,14 +441,4 @@ The local server provides simulated DMX functionality for testing.
 - `setup-systemd.sh` - Script to set up the systemd service
 - `public/` - Web interface files
   - `de/` - German interface
-  - `en/` - English interface
-  - `css/` - Stylesheets
-  - `js/` - JavaScript files
-    - `main.js` - Core application logic
-    - `settings.js` - Settings page functionality
-    - `screensaverModes/` - Screensaver mode implementations
-  - `img/` - Images and icons
-
-## License
-
-ISC License 
+  - `en/`
