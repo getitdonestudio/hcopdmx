@@ -21,6 +21,8 @@ A Node.js application for controlling DMX lighting via the Art-Net protocol, opt
 - [API Endpoints](#api-endpoints)
 - [Troubleshooting](#troubleshooting)
 - [Development](#development)
+  - [Arduino Controller Setup](#arduino-controller-setup)
+  - [Local Development Setup](#local-development-setup)
 
 ## Features
 
@@ -370,86 +372,32 @@ The interface supports multiple languages with pages in the `/de/` (German) and 
    - Check CPU usage: `htop` (install with `sudo apt install htop`)
    - Look for Node.js crashes in logs: `sudo journalctl -u dmx-server.service | grep -i error`
 
-### Raspberry Pi System Diagnostics
+## Arduino Controller Setup
 
-1. **Checking System Resources**
-   - CPU and memory usage: `htop`
-   - Disk space: `df -h`
-   - Temperature: `vcgencmd measure_temp`
-   - Throttling and undervoltage: `vcgencmd get_throttled`
+The project includes support for an Arduino-based button controller (`hcopButton.ino`) that allows physical control of the DMX system:
 
-2. **Network Issues**
-   - Display IP configuration: `ip addr show`
-   - Test network connectivity: `ping 8.8.8.8`
-   - Test DNS resolution: `nslookup google.com`
-   - Active network connections: `ss -tuln`
+- **Hardware Requirements**:
+  - Arduino Leonardo (or compatible board with native USB HID support)
+  - 4 buttons connected to pins 3, 4, 5, 6 (with pull-up resistors)
+  - 4 relays/LEDs connected to pins 10, 11, 12, 13
 
-3. **System Logs**
-   - Kernel logs: `dmesg | tail`
-   - System logs: `sudo journalctl -xe`
-   - Boot processes: `sudo journalctl -b`
+- **Functionality**:
+  - Each button toggles a corresponding bit in a 4-bit state (16 possible combinations)
+  - The state is translated to keyboard characters 'a' through 'p' corresponding to DMX programs
+  - Visual feedback via relays/LEDs shows the current state
+  - Full binary-to-character mapping:
+    - 0000 → 'a', 0001 → 'b', 0010 → 'c', ..., 1111 → 'p'
 
-### Recovery Measures
+- **Debugging Mode**:
+  - Set `debugMode = true` in the Arduino code to enable detailed logging
+  - Debug output includes button state changes, timings, and relay operations
+  - Helps with troubleshooting hardware connectivity issues
+  - Disable for normal operation (`debugMode = false`)
 
-1. **Reinstalling the Application**
-   ```bash
-   cd ~
-   mv hcopdmx hcopdmx.bak
-   curl -sSL https://raw.githubusercontent.com/getitdonestudio/hcopdmx/main/bootstrap-raspi.sh | bash
-   ```
+- **Installation**:
+  1. Open `hcopButton.ino` in the Arduino IDE
+  2. Connect your Arduino Leonardo via USB
+  3. Upload the sketch to the board
+  4. Connect the buttons and relays according to the pin configuration
 
-2. **Reinstalling Node.js**
-   ```bash
-   sudo apt-get remove nodejs -y
-   sudo apt-get autoremove -y
-   curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-   sudo apt-get install -y nodejs
-   node --version
-   ```
-
-3. **Service Reset**
-   ```bash
-   sudo systemctl stop dmx-server.service
-   sudo systemctl disable dmx-server.service
-   sudo rm /etc/systemd/system/dmx-server.service
-   sudo systemctl daemon-reload
-   cd ~/hcopdmx
-   ./setup-systemd.sh
-   ```
-
-### Native Module Compilation Errors
-
-If you encounter errors during installation related to native module compilation (e.g., errors with `node-gyp` or `not found: make`), you need to install build tools:
-
-```bash
-sudo apt-get update
-sudo apt-get install -y build-essential
-```
-
-Then try the installation again.
-
-## Development
-
-### Local Development Setup
-
-For local development without a Raspberry Pi:
-1. Clone the repository to your development machine
-2. Install dependencies: `npm install`
-3. Run the local development server: `node server-local.js`
-4. Access the application at `http://localhost:3000`
-
-The local server provides simulated DMX functionality for testing.
-
-### Directory Structure
-
-- `server.js` - Main application file
-- `server-local.js` - Development version with simulated DMX
-- `hcop_dmx-channel.csv` - DMX program definitions
-- `ecosystem.config.js` - PM2 configuration
-- `setup-raspi.sh` - Raspberry Pi setup script
-- `bootstrap-raspi.sh` - One-line bootstrap script for fresh installations
-- `update-raspi.sh` - Raspberry Pi update script
-- `setup-systemd.sh` - Script to set up the systemd service
-- `public/` - Web interface files
-  - `de/` - German interface
-  - `en/`
+When a button is pressed, the Arduino sends the corresponding character to the computer, which is then interpreted by the DMX controller web interface.
