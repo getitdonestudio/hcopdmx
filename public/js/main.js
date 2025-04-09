@@ -245,6 +245,12 @@ async function loadContent(pageId, lang = currentLang) {
       document.body.classList.add('screensaver');
     } else {
       document.body.classList.remove('screensaver');
+      
+      // Reset screensaver timer when loading a regular page (not screensaver)
+      // We need this check to avoid circular resets
+      if (screensaverEnabled && !isLoadingContent) {
+        resetScreensaverTimer();
+      }
     }
     
     // Update the URL without page refresh (using replaceState to avoid popstate triggering)
@@ -402,6 +408,9 @@ async function transitionToPage(pageId) {
       await sendDMXCommand(targetKey);
     }
     
+    // 3. Reset the screensaver timer when a new page is loaded
+    resetScreensaverTimer();
+    
     console.log(`Transition to page ${pageId} completed`);
   } catch (error) {
     console.error(`Error during transition:`, error);
@@ -536,6 +545,9 @@ async function returnFromScreensaver() {
     if (statusElem) {
       statusElem.textContent = `Programm ${targetDMXKey.toUpperCase()} aktiv.`;
     }
+    
+    // Make sure to reset the screensaver timer after returning from screensaver
+    resetScreensaverTimer();
     
     console.log("Return from screensaver completed");
   } catch (error) {
@@ -790,8 +802,15 @@ document.addEventListener('DOMContentLoaded', async function() {
     console.error('Screensaver mode manager not found!');
   }
   
-  // Start screensaver timer if enabled
-  if (screensaverEnabled && currentPage !== 'screensaver') {
+  // Check if we need to reset the screensaver timer (coming from settings page)
+  const resetOnLoad = sessionStorage.getItem('resetScreensaverOnLoad');
+  if (resetOnLoad === 'true') {
+    console.log('Resetting screensaver timer after returning from settings');
+    sessionStorage.removeItem('resetScreensaverOnLoad'); // Clear the flag
+    resetScreensaverTimer();
+  } 
+  // Otherwise, start screensaver timer if enabled and not in screensaver mode
+  else if (screensaverEnabled && currentPage !== 'screensaver') {
     resetScreensaverTimer();
   }
   

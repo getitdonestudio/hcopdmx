@@ -105,6 +105,14 @@ document.addEventListener('DOMContentLoaded', async function() {
       // Get the last page from session storage, or default to home
       const lastPage = sessionStorage.getItem('lastPage') || '0000';
       const lang = sessionStorage.getItem('currentLang') || 'de';
+      
+      // Add a script to reset the screensaver timer when the page loads
+      const resetScript = document.createElement('script');
+      resetScript.textContent = `
+        sessionStorage.setItem('resetScreensaverOnLoad', 'true');
+      `;
+      document.body.appendChild(resetScript);
+      
       window.location.href = `/${lang}/${lastPage}.html`;
     });
   }
@@ -301,7 +309,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   form.addEventListener('submit', async function(e) {
     e.preventDefault();
     
-    // Stop any test mode
+    // Stop any current test
     if (isTestingMode) {
       stopTestMode();
     }
@@ -314,6 +322,25 @@ document.addEventListener('DOMContentLoaded', async function() {
     const lightPower = parseInt(normalLightPowerInput.value);
     const screensaverLightPower = linkLightPowersCheckbox.checked ? 
       lightPower : parseInt(screensaverLightPowerInput.value);
+    
+    // Track if screensaver settings have changed
+    let screensaverSettingsChanged = false;
+    
+    try {
+      // Get current settings to compare
+      const currentSettingsResponse = await fetch('/api/settings');
+      if (currentSettingsResponse.ok) {
+        const currentSettings = await currentSettingsResponse.json();
+        
+        // Check if screensaver settings have changed
+        screensaverSettingsChanged = 
+          currentSettings.screensaver.timeDelay !== screensaverTime ||
+          currentSettings.screensaver.mode !== screensaverMode ||
+          currentSettings.screensaver.lightPower !== (linkLightPowersCheckbox.checked ? lightPower : screensaverLightPower);
+      }
+    } catch (error) {
+      console.error('Error checking current settings:', error);
+    }
     
     // Build settings object
     const settings = {
@@ -345,6 +372,21 @@ document.addEventListener('DOMContentLoaded', async function() {
       
       if (result.success) {
         showStatus('Settings saved successfully!', 'success');
+        
+        // If screensaver settings changed, add a script to reset the screensaver timer 
+        // in the parent window (in case we're in an iframe)
+        if (screensaverSettingsChanged) {
+          const resetScript = document.createElement('script');
+          resetScript.textContent = `
+            if (window.parent && window.parent.resetScreensaverTimer) {
+              window.parent.resetScreensaverTimer();
+            } else if (window.resetScreensaverTimer) {
+              window.resetScreensaverTimer();
+            }
+          `;
+          document.body.appendChild(resetScript);
+          console.log('Screensaver settings changed, timer reset triggered');
+        }
       } else {
         showStatus(`Error: ${result.message}`, 'error');
       }
