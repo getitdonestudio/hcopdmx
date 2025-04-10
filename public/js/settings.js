@@ -130,7 +130,7 @@ document.addEventListener('DOMContentLoaded', async function() {
       screensaverLightPowerPercentage.textContent = Math.round((value / 255) * 100);
     }
 
-    // Apply the changes immediately
+    // Apply the changes immediately to DMX
     try {
       await fetch('/dmx/direct', {
         method: 'POST',
@@ -144,6 +144,60 @@ document.addEventListener('DOMContentLoaded', async function() {
     } catch (error) {
       console.error('Error applying light power:', error);
     }
+  });
+  
+  // Add a debounced version of the same event to save settings after sliding stops
+  let lightPowerSaveTimeout = null;
+  normalLightPowerInput.addEventListener('change', async function() {
+    const value = parseInt(this.value);
+    
+    // Clear any previous timeout
+    if (lightPowerSaveTimeout) {
+      clearTimeout(lightPowerSaveTimeout);
+    }
+    
+    // Set a timeout to save the settings
+    lightPowerSaveTimeout = setTimeout(async () => {
+      try {
+        // Get current settings
+        const response = await fetch('/api/settings');
+        if (!response.ok) {
+          console.error('Failed to load settings for update');
+          return;
+        }
+        
+        const currentSettings = await response.json();
+        
+        // Update the settings
+        const updatedSettings = {
+          ...currentSettings,
+          lightPower: value,
+          screensaver: {
+            ...currentSettings.screensaver,
+            lightPower: linkLightPowersCheckbox.checked ? value : currentSettings.screensaver.lightPower
+          }
+        };
+        
+        // Save the updated settings
+        const saveResponse = await fetch('/api/settings', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(updatedSettings)
+        });
+        
+        if (saveResponse.ok) {
+          console.log('Light power settings saved:', value);
+          showStatus('Light power settings saved', 'success');
+          
+          // Set the settings updated flag
+          sessionStorage.setItem('settingsUpdated', 'true');
+        }
+      } catch (error) {
+        console.error('Error saving light power settings:', error);
+      }
+    }, 500); // 500ms debounce
   });
   
   // Update the displayed values when the screensaver light power range input changes
@@ -170,8 +224,61 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
   });
   
+  // Add a debounced version to save screensaver light power settings
+  let screensaverLightPowerSaveTimeout = null;
+  screensaverLightPowerInput.addEventListener('change', async function() {
+    const value = parseInt(this.value);
+    
+    // Clear any previous timeout
+    if (screensaverLightPowerSaveTimeout) {
+      clearTimeout(screensaverLightPowerSaveTimeout);
+    }
+    
+    // Set a timeout to save the settings
+    screensaverLightPowerSaveTimeout = setTimeout(async () => {
+      try {
+        // Get current settings
+        const response = await fetch('/api/settings');
+        if (!response.ok) {
+          console.error('Failed to load settings for update');
+          return;
+        }
+        
+        const currentSettings = await response.json();
+        
+        // Update the screensaver settings
+        const updatedSettings = {
+          ...currentSettings,
+          screensaver: {
+            ...currentSettings.screensaver,
+            lightPower: value
+          }
+        };
+        
+        // Save the updated settings
+        const saveResponse = await fetch('/api/settings', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(updatedSettings)
+        });
+        
+        if (saveResponse.ok) {
+          console.log('Screensaver light power settings saved:', value);
+          showStatus('Screensaver light power settings saved', 'success');
+          
+          // Set the settings updated flag
+          sessionStorage.setItem('settingsUpdated', 'true');
+        }
+      } catch (error) {
+        console.error('Error saving screensaver light power settings:', error);
+      }
+    }, 500); // 500ms debounce
+  });
+  
   // Handle linking/unlinking light power controls
-  linkLightPowersCheckbox.addEventListener('change', function() {
+  linkLightPowersCheckbox.addEventListener('change', async function() {
     if (this.checked) {
       // When linked, hide the screensaver control and set its value to match normal
       screensaverLightPowerContainer.style.display = 'none';
@@ -181,6 +288,49 @@ document.addEventListener('DOMContentLoaded', async function() {
     } else {
       // When unlinked, show the screensaver control
       screensaverLightPowerContainer.style.display = 'block';
+    }
+    
+    // Save the linkLightPowers setting
+    try {
+      // Get current settings
+      const response = await fetch('/api/settings');
+      if (!response.ok) {
+        console.error('Failed to load settings for link update');
+        return;
+      }
+      
+      const currentSettings = await response.json();
+      const normalLightPower = parseInt(normalLightPowerInput.value);
+      
+      // Update the settings
+      const updatedSettings = {
+        ...currentSettings,
+        linkLightPowers: this.checked,
+        screensaver: {
+          ...currentSettings.screensaver,
+          // If linked, set screensaver light power to match normal
+          lightPower: this.checked ? normalLightPower : parseInt(screensaverLightPowerInput.value)
+        }
+      };
+      
+      // Save the updated settings
+      const saveResponse = await fetch('/api/settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updatedSettings)
+      });
+      
+      if (saveResponse.ok) {
+        console.log('Light power linking setting saved:', this.checked);
+        showStatus(`Light powers ${this.checked ? 'linked' : 'unlinked'}`, 'success');
+        
+        // Set the settings updated flag
+        sessionStorage.setItem('settingsUpdated', 'true');
+      }
+    } catch (error) {
+      console.error('Error saving light power linking setting:', error);
     }
   });
   
@@ -373,6 +523,9 @@ document.addEventListener('DOMContentLoaded', async function() {
       if (result.success) {
         showStatus('Settings saved successfully!', 'success');
         
+        // Set a flag in sessionStorage to indicate settings have been updated
+        sessionStorage.setItem('settingsUpdated', 'true');
+        
         // If screensaver settings changed, add a script to reset the screensaver timer 
         // in the parent window (in case we're in an iframe)
         if (screensaverSettingsChanged) {
@@ -419,6 +572,9 @@ document.addEventListener('DOMContentLoaded', async function() {
           const result = await response.json();
           
           if (result.success) {
+            // Set a flag in sessionStorage to indicate settings have been updated
+            sessionStorage.setItem('settingsUpdated', 'true');
+            
             // Reload the page to show default settings
             showStatus('Settings reset. Reloading...', 'success');
             setTimeout(() => window.location.reload(), 1000);

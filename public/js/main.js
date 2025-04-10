@@ -154,6 +154,32 @@ function resetScreensaverTimer() {
 }
 
 /**
+ * Reload settings from the server
+ * This can be called any time settings might have changed
+ */
+async function reloadSettings() {
+  try {
+    const response = await fetch('/api/settings');
+    if (!response.ok) {
+      console.error('Failed to reload settings');
+      return false;
+    }
+    
+    const settings = await response.json();
+    appSettings = settings;
+    console.log('Settings reloaded successfully:', appSettings);
+    
+    // Update screensaver timer with new timeout
+    resetScreensaverTimer();
+    
+    return true;
+  } catch (error) {
+    console.error('Error reloading settings:', error);
+    return false;
+  }
+}
+
+/**
  * Toggle screensaver functionality
  * @param {boolean} enable - Whether to enable the screensaver
  */
@@ -800,6 +826,14 @@ document.addEventListener('DOMContentLoaded', async function() {
     screensaverModeManager.initialize();
   } else {
     console.error('Screensaver mode manager not found!');
+  }
+  
+  // Check if settings were updated and we need to reload them
+  const settingsUpdated = sessionStorage.getItem('settingsUpdated');
+  if (settingsUpdated === 'true') {
+    console.log('Settings were updated, reloading them');
+    sessionStorage.removeItem('settingsUpdated'); // Clear the flag
+    await reloadSettings();
   }
   
   // Check if we need to reset the screensaver timer (coming from settings page)
