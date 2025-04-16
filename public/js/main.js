@@ -257,6 +257,14 @@ async function loadContent(pageId, lang = currentLang) {
     // Apply content directly without animations
     container.innerHTML = html;
     
+    // Initialize KaTeX if it exists on the page
+    initKaTeXIfNeeded();
+    
+    // Initialize accordions if the accordion script is loaded
+    if (typeof initAccordions === 'function') {
+      initAccordions();
+    }
+    
     // Update state and attributes
     currentPage = pageId;
     currentLang = lang;
@@ -289,6 +297,9 @@ async function loadContent(pageId, lang = currentLang) {
     // Update settings link to match the current language
     updateSettingsLink();
     
+    // Scroll to top of the page when content changes
+    window.scrollTo(0, 0);
+    
     // Restore normal state without animation
     container.classList.remove('loading');
     isLoadingContent = false;
@@ -299,6 +310,30 @@ async function loadContent(pageId, lang = currentLang) {
     container.classList.remove('loading');
     isLoadingContent = false;
     return false;
+  }
+}
+
+/**
+ * Initialize KaTeX renderer if needed
+ * This is called after loading new content to render math formulas
+ */
+function initKaTeXIfNeeded() {
+  // Check if KaTeX is available
+  if (typeof renderMathInElement === 'function') {
+    try {
+      // Apply KaTeX rendering to the content container
+      renderMathInElement(document.getElementById('content-container'), {
+        delimiters: [
+          {left: '$$', right: '$$', display: true},
+          {left: '$', right: '$', display: false},
+          {left: '\\begin{equation*}', right: '\\end{equation*}', display: true}
+        ],
+        throwOnError: false
+      });
+      console.log('KaTeX rendering applied');
+    } catch (e) {
+      console.error('Error initializing KaTeX:', e);
+    }
   }
 }
 

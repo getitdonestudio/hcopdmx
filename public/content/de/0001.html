@@ -1,4 +1,79 @@
-<h1>Theory of Everything</h1>
-      <p>Lorem ipsum dolor sit amet, consectetuer adipiscing Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincid.</p>
-      <p style="text-align: center"><img class="formel" src="/img/0000.svg"></p>
-      <p>Lorem ipsum dolor sit amet, consectetuer adipiscing Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincid. (200 ZmL)</p>
+<style>
+  .equation {
+    display: block;
+    text-align: center;
+    margin: 1.5em 0;
+  }
+  .katex { font-size: 1.1em; }
+  .katex-display { overflow: auto hidden; }
+</style>
+
+<h1>Klassische statistische Mechanik $(0,0,0,k_B)$</h1>
+
+<p>Das Modell des idealen Gases basiert auf einer großen Anzahl unterscheidbarer, klassischer, nichtrelativistischer Teilchen, die sich in einem geschlossenen Behälter befinden. Die Teilchen werden als punktförmig idealisiert. Es wird angenommen, dass ihre Bewegung den Gesetzen der reinen Newtonschen Mechanik folgt, und dass der Einfluß der Gravitation vernachlässigbar ist. Ihre freie Bewegung wird also nur durch vollkommen elastische Kollisionen untereinander oder mit den Wänden modifiziert.</p>
+
+<p>Innerhalb der modernen quantitativen kinetischen Gastheorie wurde eine neue fundamentale Konstante mit der Bezeichnung $k_B$ definiert. Unter Verwendung dieser Konstante wird das ideale Gasgesetz wie folgt geschrieben</p>
+
+<p class="equation">
+\begin{equation*}
+  p\, V=N\, k_B T\,,
+\end{equation*}
+</p>
+
+<p>wobei $p$, $V$ und $T$ den Druck, das Volumen und die Temperatur des Gases bezeichnen und $N$ für die (sehr große) Anzahl an Gasteilchen steht. Die Konstante $k_B$ dient somit als Proportionalitätsfaktor, der die durchschnittliche relative Wärmeenergie eines Gasteilchens mit der Temperatur in Beziehung setzt.</p>
+
+<p>Als spezifische Naturkonstante wurde $k_B$ von Max Planck eingeführt. Sie wurde retrospektiv 1906 von Paul Ehrenfest <em>Boltzmann-Konstante</em> genannt. Seit 2019 wird sie nicht mehr gemessen, sondern ist innerhalb des SI-Einheitensystems auf den <em>exakten</em> Wert</p>
+
+<p class="equation">
+\begin{equation*}
+  k_B = 1.380\,649 \times 10^{-23} \frac{\text{J}}{\text{K}}
+\end{equation*}
+</p>
+
+<p>festgelegt.</p>
+
+<p>Es scheint also, dass $k_B$ lediglich ein Umrechnungsfaktor zwischen Energie und Temperatur ist und damit wenig grundlegend sei. Im Rahmen des Hexadekachor-Modells jedoch wird $k_B$ zwingend erforderlich, um die tragende Rolle der statistischen Physik im Geflecht der physikalischen Theorien zu verstehen. Ausgehend vom innersten Tetraeder für die Newtonsche Mechanik gelangen wir so zum stachelförmigen Tetraeder $(0,0,0,k_B)$.</p>
+
+<h2>Kinetische Gastheorie</h2>
+
+<p>In seiner <em>Hydrodynamica</em> (1738) schlug Daniel Bernoulli vor, dass die Temperatur eines idealen Gases über den Druck definiert sei. Obwohl Temperatur und kinetische Energie der Teilchen in Bernoullis Theorie zusammenkamen, glaubten die meisten Wissenschaftler des 18. Jahrhunderts an Newtons Theorie der Wärme als stofflicher Entität. Es dauerte weitere hundert Jahre, bis sich in der Physik kinetische Theorien durchsetzten, die von der keineswegs offensichtlichen empirischen Tatsache ausgingen, dass der (ideale) Gasdruck <em>nicht</em> von der Molekülmasse des Gases abhängt. Dies führte zur ersten korrekten Formulierung eines allgemeinen Gasgesetzes durch Émile Clapeyron (1834):</p>
+
+<p class="equation">
+\begin{equation*}
+  p\, V=n\, R\, T\,.
+\end{equation*}
+</p>
+
+<p>Dies ist die makroskopische Form der obigen Gleichung, wobei $p$, $V$ und $T$ wiederum dem Druck, dem Volumen und der Temperatur entsprechen, während $n$ die Stoffmenge und $R$ die universelle Gaskonstante ist. Diese allgemeine Gleichung warf die Frage auf, warum die Art des Gases für die Bestimmung des Gasdrucks irrelevant ist.</p>
+
+<p>In den 1860er Jahren entwickelte James Clerk Maxwell die kinetische Beschreibung des idealen Gases weiter. Maxwell betrachtete seine Arbeit zunächst als eine Art statistische Fingerübung, da er (noch) nicht an das atomare Konzept der Materie glaubte. Später vertrat Ludwig Boltzmann nachdrücklich den atomaren Standpunkt und zeigte, dass die mittlere kinetische Energie eines Gasmoleküls tatsächlich nur von der Temperatur abhängt, womit er die moderne statistische Mechanik begründete.</p>
+
+<h2>Statistische Mechanik und Entropie</h2>
+
+<p>Boltzmann gelang es, eine statistische Erklärung des zweiten Hauptsatzes der Thermodynamik zu finden. Dieser besagt, dass Wärme immer auf natürliche Weise von wärmeren zu kälteren makroskopischen Systemen fließt. Dabei interpretierte Boltzmann die Entropie $S$ von Clausius als &bdquo;Grad der Unordnung&ldquo;, der immer dann zunimmt, wenn keine Arbeit am System verrichtet wird. Max Planck fasste Boltzmanns Ergebnis später in der berühmten Formel</p>
+
+<p class="equation">
+\begin{equation*}
+  S=k_B\, \log W
+\end{equation*}
+</p>
+
+<p>prägnant zusammen, wobei $W$ die Anzahl der möglichen mikroskopischen Zustände ist, in denen sich ein bestimmtes makroskopisches System befinden kann, wie z. B. ein Gas bei festem Volumen, Druck und Temperatur.</p>
+
+<h2>Boltzmann-Statistik</h2>
+
+<p>Betrachten wir ein System im thermischen Gleichgewicht bei einer Temperatur $T$. Die klassische Zustandssumme ist definiert als die Summe über alle möglichen mikroskopischen Zustände $j$ mit der Energie $E_j$</p>
+
+<p class="equation">
+\begin{equation*}
+  Z=\sum_j \exp \left(-\frac{E_j}{k_B T}\right)\,,
+\end{equation*}
+</p>
+
+<p>wobei die Exponentialfunktion als <em>Boltzmann-Faktor</em> bezeichnet wird. Die Wahrscheinlichkeit $p_k$, dass sich das System im $k$-ten Zustand befindet, ergibt sich dann aus</p>
+
+<p class="equation">
+\begin{equation*}
+  p_k=\frac{1}{Z} \exp \left(-\frac{E_k}{k_B T}\right)\,.
+\end{equation*}
+</p>

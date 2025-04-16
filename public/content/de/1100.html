@@ -1,4 +1,53 @@
-<h1>Theory of Everything</h1>
-      <p>Lorem ipsum dolor sit amet, consectetuer adipiscing Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincid.</p>
-      <p style="text-align: center"><img class="formel" src="/img/0000.svg"></p>
-      <p>Lorem ipsum dolor sit amet, consectetuer adipiscing Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincid. (200 ZmL)</p>
+<style>
+  .equation {
+    display: block;
+    text-align: center;
+    margin: 1.5em 0;
+  }
+  .katex { font-size: 1.1em; }
+  .katex-display { overflow: auto hidden; }
+</style>
+
+<h1>Allgemeine Relativitätstheorie $(G,c^{-1},0,0)$</h1>
+
+<p>Um die Newtonsche Gravitation mit der speziellen Relativitätstheorie vereinen zu können, müssen beide Naturkonstanten $G$ und $c^{-1}$ berücksichtigt werden. Genau dies leistet Einsteins allgemeine Relativitätstheorie (1915). Sie verwandelt die statische vierdimensionale Minkowskische Raum-Zeit in ein dynamisches und gekrümmtes Objekt, dessen Form erst durch Einsteins Feldgleichungen eindeutig festgelegt ist.</p>
+
+<p>In einer gekrümmten Raumzeit bewegen sich Objekte immer auf dem kürzestmöglichen Weg, der durch eine unbestimmte Metrik bestimmt wird. Ein historisch relevantes Beispiel ist die Umlaufbahn des Merkur um die Sonne. Einstein zufolge krümmt die Sonne die Raumzeit auf eine Weise, die zu einer nahezu elliptischen Umlaufbahn führt, bis auf eine kleine Perihelverschiebung. Im Gegensatz zu Newtons Ansatz ist der Grund für die gekrümmte Bahn des Merkur nicht irgendeine mysteriöse Gravitationskraft, die von der Sonne ausgeht, sondern einfache Ökonomie. Eine Analogie ist die Bahn eines Flugzeugs von Prag nach Seoul: Diese ist gekrümmt, aber mitnichten aufgrund einer hypothetischen Kraft am Nordpol.</p>
+
+<h2>Wirkungsprinzip</h2>
+
+<p>Warum war sich Einstein so sicher, dass er eine neue Gravitationstheorie entwickeln musste, die die Konstanten $c^{-1}$ und $G$ in sich schlüssig vereinen würde? Nachdem Planck ihn nach Berlin geholt hatte, empfahl er ihm dringend, seine Zeit nicht zu vergeuden, sondern sich lieber auf die Entwicklung der Quantenmechanik zu konzentrieren. Einstein war sich allerdings sehr bewusst, dass Newton Gravitationstheorie und die spezielle Relativitätstheorie grundsätzlich unverträglich sind. So führt beispielsweise eine Veränderung des Abstands zweier Massen zu einer instantan gefühlten Veränderung der Schwerkraft zwischen den beiden. Im Gegensatz dazu erlaubt die spezielle Relativitätstheorie keine Signalübertragung mit einer größeren Geschwindigkeit als $c$.</p>
+
+<p>Dieses grundlegende Problem, dass Newtons Gravitationsgesetz lediglich vom Ort, nicht aber von der Zeit abhängt, musste im Rahmen der allgemeinen Relativitätstheorie eliminiert werden. Der aus heutiger Sicht eleganteste Weg, letztere herzuleiten, basiert auf einem geeigneten Wirkungsprinzip: Man betrachtet alle möglichen Bewegungen eines Körpers in einen vorgegebenen Zeitintervall und bestimmt die tatsächliche Bahn nach dem Kriterium: &bdquo;Der Pfad der tatsächlichen Fortpflanzung ist jener, zu dem die kleinste Wirkungsmenge gehört!&ldquo; (Maupertuis 1744).</p>
+
+<h2>Einsteins Feldgleichungen</h2>
+
+<p>Aus dem Wirkungsprinzip folgen bereits die berühmten Euler-Lagrange-Gleichungen:</p>
+
+<p class="equation">
+\begin{equation*}
+  \frac{d}{dt}\frac{\partial L}{\partial \dot{q}_i}-\frac{\partial L}{\partial q_i} = 0\,.
+\end{equation*}
+</p>
+
+<p>Hierbei ist $q_i(t)$ die Koordinate des $i$-ten Teilchens zum Zeitpunkt $t$ und $L$ der Lagrange-Operator, der durch die Differenz zwischen der kinetischen und der potentiellen Energie der Teilchen gegeben ist. Die Euler-Lagrange-Gleichungen liefern dann sofort die Newtonschen Bewegungsgleichungen.</p>
+
+<p>Damit aber beruht diese Herleitung auf einer so nicht korrekten Asymmetrie von Raum und Zeit: Die unterschiedlichen Zustände eines Teilchens werden lediglich über die Zeit integriert. Um diese Idee auf die Einsteinsche Gravitationstheorie anwenden zu können, muss obige Raum-Zeitasymmetrie beseitigt werden. Man sucht nach einer geeigneten Wirkung $S$, die die verlangte Minimierung unter beliebigen Variationen der Metrik erlaubt:</p>
+
+<p class="equation">
+\begin{equation*}
+  \frac{\delta S}{\delta g_{\mu\nu}} = 0\,.
+\end{equation*}
+</p>
+
+<p>Die tatsächliche Metrik errechnet sich dann wieder aus einem Analogon der Euler-Lagrange-Gleichungen. Die richtige Wahl für $S$ wird heute als Einstein-Hilbert-Wirkung bezeichnet und führt zu Einsteins Feldgleichungen:</p>
+
+<p class="equation">
+\begin{equation*}
+  R_{\mu\nu}-\frac{1}{2}g_{\mu\nu}R = \frac{8\pi G}{c^4} T_{\mu\nu}\,.
+\end{equation*}
+</p>
+
+<p>Ihre mathematisch exakte Aussage ist: Materie ($T_{\mu\nu}$) krümmt ($R_{\mu\nu}$ und $R$) die Raumzeit ($g_{\mu\nu}$). Objekte bewegen sich in dieser Metrik auf gekrümmten Bahnen ohne jede Krafteinwirkung: Die Gravitation entspricht schlichtweg dem Effekt der Raum-Zeit-Krümmung.</p>
+
+<p>Die Objekte, die sich im Kosmos bewegen, folgen in ihren Bahnen also nur einem Prinzip: Dem der kürzesten und schnellsten Verbindung in einer gekrümmten Raum-Zeit. Auf ihrem Weg krümmen sie mit ihrer Masse und Energie wiederum die Raum-Zeit in ihrer unmittelbaren Umgebung. Präzise formuliert: Alles bewegt sich auf einer vierdimensionalen Lorentzschen Mannigfaltigkeit, deren lokale Struktur wiederum durch diese Bewegung verändert wird. Die allgemeine Relativitätstheorie löst dadurch die Widersprüche zwischen der Newtonschen Gravitationstheorie und der speziellen Relativitätstheorie auf, und bringt damit die beiden Konstanten $G$ und $c^{-1}$ miteinander in Verbindung. Dies liefert die Theorie $(G,c^{-1},0,0)$ des Hexadekachors.</p>

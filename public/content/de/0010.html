@@ -1,4 +1,51 @@
-<h1>Theory of Everything</h1>
-      <p>Lorem ipsum dolor sit amet, consectetuer adipiscing Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincid.</p>
-      <p style="text-align: center"><img class="formel" src="/img/0000.svg"></p>
-      <p>Lorem ipsum dolor sit amet, consectetuer adipiscing Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincid. (200 ZmL)</p>
+<style>
+  .equation {
+    display: block;
+    text-align: center;
+    margin: 1.5em 0;
+  }
+  .katex { font-size: 1.1em; }
+  .katex-display { overflow: auto hidden; }
+</style>
+
+<h1>Quantenmechanik $(0,0,h,0)$</h1>
+
+<p>Zum Ende des 19. Jahrhunderts drangen die Experimente der Physik immer tiefer in den atomaren Bereich ein, mit sehr merkwürdigen, oft der Alltagslogik widersprechenden Ergebnissen. Um 1900 gelang es Max Planck, einige der experimentellen Merkwürdigkeiten durch Einführung einer neuen fundamentalen Konstante zu lösen, die wir heute als Plancksches Wirkungsquantum $h$ bezeichnen. 1905 entdeckte Einstein, um den photoelektrischen Effekt zu erklären, unfreiwillig die Lichtquanten, die später von Arthur Compton als Photonen bezeichnet wurden. Ihre Energie $E$ steht in Beziehung zur Frequenz $\nu$ des Lichts durch die Formel</p>
+
+<p class="equation">
+\begin{equation*}
+  E=h\,\nu\,.
+\end{equation*}
+</p>
+
+<p>Seit seiner Entdeckung wurde der Wert von $h$ immer genauer gemessen und schließlich 2019 auf den <em>exakten</em> (rationalen) Wert</p>
+
+<p class="equation">
+\begin{equation*}
+  h = 6.626\,070\,15 \times 10^{-34} \text{Js}
+\end{equation*}
+</p>
+
+<p>festgelegt. Während die Lichtgeschwindigkeit $c$ als experimenteller Wert bereits im 17. Jahrhundert bekannt war und durch Einsteins Relativitätstheorie in den Rang einer fundamentalen Naturkonstanten erhoben wurde, gehen die Geschichte und die Systematik des Hexadekachor-Modells auf das Jahr 1900 zurück: Planck bereitete unbeabsichtigterweise den Boden für eine neue Theorie $(0,0,h,0)$: die Quantenmechanik. Ihre tatsächliche mathematische und konzeptionell überzeugende Formulierung (&bdquo;Von wegen!&ldquo;, ruft Einstein aus seinem nicht existierenden Grab heraus) erfolgte ein Vierteljahrhundert später mit der Etablierung der Schrödingerschen Wellenmechanik und der Heisenbergschen Matrizenmechanik. Dadurch konnte die Wahrscheinlichkeit bestimmt werden, mit der sich ein Teilchen an einem bestimmten Ort befindet. Dementsprechend kann der genaue Ort nur durch eine Messung bestimmt werden. Letzteres führt jedoch zu einem Kollaps der Wellenfunktion. Dieses Phänomen ist für alle Messprozesse in der Quantenmechanik entscheidend. Dies führt zu einer Vielzahl weiterer kontraintuitiver Effekte, aber auch zu revolutionären technischen Entwicklungen.</p>
+
+<h2>Wirkungsprinzip</h2>
+
+<p>Wie verhält sich die Quantenmechanik konzeptionell zur klassischen Mechanik, d. h. zur Theorie $(0,0,0,0)$? Die Newtonsche Mechanik scheint punktförmige Massen und ausgedehnte Körper wie Äpfel oder Planeten gleichermaßen gut zu beschreiben. Wie erstmals von Euler und Lagrange verstanden wurde, kann die klassische Physik durch die folgende Annahme hergeleitet werden: Die Natur wählt immer einen Pfad, der die <em>Wirkung</em> minimiert. Allerdings ist eine Rechtfertigung dieses Wirkungsprinzips erforderlich. Hierfür mussten im 18. Jahrhundert metaphysische Prinzipien bemüht werden. Glücklicherweise oder unglücklicherweise versagt die Wirkungsminimierung und damit die Newtonsche Mechanik gänzlich auf den kleinsten Längenskalen, im Bereich der atomaren Dimensionen und darunter.</p>
+
+<h2>Hilbertraum</h2>
+
+<p>Stattdessen geht die Quantenmechanik davon aus, dass ein gegebenes Teilchen alle möglichen Wege durchläuft, und weist dann jedem dieser Wege eine Wahrscheinlichkeit zu. Man betrachtet sogenannte Wahrscheinlichkeitsamplituden, deren Betragsquadrat die Wahrscheinlichkeitsdichten der jeweiligen Pfade angibt. Wird eine Messung durchgeführt, werden die oben genannten Amplituden abrupt und drastisch verändert. Abgesehen von möglichen neuen metaphysischen Bedenken, die mit diesem Ansatz verbunden sind, erlaubt die Quantenmechanik trotzdem weiter praktisch exakte Vorhersagen auf der Ebene makroskopischer Teilchensysteme.</p>
+
+<p>Allerdings sind sämtliche überprüfbaren Vorhersagen der Quantenmechanik für Einzelteilchen prinzipiell statistisch. Zudem gilt, dass klassische Teilchen streng unterscheidbar sind. Quantenmechanische Teilchen gleicher Art dagegen können nicht voneinander unterschieden werden, während Teilchen unterschiedlicher Art im Hilbertraum verschränkt sein können. Dies erfordert eine andere Statistik als bei klassischen Teilchen.</p>
+
+<h2>Relation zur Relativitätstheorie</h2>
+
+<p>Doch wie verhält sich die Quantenmechanik $(0,0,h,0)$ konzeptionell zur Relativitätstheorie? Die oben erwähnte Wahrscheinlichkeitsamplitude für ein freies Teilchen der Masse $m$, üblicherweise mit $\Psi$ bezeichnet, wird durch die (deterministische) Schrödinger-Gleichung (1926) bestimmt, also in diesem Fall</p>
+
+<p class="equation">
+\begin{equation*}
+  i\hbar\frac{\partial}{\partial t}\Psi=-\frac{\hbar^2}{2m}\left(\frac{\partial^2}{\partial x^2}+\frac{\partial^2}{\partial y^2}+\frac{\partial^2}{\partial z^2}\right)\Psi
+\end{equation*}
+</p>
+
+<p>Man beachte die Asymmetrie von Raum und Zeit: Die zeitliche Ableitung ist erster Ordnung, die Ableitungen nach den Raumkoordinaten $x,y,z$ sind dagegen zweiter Ordnung. Kein Wunder, denn die Gleichung stammt aus der quantenmechanischen Verallgemeinerung der Newtonschen Mechanik und widerspricht somit der speziellen Relativitätstheorie. Und tatsächlich kommt die Lichtgeschwindigkeit $c$ in Schrödingers Gleichung nicht einmal vor.</p>

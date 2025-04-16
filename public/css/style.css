@@ -5,6 +5,8 @@ body {
   color: white;
   font-size: 22pt;
   font-weight: 300;
+    max-width: 900px;
+    margin: auto;
 }
 
 /* Font size variations */
@@ -530,3 +532,12 @@ body[data-page="settings"] h1 {
 .checkbox-control label {
   cursor: pointer;
 }
+
+/*KATEX*/
+.equation {
+  display: block;
+  text-align: center;
+  margin: 1.5em 0;
+}
+.katex { font-size: 1.1em; }
+.katex-display { overflow: auto hidden; }

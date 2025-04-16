@@ -1,4 +1,45 @@
-<h1>Theory of Everything</h1>
-      <p>Lorem ipsum dolor sit amet, consectetuer adipiscing Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincid.</p>
-      <p style="text-align: center"><img class="formel" src="/img/0000.svg"></p>
-      <p>Lorem ipsum dolor sit amet, consectetuer adipiscing Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincid. (200 ZmL)</p>
+<style>
+  .equation {
+    display: block;
+    text-align: center;
+    margin: 1.5em 0;
+  }
+  .katex { font-size: 1.1em; }
+  .katex-display { overflow: auto hidden; }
+</style>
+
+<h1>Quantenfeldtheorie und Temperatur $(0,c^{-1},h,k_B)$</h1>
+
+<p>Interessanterweise ist die Quantenfeldtheorie (QFT) strukturell bereits auf unvermeidliche Weise eine Vielteilchentheorie: Selbst wenn man sich auf die Streuung von nur wenigen externen Teilchen beschränkt, treten notwendigerweise unendlich viele weitere interne, &bdquo;virtuelle&ldquo; Teilchen in Zwischenkanälen des Streuprozesses auf. Hierbei spielt jedoch der Temperaturbegriff keinerlei Rolle. Dementsprechend wird die Boltzmann-Konstante $k_B$ für die anfängliche Formulierung der QFT zunächst nicht benötigt.</p>
+
+<p>Dies ändert sich, wenn man eine große Anzahl externer physikalischer Teilchen betrachtet, wie z. B. die Photonen, die dem Welle-Teilchen-Dualismus zufolge die Strahlung eines schwarzen Körpers im thermischen Gleichgewicht mit der Umgebung bilden. Tatsächlich beschreibt das Plancksche Strahlungsgesetz (1900) genau diese Situation. So lautet die spektrale Strahlungsdichte $B(\nu,T)$ eines Körpers für die Frequenz $\nu$ bei der absoluten Temperatur $T$</p>
+
+<p class="equation">
+\begin{equation*}
+  B(\nu,T)=\frac{2 h \nu^3}{c^2} \frac{1}{\exp\left(\frac{h \nu}{k_B T}\right)-1}\,.
+\end{equation*}
+</p>
+
+<p>Dies war die erste experimentell ermittelte und theoretisch hergeleitete Quantenformel der Menschheit und enthält $k_B$ zusammen mit $c^{-1}$ und $h$. Man beachte, dass die Quantenmechanik ohne $k_B$ und $c^{-1}$ erst etwa 25 Jahre später entwickelt wurde und die eigentliche Quantenfeldtheorie, also die Theorie ohne $k_B$ aber mit $c^{-1}$, etwa 50 Jahre später! Tatsächlich basierte Plancks Herleitung ausschließlich auf statistischen Überlegungen in Verbindung mit intuitiven Annahmen über die Quantennatur der Strahlung. Die saubere theoretische Rechtfertigung seiner Formel basiert jedoch letztendlich sowohl auf der Quantenelektrodynamik (QED), einer Quantenfeldtheorie, als auch auf der Bose-Einstein-Statistik.</p>
+
+<h2>Quantenfeldtheorie bei endlicher Temperatur</h2>
+
+<p>Es gibt jedoch noch eine weitere und ganz andere Möglichkeit, Quantenfeldtheorie und statistische Mechanik <em>formal</em> in Beziehung zu setzen, die unter dem Namen &bdquo;QFT bei endlicher Temperatur&ldquo; bekannt ist. Sie basiert auf einer tiefen Analogie zwischen dem quantenmechanischen Phasenfaktor $\exp\left(i \hbar S\right)$ und dem Boltzmann-Faktor $\exp\left(-\frac{E}{k_B T}\right)$. Formal wird die Zeit dabei imaginär, wodurch sich die Raumzeit in einen vierdimensionalen Zylinder mit drei unendlich ausgedehnten räumlichen Richtungen und einer periodischen &bdquo;zeitlichen&ldquo; Richtung mit Ausdehnung $\frac{1}{k_B T}$ verwandelt. Wir haben hier also keine Theorie, die auf den drei Konstanten $c^{-1}$, $h$ und $k_B$ aufbaut, sondern eine, bei der wir von $c^{-1}$ und $h$ ausgehen und anschließend $h$ durch $k_B$ ersetzen gemäß der Regel</p>
+
+<p class="equation">
+\begin{equation*}
+  \frac{t}{\hbar} \rightarrow \frac{1}{i k_B T}\,.
+\end{equation*}
+</p>
+
+<h2>Unruh-Effekt</h2>
+
+<p>Die <em>Unruh-Temperatur</em>, die unabhängig von Paul Davies (1975) und William Unruh (1976) entdeckt wurde, ist die effektive Temperatur $T_{\text{U}}$, die von einem Detektor gemessen wird, der sich in einem Vakuumfeld mit einer gleichmäßigen Beschleunigung $a$ bewegt. Sie lautet</p>
+
+<p class="equation">
+\begin{equation*}
+  T_{\text{U}}=\frac{\hbar}{2 \pi c\, k_B} a.
+\end{equation*}
+</p>
+
+<p>Das damit verbundene quantenfeldtheoretische Phänomen wird als <em>Unruh-Effekt</em> bezeichnet. Dessen Existenz wird von einigen Physikern angezweifelt und konnte bislang experimentell nicht nachgewiesen werden, zumindest nicht auf allgemein anerkannte Weise. Bildlich gesprochen sagt er voraus, dass ein Thermometer mit einer Temperatur von null Grad in einem ansonsten leeren Raum plötzlich eine Temperatur anzeigt, wenn man damit herumwedelt. Der zugrunde liegende Mechanismus ist die Vakuumpolarisation, die in verschiedenen Bezugssystemen betrachtet wird.</p>
