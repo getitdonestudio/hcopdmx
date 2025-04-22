@@ -1,0 +1,61 @@
+
+\newpage \addsec{Classical statistical mechanics $(0,0,0,\kboltz)$}
+\label{sec:0001}
+
+The model of an ideal gas is based on the concept of a large number of distinguishable, classical, non-relativistic particles inside a walled container. The particles are idealized as point-like, and assumed to be moving according to the laws of pure Newtonian mechanics in the absence of gravity. Their movement is free, except for perfectly elastic collisions with either each other or else with the walls.
+
+The development of modern quantitative kinetic gas theory brought in a new fundamental constant denoted by $\kboltz$. Employing it, the ideal gas law is written as
+
+\begin{equation*}\label{eq:ideal-kb}
+  p\, V=N\, \kboltz T\,,
+\end{equation*}
+%
+where $p$, $V$ and $T$ are the pressure, volume and temperature of the gas, respectively, and $N$ stands for the (very large) number of particles it is composed of. The constant $\kboltz$ thus serves as the proportionality factor that relates the average relative thermal energy of a gas particle to the temperature.
+
+As a specific fundamental constant, $\kboltz$ was actually introduced by Max Planck. As late as 1906, Paul Ehrenfest then called $\kboltz$ \enquote*{Boltzmann's constant}. Since 2019, it is no longer measured, but fixed within the SI system of units to the \emph{exact} value
+
+\begin{equation*}
+  \kboltz=\SI{1.380649d-23}{\joule \per \kelvin}\,.
+\end{equation*}
+
+From the above, one point of view is that $\kboltz$ is merely a conversion factor between energy and temperature and as such not very fundamental. Within the model of the hexadecachoron, however, it is absolutely needed in order to stress the utter importance of the ideas of statistical physics within the web of physical theories. Starting from the innermost tetrahedron for Newtonian mechanics, we are led to the spiky tetrahedron $(0,0,0,\kboltz)$.
+
+
+\subsection*{Kinetic gas theory}
+
+In his \enquote{Hydrodynamica} (1738), Daniel Bernoulli suggested that the temperature of an ideal gas could be defined in terms of the pressure. Although temperature and the kinetic energy of particles came together within Bernoulli's theory, most scientists of the 18th century believed in Newton's theory of heat as a caloric fluid. It took another hundred years until physicists began to favour kinetic theories based on the empirical fact that the (ideal) gas pressure does \emph{not} depend on the molecular mass of the gas, which was by no means obvious. This led to the first correct formulation of a general gas law by Émile Clapeyron (1834):
+
+\begin{equation*}\label{eq:ideal-nr}
+  p\, V=n\, R\, T\,.
+\end{equation*}
+%
+This is the \emph{macroscopic} form of the earlier equation above, where again $p$, $V$ and $T$ correspond to pressure, volume and temperature, respectively, while $n$ is the amount of substance and $R$ the universal gas constant. This general equation raised the question why the type of gas is not important for the determination of the gas pressure.
+
+In the 1860s, James Clerk Maxwell further developed the kinetic description of the ideal gas. Maxwell first regarded his work as an exercise in statistics not (yet) believing in the atomic concept of matter. Later, Ludwig Boltzmann strongly pushed the atomic point of view and showed that the mean kinetic energy of a gas molecule indeed depended only on the temperature, thereby developing modern statistical mechanics.
+
+
+\subsection*{Statistical mechanics and entropy}
+ 
+Boltzmann was able to give a statistical interpretation of the second law of thermodynamics, which states that heat always naturally flows from warmer to colder macroscopic systems. His insight was that Clausius' entropy $S$ should be interpreted as a \emph{degree of disorder}, which always increases in the absence of work performed on the system. Max Planck later succinctly summarized Boltzmann's result in the famous formula
+
+\begin{equation*}\label{eq:ideal-nr}
+  S=\kboltz\, \log W\,,
+\end{equation*}
+%
+where $W$ is the number of possible microscopic states a given macroscopic system can be in, such as a gas at fixed volume, pressure and temperature.
+
+
+\subsection*{Boltzmann statistics}
+
+Consider a system in thermal equilibrium at temperature $T$. The classical partition function is defined as the sum over all possible microscopic states $j$ with energy $E_j$ as
+
+\begin{equation*}\label{eq:ideal-nr}
+  Z=\sum_j \exp \left(-\frac{E_j}{\kboltz T}\right)\,,
+\end{equation*}
+%
+where the exponential is called \emph{Boltzmann factor}. The probability $p_k$ of the system to be in the $k$-th state is then given by
+
+\begin{equation*}\label{eq:ideal-nr}
+  p_k=\frac{1}{Z} \exp \left(-\frac{E_k}{\kboltz T}\right)\,.
+\end{equation*}
+

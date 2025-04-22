@@ -30,9 +30,14 @@ function transformAccordions() {
     const accordionTitle = document.createElement('div');
     accordionTitle.className = 'accordion-title';
     
+    // Create toggle icon
+    const toggleIcon = document.createElement('div');
+    toggleIcon.className = 'accordion-toggle-icon';
+    
     // Move the h2 element into the accordion title
     h2.parentNode.insertBefore(accordion, h2);
     accordionTitle.appendChild(h2);
+    accordionTitle.appendChild(toggleIcon);
     accordion.appendChild(accordionTitle);
     
     // Create the accordion content container
@@ -63,54 +68,13 @@ function transformAccordions() {
     // Add click event to toggle the accordion
     accordionTitle.addEventListener('click', () => {
       accordion.classList.toggle('open');
+      
+      // Scroll the accordion title to the top of the viewport
+      setTimeout(() => {
+        accordion.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 150); // Small delay to let any animations/transitions start
     });
   });
-}
-
-// Add styles for the accordions
-function addAccordionStyles() {
-  // Check if styles already exist
-  if (document.getElementById('accordion-styles')) return;
-  
-  const styleElement = document.createElement('style');
-  styleElement.id = 'accordion-styles';
-  styleElement.textContent = `
-    .accordion {
-      margin: 1em 0;
-      border-radius: 4px;
-      overflow: hidden;
-    }
-    
-    .accordion-title {
-      background-color: rgba(0, 0, 0, 0.05);
-      padding: 0.5em;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-    
-    .accordion-title:hover {
-      background-color: rgba(0, 0, 0, 0.1);
-    }
-    
-    .accordion-title h2 {
-      margin: 0;
-      padding: 0;
-    }
-    
-    .accordion-content {
-      padding: 0 1em;
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.5s ease-out, padding 0.5s;
-    }
-    
-    .accordion.open .accordion-content {
-      max-height: 2000px; /* Arbitrary large value */
-      padding: 1em;
-    }
-  `;
-  
-  document.head.appendChild(styleElement);
 }
 
 // Function to initialize accordions after content is loaded
@@ -121,7 +85,6 @@ function initAccordions() {
     return;
   }
   
-  addAccordionStyles();
   transformAccordions();
 }
 

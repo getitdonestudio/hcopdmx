@@ -1,13 +1,13 @@
 {
   "screensaver": {
-    "timeDelay": 10000,
-    "mode": "disco",
-    "lightPower": 41,
+    "timeDelay": 3600000,
+    "mode": "dimToOn",
+    "lightPower": 218,
     "transitionSpeed": 1000
   },
   "system": {
-    "lastUpdated": "2025-04-02T14:52:11.887Z"
+    "lastUpdated": "2025-04-22T15:28:40.560Z"
   },
-  "lightPower": 32,
-  "linkLightPowers": true
+  "lightPower": 95,
+  "linkLightPowers": false
 }

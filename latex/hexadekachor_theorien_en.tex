@@ -1,0 +1,716 @@
+\documentclass{scrartcl}
+
+\usepackage{_styles/memoCK}
+\setmainlanguage{english}
+\setotherlanguages{german}
+\addbibresource{references.bib}
+
+
+\title{Planck's hexadecachoron}
+\author{Christian Kassung \and Jürgen P.\ Rabe \and Matthias Staudacher \and José D.\ Cojal González}
+\date{\today}
+
+
+
+\begin{document}
+
+\maketitle
+
+\setcounter{tocdepth}{1}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+\tableofcontents
+
+% ca. 2500 ZmL + ggf. Medien pro Tetraeder
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage \addsec{Overview MS $\rightarrow$ ok, move to A-Text}          
+\label{sec:intro}
+
+The hexadecachoron is a model of physics that we dedicate to Max Planck. Mathematically, it is the polytope dual to a four-dimensional hypercube of physics. It is bounded by 16 three-dimensional tetrahedra, which are dual to the hypercube's 16 corners. We label these by the $2^4$ possible choices of either switching on or off the four fundamental constants $G$ (Newton's constant), $c^{−1}$ (inverse speed of light), $h$ (Planck's constant) and $\kboltz$ (Boltzmann's constant) singled out by Max Planck in 1899 in his quest to define universal units for length, time, mass and temperature. Each tetrahedron corresponds precisely to that theory or area of physics where the associated constants are needed in its formulation. 
+
+In this way, the hexadecachoron reflects both the history and the systematics of physics. Most importantly, it succinctly points to the need of building a final theory that would consistently unite all of Planck's four constants. We might want to call it \textit{theory of really everything} (TORE), with the labelling $(G,c^{-1},h,\kboltz)$, to distinguish it from the~-- also still not existing, unless one is a devout string theorist~-- \textit{theory of everything} (TOE), where one disregards the Boltzmann constant $\kboltz$ as a mere conversion factor between temperature and energy, yielding the labelling $(G,c^{-1},h,0)$.
+
+On the other hand, eight of the 16 tetrahedra form, appropriately interpreted, the known theoretical underpinning of, arguably, all of currently known physics: Newtonian mechanics $(0,0,0,0)$, Newtonian gravity $(G,0,0,0)$, special relativity $(0,c^{-1},0,0)$, quantum mechanics $(0,0,h,0)$, classical statistical mechanics $(0,0,0,\kboltz)$, general relativity $(G,c^{-1},0,0)$, quantum field theory $(0,c^{-1},h,0)$ and quantum statistical mechanics $(0,0,h,\kboltz)$.
+
+This leaves another six tetrahedra that have not, or have not yet, played a significant role in the history of knowledge of physics, with the very notable exception of $(0,c^{-1},h,\kboltz)$. These are precisely the constants appearing in Planck's 1900 \enquote*{empirical law} of black body radiation, heralding the advent of 20th century quantum physics. However, in the hexadecachoron model, this is \enquote*{just} the union of quantum field theory governed by $c^{-1}$ and $h$ (thereby providing the theory explaining electromagnetic radiation), and statistical physics controlled by $\kboltz$. 
+
+Let us survey the remaining five tetrahedra that also have not, or at least not yet, achieved the status of proper theories within physics. Instead, we refer to these as \textit{areas of physics}. We order them by decreasing historical significance. The union $(G,0,0,\kboltz)$ of Newtonian gravity and statistical mechanics causes no problems, has many interesting applications, but does not lead to an interesting, new \enquote*{unified theory}.
+
+To the contrary, the union $(0,c^{-1},0,\kboltz)$ of special relativity and statistical mechanics leads to some controversial puzzles such as the question of the behaviour of temperature under Lorentz boosts. No unified theory has been proposed, and there are but a few applications of physical interest. While the temperature concept plays a major role in a vast number of astrophysical applications of general relativity, one cannot say that a meaningful novel theory based on $(G,c^{-1},0,\kboltz)$ has been built as a unification of Einstein gravity and statistical mechanics. Finally, the union of Newtonian gravity and non-relativistic quantum mechanics $(G,0,h,0)$ respectively quantum statistical mechanics $(G,0,h,\kboltz)$ is needed to describe the physics of slow neutrons. However, one could have hoped for more: A non-trivial theory of non-relativistic quantum mechanics (without or with temperature) seems to be as elusive as the full-fledged TOE, respectively TORE.
+
+\subsection*{Impressum}
+
+
+%Besides the two \enquote*{and}-theories this is the non-relativistic quantum gravity $(G,0,h,0)$ together with its \textit{hot} counterpart $(G,0,h,\kboltz)$. Within both theories, one imagines performing the non-relativistic limit $c\rightarrow\infty$, i.\,e.\ infinite speed of light, or equivalently $c^{−1}\rightarrow 0$, on the sought-after Theory of (Really) Everything. The open question is whether this procedure leads to an interesting theory at all, and, perhaps more importantly, whether there are any meaningful experiments. Unfortunately, none of the current candidates for a Theory of Really Everything seem to yield any clues here.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\newpage \addsec{Newtonian mechanics $(0,0,0,0)$ $\rightarrow$ transl.}
+\label{sec:0000}
+
+Imagine a universe in which gravity can be neglected. Where things move very slowly compared to the speed of light. In which quantum effects are too small to be perceived. And in which the number of particles is very limited. Such a universe would be fully described by the laws of Galilei's space-time model and Newtonian mechanics. In the hexadecachoron model, this corresponds to the theory in which the gravitational constant $G$, the inverse of speed of light $c^{-1}$, Planck's quantum of action $h$ and the Boltzmann constant $\kboltz$ are all set to zero: this is the small tetrahedron at the very centre of the model. It symbolises the origin of modern physics in both a conceptual as well as a historical manner.
+All objects in this universe have a certain position in an absolute space. Time is a parameter that uniformly and perpetually counts the passing of seconds, minutes and hours everywhere. Every movement corresponds to a fixed path, which can be calculated. And every relation between the particles is determined. Sounds familiar? As we all know, this theory does not describe reality. It is merely a first, yet controlled approximation to the rich physical world around us.
+
+
+\subsection*{Newton's foundations}
+
+From the perspective of modern physics, Newtonian mechanics deals with the motion of sufficiently slow classical bodies under the influence of a system of arbitrary physical forces. Thus, pure Newtonian mechanics per se knows no 
+gravity, no light, no quantum of action, and does not care whether there are just a few or a very large number of particles. It is the theory $(0,0,0,0)$ of the hexadecachoron model and marks the origin of a Cartesian coordinate system with the four fundamental natural constants defining its axes. At the same time, it assigns all other theories their proper place in the model.
+
+Newton summarized his findings in three laws. Arguably, the second law is the most important, and states that the force $\vec{F}$ exerted on a body equals that body's mass $m$ times its acceleration $\vec{a}$:
+
+\begin{equation*}
+  \vec{F} =m\, \vec{a}\,.
+\end{equation*}
+%
+Clearly, no fundamental constants appear.
+
+If gravity is added, Newtonian mechanics remains intact. It is merely extended to the theory $(G,0,0,0)$, which adds Newton's law of gravity and the conceptual idea of the identity between inertial and heavy mass. Hence, this theory defines a new tetrahedron of the model.
+
+
+\subsection*{Galilei's space-time model}
+
+Newtonian mechanics is based on Galilei's model of space-time. It assumes that two inertial systems are physically indistinguishable. Take Galilei's ship moving uniformly and rectilinearly in his famous thought experiment: Standing below decks, all hatches closed and no smartphone at hand, one can determine one's own movement relative to the ship, but not relative to the sea. His thought experiment was so important to Galilei, that he placed it at the beginning of his \enquote{Dialogue concerning the two chief world systems}, between the figures of Aristotle, Ptolemy and Copernicus. Moreover, Newtonian mechanics asserts an absolute time, identical in all inertial systems. Velocities of inertial systems add up linearly. This is sufficiently accurate for the description of everyday mechanical systems.
+
+
+\subsection*{Subsequent corrections}
+
+However, Galilei's space-time model leads to logical contradictions with Maxwell's equations of electrodynamics. Thus, fundamental corrections for high velocities are needed. These can only be understood within the framework of Einstein's special relativity, i.\,e.\ the theory $(0,c^{−1},0,0)$.
+
+Classical mechanics experiences even more drastic corrections on atomic and subatomic length scales. It loses its deterministic character and was reformulated as a theory of probability amplitudes within the framework of quantum mechanics $(0,0,h,0)$ in the first third of the 20th century.
+
+Even before that, Maxwell and Boltzmann and many others showed that thermodynamics may be understood as a statistical theory of very many classical, Newtonian particles: Classical statistical mechanics: $(0,0,0,\kboltz)$.
+
+Hence, all these corrections to classical mechanics point to new tetrahedra of the model. The two theories $(0,0,0,0)$, Newtonian mechanics, and $(G,0,0,0)$, Newtonian gravitational theory, were developed by Newton at the same time; so here, the systematics of the hexadecachoron contradicts the history of physics in a certain way. Newton's theory is thus visualized as two tetrahedra of the model, but he never made this distinction himself. The corrections $(0,c^{−1},0,0)$, $(0,0,h,0)$ and $(0,0,0,\kboltz)$ on the other hand, as is well known, were only obtained around the turn of the 20th century; here, the model reflects the history of knowledge.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage \addsec{Classical statistical mechanics $(0,0,0,\kboltz)$ $\rightarrow$ transl.}
+\label{sec:0001}
+
+The model of an ideal gas is based on the concept of a large number of distinguishable, classical, non-relativistic particles inside a walled container. The particles are idealized as point-like, and assumed to be moving according to the laws of pure Newtonian mechanics in the absence of gravity. Their movement is free, except for perfectly elastic collisions with either each other or else with the walls.
+
+The development of modern quantitative kinetic gas theory brought in a new fundamental constant denoted by $\kboltz$. Employing it, the ideal gas law is written as
+%
+\begin{equation*}\label{eq:ideal-kb}
+  p\, V=N\, \kboltz T\,,
+\end{equation*}
+%
+where $p$, $V$ and $T$ are the pressure, volume and temperature of the gas, respectively, and $N$ stands for the (very large) number of particles it is composed of. The constant $\kboltz$ thus serves as the proportionality factor that relates the average relative thermal energy of a gas particle to the temperature.
+
+As a specific fundamental constant, $\kboltz$ was actually introduced by Max Planck. As late as 1906, Paul Ehrenfest then called $\kboltz$ \emph{Boltzmann's constant}. Since 2019, it is no longer measured, but fixed within the SI system of units to the \emph{exact} value
+
+\begin{equation*}
+  \kboltz=\SI{1.380649d-23}{\joule \per \kelvin}\,.
+\end{equation*}
+
+From the above, one point of view is that $\kboltz$ is merely a conversion factor between energy and temperature and as such not very fundamental. Within the model of the hexadecachoron, however, it is absolutely needed in order to stress the utter importance of the ideas of statistical physics within the web of physical theories. Starting from the innermost tetrahedron for Newtonian mechanics, we are led to the spiky tetrahedron $(0,0,0,\kboltz)$.
+
+
+\subsection*{Kinetic gas theory}
+
+In his \enquote{Hydrodynamica} (1738), Daniel Bernoulli suggested that the temperature of an ideal gas could be defined in terms of the pressure. Although temperature and the kinetic energy of particles came together within Bernoulli's theory, most scientists of the 18th century believed in Newton's theory of heat as a caloric fluid. It took another hundred years until physicists began to favour kinetic theories based on the empirical fact that the (ideal) gas pressure does \emph{not} depend on the molecular mass of the gas, which was by no means obvious. This led to the first correct formulation of a general gas law by Émile Clapeyron (1834):
+
+\begin{equation*}\label{eq:ideal-nr}
+  p\, V=n\, R\, T\,.
+\end{equation*}
+%
+This is the \enquote{macrospopic} form of the earlier equation above, where again $p$, $V$ and $T$ correspond to pressure, volume and temperature, respectively, while $n$ is the amount of substance and $R$ the universal gas constant. This general equation raised the question why the type of gas is not important for the determination of the gas pressure.
+
+In the 1860s, James Clerk Maxwell further developed the kinetic description of the ideal gas. Maxwell first regarded his work as an exercise in statistics not (yet) believing in the atomic concept of matter. Later, Ludwig Boltzmann strongly pushed the atomic point of view and showed that the mean kinetic energy of a gas molecule indeed depended only on the temperature, thereby developing modern statistical mechanics.
+
+
+\subsection*{Statistical mechanics and entropy}
+ 
+Boltzmann was able to give a statistical interpretation of the second law of thermodynamics, which states that heat always naturally flows from warmer to colder macroscopic systems. His insight was that Clausius' entropy $S$ should be interpreted as a \enquote{degree of disorder}, which always increases in the absence of work performed on the system. Max Planck later succinctly summarized Boltzmann's result in the famous formula
+
+\begin{equation*}\label{eq:ideal-nr}
+  S=\kboltz\, \log W\,,
+\end{equation*}
+%
+where $W$ is the number of possible microscopic states a given macroscopic system can be in, such as a gas at fixed volume, pressure and temperature.
+
+
+\subsection*{Boltzmann statistics}
+
+Consider a system in thermal equilibrium at temperature $T$. The classical partition function is defined as the sum over all possible microscopic states $j$ with energy $E_j$ as
+
+\begin{equation*}\label{eq:ideal-nr}
+  Z=\sum_j \exp \left(-\frac{E_j}{\kboltz T}\right)\,,
+\end{equation*}
+%
+where the exponential is called \emph{Boltzmann factor}. The probability $p_k$ of the system to be in the $k$-th state is then given by
+
+\begin{equation*}\label{eq:ideal-nr}
+  p_k=\frac{1}{Z} \exp \left(-\frac{E_k}{\kboltz T}\right)\,.
+\end{equation*}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage \addsec{Newtonian gravity $(G,0,0,0)$ $\rightarrow$ transl.}
+\label{sec:1000}
+
+One of Newton's greatest achievements was the discovery of his general law of gravitation. In modern terms, it states that every point mass in the universe \emph{instantaneously} attracts every other point mass with a force that is proportional to the product of their masses $m$ and $M$, and inversely proportional to the square of the distance $r$ between them:
+
+\begin{equation*}\label{eq:gravitation}
+  F=G\,\frac{Mm}{r^2}\,.
+\end{equation*}
+%
+The associated constant of proportionality is the gravitational constant $G$, much later called Newton's constant in his honour. Experimentally, $G$ was first, unintentionally and indirectly, determined as late as 1798 by Henry Cavendish, when he performed his famous experiment to measure the density of the Earth. Its current value is
+
+\begin{equation*}
+  G = \SI{6.67430(15)d-11}{\cubic\metre\per\kilogram\per\square\second}\,,
+\end{equation*}
+%
+with a surprisingly large relative uncertainty of \num{2.2d-5}. As such, it is the only one of the hexadecachoron's four fundamental constants $G$, $c^{-1}$, $h$ and $\kboltz$ that has \textit{not} yet been fixed to an exact value, and where various experimental efforts are under way to improve its accuracy.
+
+In the hexadecachoron model, Newtonian gravity corresponds to the spiky tetrahedron $(G,0,0,0)$  pointing down towards the floor. In combination with Newtonian classical mechanics, i.\,e.\ the innermost tetrahedron $(0,0,0,0)$, this theory can be used to describe with astonishing accuracy both the falling of objects on Earth and the motion of celestial objects such as moons, planets, meteorites and satellites in the planetary system.
+
+
+\subsection*{Newton's theory of gravitation}
+
+In the third book \enquote{De mundi systemate} of his \enquote{Philosophiæ Naturalis Principia Mathematica}, Isaac Newton deduces the motion of the planets and their satellites from his law of gravitation. According to Newton, the resulting force keeps all celestial objects in their orbits. It is inversely proportional to the square of the distance between the centres of mass of two objects with a spherically symmetric mass distribution:
+
+\begin{quote}
+  If the matter of two spheres that are mutually heavy towards each other is homogeneous in the areas that are at equal distance from the centre, the weight of each sphere will behave inversely proportional to the square of the distance between their centres. (Newton 1687)
+\end{quote}
+
+
+\subsection*{Equivalence principle}
+
+An integral part of Newton's theory of gravitation is the weak equivalence principle, which states that the inertial and gravitational masses of every object are identical. Galileo had already demonstrated experimentally that two objects with \emph{unequal} masses fall at the same speed, in principle. The necessary proof of this equivalence was provided experimentally by Newton using a special pair of pendulums. To this day, this equivalence is still being investigated using highly complex experiments. Yet a difference between heavy and inertial mass has not been found. A particularly impressive demonstration was shown during the lunar landing mission Apollo 15: a feather and a hammer, dropped simultaneously from the same height, hit ground at the same time.
+
+
+\subsection*{Action at a distance and Einsteinian gravity}
+
+For Newton, the law of gravitation had an exclusively relational character, he did not introduce the gravitational constant $G$. However, he did derive epochal consequences from the proportionality of the universal gravitation. First and foremost, every planet moves in an elliptical orbit around the sun, which is located at one of the ellipse's focal points. Newton thus formulated a dynamic and mathematical derivation for the already empirically known orbit of planets: \enquote{whereas Kepler guessed right at the Ellipsis} (Newton to Halley 1686). Despite the revolutionary successes, the character of the instantaneous long-distance effect in his law of gravitation remained extremely mysterious and questionable for many of Newton's contemporaries and successors, up to and including Einstein. The latter resolved the mystery after developing his general theory of relativity, see $(G,c^{-1},0,0)$, which is also known as Einstein's theory of gravitation.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage \addsec{Statistical mechanics and Newtonian gravity $(G,0,0,\kboltz)$ $\rightarrow$ transl.}
+\label{sec:1001}
+
+The union $(G,0,0,\kboltz)$ of Newton's gravity theory $(G,0,0,0)$ and Boltzmann's statistical mechanics $(0,0,0,\kboltz)$ causes neither technical nor conceptual problems. It has many interesting applications, for which we give two examples below: The barometric height formula for the atmospheric pressure in planetary bodies such as our Earth, and a rough picture of star formation from contracting gaseous clouds. However, it should be pointed out that this union does not lead to more than the \enquote*{sum of its parts}, i.\,e.\ one does not find an interesting, new \enquote*{unified theory}.
+
+
+\subsection*{Barometric height formula}
+
+An ideal gas of molecules of mass $m$ in a gravitational field generated by a mass $M$ causes the barometric gas pressure to decline exponentially with the ratio of the gravitational energy of the gas molecules and their thermal energy. To derive it, we may simply consider the Boltzmann distribution of molecules in the atmosphere. A molecule of mass $m$ situated at height $H$ has a potential energy $E=m g H$, where the gravitational acceleration $g$ on and slightly above the surface of the earth is expressed through Newton's gravitational constant $G$, the earth's mass $M$ and radius $R$ as $g=G M/R^2$. This yields the result that the molecular probability distribution is proportional to 
+
+\begin{equation*}\label{eq:barometric_height}
+  \exp\left(-\frac{m M}{R^2}\frac{G}{\kboltz} \frac{H}{T}\right).
+\end{equation*}
+%
+Note the appearance of the ratio $G/\kboltz$ of the two relevant fundamental constants.
+
+We should distinguish these from the situational (random) constants $m, M, R^2$. The variables of this problem are $H$ and $T$. The exact probability distribution is given by
+
+\begin{equation*}\label{eq:barometric_height_full_1}
+  P(H)=\frac{m M}{R^2}\frac{G}{\kboltz T} \exp\left(-\frac{m M}{R^2}\frac{G}{\kboltz} \frac{H}{T}\right),
+\end{equation*} 
+%
+which indeed satisfies $\int_0^\infty dH P(H)=1$. It follows that the ratio of barometric pressures $p(H_2)$, $p(H_1)$ at heights $H_2$, $H_1$ is given by
+
+\begin{equation*}\label{eq:barometric_height_full_2}
+  \frac{p(H_2)}{p(H_1)}=\exp\left(-\frac{m M}{R^2}\frac{G}{\kboltz} \frac{H_2-H_1}{T}\right).
+\end{equation*}
+
+
+\subsection*{Star formation}
+
+What is the critical mass, where interstellar gas clouds collapse and form a new star? The Jeans instability, named after Sir James Jeans, describes the limit above which the outward pointing internal gas pressure is no longer strong enough to balance out the inward pointing gravitational pull of the ensemble of particles in the gas. The gas cloud undergoes gravitational collapse, whereby the first stage in the formation of a protostar is reached.
+
+This problem, of crucial importance in astrophysics, may be approximately treated by applying the basic principles of Newtonian gravity in conjunction with the basics principles of classical statistical mechanics. Of course, the total mass involved should not be too large, and the quantum effects of compressing the gas should be neglected. One then finds, using a variety of further approximations and simplifying assumptions, the critical \emph{Jeans mass}, above which the gravitational potential energy of the system is greater than the kinetic energy of its components, leading to the gravitational collapse needed for a new star to be born:
+
+\begin{equation*}
+  M_{\mathrm {Jeans}}=\alpha\,
+    \left(\frac {\kboltz}{G}\right)^{\frac{3}{2}}\,
+    \sqrt {{\frac {1}{\rho}}\, 
+    \left({\frac {T}{m}}\right)^3}\,.
+\end{equation*}
+%
+Here, $T$ is the absolute temperature of the gas, $m$ is the mass of its elementary constituents and $\rho$ is their density, while $\alpha$ is a numerical constant that depends on the details of the approximation (one typically finds a number between 1 and 10). Most important for us is the dependence of $M_{\mathrm {Jeans}}$ on the two fundamental constants $\kboltz$ and $G$. Note that $c^{-1}$ and $h$ do not appear, since we disregarded, respectively, all relativistic and all quantum effects.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage \addsec{Special relativity and electrodynamics $(0,c^{-1},0,0)$ $\rightarrow$ transl.}
+\label{sec:0100}
+
+In his \emph{annus mirabilis} 1905, Albert Einstein published four famous papers. In the third one \enquote{On the electrodynamics of moving bodies}, he introduced the special theory of relativity based on two postulates: Inertial frame invariance~-- the laws of physics are invariant in all inertial frames of reference~-- and the constancy of the vacuum speed of light $c$, namely that it is independent of the state of motion of the light source. The idea that $c$ is a fundamental constant for all possible observers, i.\,e.\ independent of their own state of motion, seemed contradictory at least at first sight, and required radical questioning of the assumptions of Galileo and Newton on the structure of space and time. As a consequence of his analysis, Einstein obtained modern physics' perhaps most famous formula
+
+\begin{equation*}\label{emc2}
+  E=m\,c^2\,,
+\end{equation*}
+%
+which expresses the equivalence of mass ($m$) and energy ($E$).
+
+The first proof of the finiteness of the speed of light was given by Ole Rømer in 1676, and its first rough estimate was obtained two years later by Huygens. Since then its accuracy was constantly improved, until the speed of light was finally fixed in 1983 to the \emph{exact} value
+
+\begin{equation*}
+  c=\SI{299 792 458}{\meter \per \second}\,.
+\end{equation*}
+
+In the hexadecachoron model, the relevant parameter actually turns out to be the inverse speed of light $c^{-1}$, since the non-relativistic limit is obtained by taking the speed of light to infinity. Accordingly, special relativity corresponds to the spiky tetrahedron $(0, c^{-1}, 0, 0)$. 
+Of central importance in the hexadecachoron model is that this tetrahedron also includes Maxwell's theory of classical electromagnetism.
+
+
+
+
+
+
+\subsection*{Electromagnetism}
+
+Even though the speed of light was anchored as a new fundamental constant in physics with the special theory of relativity, its beginnings date back to the 19th century. In 1873, James Clerk Maxwell not only unified electricity and magnetism, but also identified light as an electromagnetic phenomenon. Since electromagnetism was explained as the physical state of an all-pervading ether, there was an obvious need to experimentally establish its existence. However, the famous interferometer experiments of the 1880s by Edward Morley and Albert Michelson showed that the speed at which light travels does not depend in any way on the motion of the earth through the ether, thereby providing the experimental basis for Einstein's postulates. The complex history of the Lorentz transformations began, which described the exact transformation behaviour of Maxwell's equations.
+
+
+\subsection*{Lorentz transformations}
+
+The two postulates of special relativity are only compatible if one uses the Lorentz transformations to switch between the coordinates of two inertial frames moving at a constant velocity relative to each other. Galilean transformations then emerge as an approximation for low relative frame velocities. Moreover, the consequences for reference systems moving uniformly relative to each other at velocities comparable to the speed of light are reflected in well-known phenomena such as time dilation or length contraction.
+
+
+\subsection*{Minkowski space-time}
+
+In 1907, Hermann Minkowski drew the mathematical and conceptual consequences from Einstein's ideas and proposed to replace three-dimensional Euclidean space by four-dimensional space-time. This mathematically precise fusion of space and time brought physics closer to philosophical concepts like the Incan pacha cosmological ideas or the Taoist view of space and time as a \enquote*{complex cosmic web}.
+
+Following Minkowski's formalism, we can generalize the classical three-dimensional momentum $\mathbf{p}$ to a four-vector, whose time component accounts for the energy $E$. In Minkowski space-time, the energy–momentum four-vector is expressed as $P = (E/c, \mathbf{p})$, with squared non-Euclidean norm $P^2=(E/c)^2 - \mathbf{p}^2 = m^2c^2$. For the special case of an object at rest, $\mathbf{p} = 0$, one then indeed finds $E=m c^2$.
+
+Setting, on the other hand, $m=0$, we obtain the relation between the energy and the momentum of massless particles such as photons, the quanta of light and radiation:
+
+\begin{equation*}\label{emc2}
+  E=c\, |\mathbf{p}|\,.
+\end{equation*}
+%
+Even though special relativity $(0,c^{-1},0,0)$ seemingly knows nothing about the theory of quantum mechanics $(0,0,h,0)$, which corresponds to an altogether different spiky tetrahedron of the hexadecachoron!
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage \addsec{Special relativity and statistical mechanics $(0,c^{-1},0,\kboltz)$ $\rightarrow$ transl.}
+\label{sec:0101}
+
+How does temperature change under Lorentz transformations? Or, more bluntly: What is the temperature of a moving body? A generalised theory of thermodynamics properly unified with the principles of special relativity, i.\,e.\ a theory of relativistic thermodynamics, remains a subject of hot debate since its initial proposal by Max Planck and his doctorate student Kurd von Mosengeil, and independently by Albert Einstein in 1907. In the hexadecachoron model, this theory would correspond to the tetrahedron labelled by $(0,c^{-1},0,\kboltz)$.
+
+
+\subsection*{Temperature confusion}
+
+Which thermodynamic quantities remain invariant under Lorentz transformations? Arguing with the statistical definition of the entropy~-- the number of possible microscopic states of a given macroscopic system~-- all authors agree on its relativistic invariance. The same consensus, however, is not reached for temperature, pressure and their related thermodynamic potentials. According to von Mosengeil’s posthumous thesis (he tragically died at age 22 when hiking in the Alps):
+
+\begin{quote}
+  Two bodies, which the resting observer describes as equally hot, [can] appear differently hot to a moving observer [\dots], namely if the bodies have different velocities. The temperature of a body will always appear highest to the observer who is resting relative to him. (Von Mosengeil 1907)
+\end{quote}
+%
+According to him, temperature transforms like the radiation intensity of a moving black body as
+
+\begin{equation*}\label{reltemplower}
+  T = T_0\,\sqrt{1-\frac{v^2}{c^2}}\,,
+\end{equation*}
+%
+where $T$ and $T_0$ are the temperatures inside the moving and rest frame, respectively, and $v$ is the relative frame velocity. This transformation law is accepted in much of the recent literature, although not universally so.
+
+And indeed, note the following puzzling aspect: if, as it is often claimed, temperature is simply a form of energy, related through $\kboltz$ as a constant conversion factor, then the above transformation law appears to be wrong. In line with this, an alternative proposal agreeing with the behaviour of energy under Lorentz transformations was made by Heinrich Ott in 1963 (posthumously, once again). He claimed a fundamental mistake in the derivation of the Lorentz transformation law for heat and temperature. According to him temperature should instead transform as
+
+\begin{equation*}\label{reltemphigher}
+  T = \frac{T_0}{\sqrt{1-\frac{v^2}{c^2}}}\,,
+\end{equation*}
+%
+in order to reach consistency with the second law of thermodynamics. This contradictory and alternative proposal is also supported some recent publications. Finally, completing the confusion, in 1966 Peter T.\ Landsberg proposed a new theory, where the temperature is a Lorentz invariant:
+
+\begin{equation*}\label{reltempequal}
+  T = T_0\,.
+\end{equation*}
+%
+Hence there has been substantial lack of consensus on the temperature of a moving body. It seems to be rooted in differing definitions for temperature, thermometers, heat transfer and work. But perhaps this is precisely the solution: All of the above transformation laws might be applicable, depending on the initial assumptions~-- a conclusion Einstein himself seems to have reached in 1952 near the end of his life.
+
+
+\subsection*{Relativistic ideal gas}
+
+It should be pointed out that electron–positron pair plasmas, produced in experimental conditions, have been show to follow speed distributions according to relativistic versions of the famous Maxwell-Boltzmann distribution. These have been first obtained by Ferencz Jüttner in 1911, and are called Maxwell-Jüttner distibutions.
+
+In conclusion, we see that some of the hexadecachoron's tetrahedra do not, or at least not yet, correspond to important unified theories. Interestingly, however, they do point to some unresolved puzzles, possibly related to our lack of a final theory of physics, the elusive theory of really everything (TORE).
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage \addsec{Quantum mechanics $(0,0,h,0)$ $\rightarrow$ transl.}
+\label{sec:0010}
+
+At the end of the 19th century, physical experiments penetrated deeper and deeper into the atomic realm, producing very strange results that often contradicted everyday logic. Around 1900, Max Planck succeeded in resolving some of the experimental peculiarities by introducing a new fundamental constant, which we now call Planck's quantum of action $h$. In 1905, Einstein, in order to explain the photoelectric effect, unwillingly discovered the quanta of light, later christened photons by Arthur Compton. Their energy $E$ is related to the light's frequency $\nu$ by the formula
+
+\begin{equation*}
+  E=h\,\nu\,.
+\end{equation*}
+%
+Since its discovery, its value was measured ever more accurately, and finally fixed in 2019 to the \emph{exact} (rational) value 
+
+\begin{equation*}
+  h=\SI{6.62607015d-34}{\joule\second}\,.
+\end{equation*}
+%
+While the speed of light $c$ as an experimental value was already known in the 17th century and was elevated to the rank of a fundamental natural constant by Einstein's theory of relativity, the history and systematics of the hexadecachoron model are rooted in the year 1900: Planck unintentionally prepared the ground for a new theory $(0,0,h,0)$: quantum mechanics. Its actual mathematical and (arguably, yells Einstein from his non-existing grave) conceptually convincing formulation happened a quarter of a century later with the establishment of Schrödinger's wave mechanics and Heisenberg's more general matrix mechanics. This allowed to determine the probability for a particle to be present at a given location. Accordingly, the precise location may only be pinned down by a measurement. The latter, however, leads to a collapse of the wave function. This phenomenon is decisive for all measurement processes in quantum mechanics. It leads to a multitude of further counter intuitive effects, but also to revolutionary technical developments.
+
+
+\subsection*{Action principle}
+
+How does quantum mechanics conceptually relate to classical mechanics, i.\,e.\ the theory $(0,0,0,0)$? Newtonian mechanics appears to describe equally well point-like masses and extended bodies, such as apples or planets. As was first understood by Euler and Lagrange, classical physics may be derived by the following assumption: Nature always chooses a trajectory that minimises the action. However, a justification of this action principle is needed. To this end, metaphysical principles were invoked in the 18th century. Fortunately, or unfortunately, on the smallest length scales, in the range of atomic dimensions and below, action minimisation and therefore Newtonian mechanics utterly fails.
+
+
+\subsection*{Hilbert space}
+
+Instead, quantum mechanics posits that a given particle takes all possible paths, and then assigns a probability to each of these. One considers so-called probability amplitudes, the square of their magnitude indicating the probability densities of the respective paths. If a measurement is performed, the above mentioned amplitudes are severely modified. Leaving aside possible new metaphysical qualms associated with this approach, quantum mechanics still allows to make essentially exact predictions on the level of macroscopic particle systems.
+
+Nevertheless, all verifiable predictions of quantum mechanics for individual particles are in principle statistical. Moreover, classical particles are strictly distinguishable. Quantum mechanical particles, on the other hand, cannot be distinguished from one another, while particles of different types may be entangled in Hilbert space. This requires different statistics than for classical particles.
+
+
+\subsection*{Relation to relativity}
+
+How does quantum mechanics $(0,0,h,0)$ conceptually relate to relativity? The aforementioned probability amplitude, usually denoted by $\Psi$, for a free particle of mass $m$ is determined by the (deterministic) Schrödinger equation (1926), in this case
+
+\begin{equation*}\label{eq:schroedinger}
+  i\hbar\frac{\partial}{\partial t}\Psi=-\frac{\hbar^2}{2m}(\frac{\partial^2}{\partial x^2}+\frac{\partial^2}{\partial y^2}+\frac{\partial^2}{\partial z^2})\Psi
+\end{equation*}
+%
+Note the asymmetry of space and time: The time derivative is of first order, the derivatives according to the space coordinates $x,y,z$ are of second order. No wonder, since the equation originates from the quantum mechanical generalisation of Newton's mechanics, thereby flatly contradicting the special theory of relativity. And indeed, the speed of light $c$ does not even occur in Schrödinger's equation.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage \addsec{Quantum statistical mechanics $(0,0,h,\kboltz)$ $\rightarrow$ transl.}
+\label{sec:0011}
+
+Pairing non-relativistic quantum mechanics $(0,0,h,0)$ and statistical mechanics $(0,0,0,\kboltz)$ led to a perfect marriage: quantum Boltzmann statistics. This even resulted in a wonderful offspring: Boltzmann statistics had to be adapted accordingly as soon as the statistics concerned \emph{identical} particles of either bosonic or fermionic nature.
+
+%It was then understood that when the statistics involves \emph{identical particles} of either bosonic or fermionic nature, Boltzmann statistics had to be properly adjusted.
+
+
+\subsection*{Quantum Boltzmann statistics}
+
+On a formal level, the partition functions of classical statistical mechanics are easily adapted to quantum mechanics by introducing a density operator $\hat\rho$ for a canonical ensemble of particles as follows:
+
+\begin{equation*}
+  \hat \rho=\frac{1}{Z} \exp\left(-\frac{\hat H}{\kboltz T}\right)
+    \qquad \textrm{with} \qquad
+    Z=\Tr \exp\left(-\frac{\hat H}{\kboltz T}\right),
+\end{equation*}
+%
+where $\hat H$ is the Hamilton operator of the system and $Z$ its partition function, given as a trace over the Hilbert space. Clearly one may interpret $\hat\rho$ as a normalized, operatorial version of the Boltzmann factor, with the explicit appearance of $\kboltz$.
+
+The density operator is obviously normalized to one: $\Tr \hat \rho=1$. In a basis of energy eigenstates, where $\hat H |\psi_n\rangle=E_n  |\psi_n\rangle$, one has
+
+\begin{equation*}
+  \hat \rho=\sum_n p_n |\psi_n\rangle \langle \psi_n|
+    \qquad \textrm{with} \qquad
+    p_n=\frac{1}{Z} \exp\left(-\frac{E_n}{\kboltz T}\right).
+\end{equation*}
+%
+Here $p_n$ is the probability (\emph{not} the probability amplitude!) that the system's state has the energy $E_n$. In a quantum mechanical system, the presence of Planck's constant $h$ is implicit; it will appear in the expression for $\hat H$. However, it does appear explicitly in the \emph{von Neumann equation} for the time evolution of the density operator
+
+\begin{equation*}\label{eq:vNeumann}
+  i \hbar \frac{\partial \hat \rho}{\partial t}=\left[\hat H, \hat \rho\right],
+\end{equation*}
+%
+where the brackets stand for a commutator. It may be considered as a generalization of the Schrödinger equation for pure states to an equation of motion for statistically mixed states. Note that in this interpretation $\hat \rho$ encodes a quantum statistical \emph{state} as opposed to a quantum mechanical \emph{operator}, for which a minus sign would appear on the r.\,h.\,s.\ of this evolution operator. Given the density operator $\hat \rho$, one obtains the \emph{von Neumann entropy} $S$ through another trace over the Hilbert space:
+
+\begin{equation*}
+  S=-\kboltz \Tr \left( \hat \rho \log \hat \rho \right).
+\end{equation*}
+%
+Note again the explicit appearance of $\kboltz$ in this equation.
+
+
+\subsection*{Bose-Einstein statistics for bosons}
+
+For the transition from classical to quantum physics, kinetic gas theory played an important role: Max Planck and Albert Einstein used the statistical methods of James Clerk Maxwell and Ludwig Boltzmann to develop a quantum theory of radiation. The quanta of radiation are photons, which are \emph{bosons} of spin one.
+
+To derive it, one considers an ideal quantum gas of bosons coupled to a heat bath and a particle reservoir, and looks at the grand-canonical partition function
+
+\begin{equation*}
+  Z_{\mathrm{G}}=\Tr \exp\left(-\frac{\hat H-\mu \bar N}{\kboltz T} \right),
+\end{equation*}
+%
+where the trace is taken over all of the system's energy states as well as over all possible particle numbers $N$, with $\hat N$ being the particle number operator and $\mu$ the chemical potential. Now assuming the basic property that the energy eigenvalues of $\hat H$ can be attained by any number $n_\nu=0,1,2,3, \ldots$ of bosons, the so-called occupation numbers of the $\nu$-th single-particle state of energy $E_\nu$ (such that the total energy eigenvalue of $\hat H$ is $E=\sum_\nu n_\nu E_\nu$ and total particle number operator eigenvalue of $\hat N$ is $N=\sum_\nu n_\nu$), one finds the expectation value
+
+\begin{equation*}
+  \langle n_\nu \rangle=
+    \frac{1}{\exp\left(\frac{E_\nu-\mu}{\kboltz T} \right)-1}\,.
+\end{equation*}
+%
+This is the Bose-Einstein distribution, which famously first appeared in Max Planck's 1900 law of black body radiation. Planck's constant $h$ is hidden in $E_\nu$.
+
+An exciting application is the Bose–Einstein condensate, predicted in 1924, and first measure in 1995. It constitutes a state of matter in which a gas of bosonic (quasi)particles (= excitations that effectively behave like quantum particles) is cooled down to temperatures below its critical temperature. Under such conditions, a large fraction of the particles \emph{condenses} to the lowest quantum state.
+
+
+\subsection*{Fermi-Dirac statistics for fermions}
+
+In 1926, Paul Dirac and Enrico Fermi proposed the quantum mechanical version of an ideal gas formed by non-interacting fermions such as electrons, of huge importance in solid state physics. These obey Pauli's exclusion principle, which means that the occupation numbers considered above are now only allowed to be $n_\nu=0,1$. One then finds for the expectation value of the occupation number $n_\nu$ of the $\nu$-th single-particle state of energy $E_\nu$ the Fermi-Dirac distribution
+
+\begin{equation*}
+  \langle n_\nu \rangle=
+    \frac{1}{\exp\left(\frac{E_\nu-\mu}{\kboltz T} \right)+1}\,.
+\end{equation*}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage \addsec{General relativity $(G,c^{-1},0,0)$ $\rightarrow$ transl.}
+\label{sec:1100}
+
+In order to unite Newtonian gravity with special relativity, both natural constants $G$ and $c^{−1}$ must be taken into account. This is exactly what Einstein's general theory of relativity (1915) does. It transforms the static four-dimensional Minkowskian space-time into a dynamic and curved object, whose shape is uniquely fixed by Einstein's field equations.
+
+In curved space-time, objects always move on the shortest possible path as determined by an indefinite metric. A historically important example is Mercury's orbit around the Sun. According to Einstein, the Sun curves space-time in a way that results in a nearly elliptic orbit, up to a small perihelion shift. Contrary to Newton, the reason for Mercury's curved path is not some mysterious gravitational force emanating from the Sun, but simple economy. An analogy is the trajectory of an aeroplane from Prague to Seoul: It is curved, but by no means due to a hypothetical force at the North Pole.
+
+
+\subsection*{Action principle}
+
+Why was Einstein so sure that he had to develop a new theory of gravity that would self-consistently unite the constants $c^{−1}$ and $G$? After hiring him to Berlin, Planck strongly recommended him to not waste his time, but to rather focus on the development of quantum mechanics. However, Einstein was acutely aware that Newtonian gravitational theory and special relativity are fundamentally incompatible. For example, in the former, a change in the distance between two masses results in an instantaneously experienced change in the gravitational force acting between them. In contradistinction, in special relativity, signal transmission at velocities greater than $c$ is impossible.
+
+This fundamental feature, that Newton's law of gravity depends merely on location but not on time, had to be eliminated by general relativity. In hindsight, the most elegant way to derive the latter theory involves a suitable action principle: One considers a body's movement over a period of time and determines the actual path travelled according to a suitable criterion: \enquote{the one by which the quantity of action is the least!} (Maupertuis 1744)
+
+
+\subsection*{Einstein's field equations}
+
+This action principle then implies the famous Euler-Lagrange equations:
+
+\begin{equation*}\label{eq:euler-lagrange}
+  \frac{d}{dt}\frac{\partial L}{\partial \dot{q}_i}-\frac{\partial L}{\partial q_i} = 0\,.
+\end{equation*}
+%
+Here, $q_i(t)$ is the coordinate of the $i$-th particle at time $t$, and $L$ the Lagrangian, given by the difference between the particles' kinetic and potential energies. The Euler-Lagrange equations precisely reproduce Newton's equations of motion. Incidentally, note that this derivation is based on an erroneous fundamental asymmetry of space and time: the different states of a particle are only integrated over time. Generalizing this idea to Einsteinian gravity, while repairing the space-time asymmetry, one is looking for a suitable action $S$ that allows for its minimisation under arbitrary variations of the metric:
+
+\begin{equation*}\label{eq:einstein-hilbert-action}
+  \frac{\delta S}{\delta g_{\mu\nu}} = 0\,.
+\end{equation*}
+%
+The actual metric is then once again calculated by using an analogue of the Euler-Lagrange equations. The correct choice is now called the Einstein-Hilbert action and leads to Einstein's field equations:
+
+\begin{equation*}\label{eq:field-equations}
+  R_{\mu\nu}-\frac{1}{2}g_{\mu\nu}R = \frac{8\pi G}{c^4} T_{\mu\nu}\,.
+\end{equation*}
+%
+They describe in a mathematically rigorous fashion that matter ($T_{\mu\nu}$) bends ($R_{\mu\nu}$ and $R$) space-time ($g_{\mu\nu}$). Objects move in this metric on curved tracks without experiencing any force: gravity simply corresponds to the curvature of space-time.
+
+All objects in the cosmos then simply travel on the shortest and fastest possible connection in a curved space-time. On their way they bend with their mass and energy the space-time structure in their immediate vicinity. Precisely stated: Everything moves on a curved four-dimensional Lorentzian manifold, whose local structure is, in turn, modified by the mover. General relativity thus solves the contradictions between Newton's theory of gravity and special relativity connecting the constants $G$ and $c^{-1}$. This yields the theory $(G,c^{-1},0,0)$ of the hexadecachoron.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage \addsec{General relativity and statistical mechanics $(G,c^{-1},0,\kboltz)$ $\rightarrow$ transl.}
+\label{sec:1101}
+
+Already the union of special relativity and statistical mechanics, represented by the tetrahedron $(0,c^{-1},0,\kboltz)$, leads to puzzles such as the correct dependence of temperature on the frame of reference, that have not been resolved to-date in a generally accepted way. As one might have expected, the situation does not improve when including gravity: A convincing framework for uniting Einstein's general theory of relativity and Boltzmann's general theory of statistical mechanics, corresponding to the tetrahedron $(G,c^{-1},0,\kboltz)$, has yet to be developed. In fact, this problem was certainly spotted by Max Planck and Albert Einstein very early on, and quite a few effort went into it, with no generally accepted solution.
+
+
+\subsection*{Cosmology and temperature}
+
+Of course, a large number of problems in cosmology require using tools and ideas from both general relativity and thermodynamics. In fact, the Big Bang was discovered as a natural prediction from classical relativity. The physical picture behind the \enquote*{initial} space-time singularity is that of an extremely hot, dense plasma of radiation and elementary particles, rapidly expanding in and with space-time itself. The evolution to the present state of the universe, some \num{13.8} billion years after the Big Bang, is often understood as an ongoing \enquote*{cooling down} of all matter and radiation. Accordingly, in the chronological description of the universe's evolution, one often uses temperature as a parameter. At the time of the Big Bang, the radiation temperature is assumed to have been around \qty{e32}{\kelvin}. After roughly \num{380000} years, the plasma had cooled down to \qty{3000}{\kelvin}, and photons started to travel freely through space.
+
+Today this radiation is still observable as the cosmic microwave background (CMB), but now its temperature is a mere \qty{2.7}{\kelvin}. However, it is not clear whether this cosmological picture should really be included at the $(G,c^{-1},0,\kboltz)$ tetrahedron as opposed to $(G,c^{-1},h,\kboltz)$, since radiation is ultimately due to quantum effects. We did so, because cosmology provides a tangible relation between temperature and general relativity.
+
+
+\subsection*{Astrophysics and temperature}
+
+Astrophysics is another field within physics where both general relativity and the temperature concept play crucial roles. For example, young neutron stars have surface temperature of around \qty{e7}{\kelvin}, but subsequently cool down continuously as no new heat is generated in their interior. However, as in the case of cosmology, it is not completely clear whether astrophysics should not rather be assigned to the $(G,c^{-1},h,\kboltz)$ tetrahedron, since results from quantum physics must often be used as well.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage \addsec{Quantum field theory $(0,c^{-1},h,0)$ $\rightarrow$ transl.}
+\label{sec:0110}
+
+Quantum mechanics was initially formulated in the 1920s in the non-relativistic limit only, i.\,e.\ $c^{−1}=0$, although the correctness of Einstein's special theory of relativity had already been generally accepted for years, with the notable exception of a few antisemitic idiots. In 1928, Dirac succeeded in establishing a curious relativistic wave equation that generalised the Schrödinger equation in a highly non-trivial fashion. It is now engraved in front of Isaac Newton's tomb in Westminster Abbey in the elegant form $i \gamma \cdot \partial\, \psi = m\, \psi$, where $c^{−1}$ and $\hbar=\frac{h}{2 \pi}$ have been set to one. Reinstalling them, Dirac's equation reads
+
+\begin{equation*}
+  i\, \hbar\,\, \gamma \cdot \partial\, \psi = m\,c\, \psi\,.
+\end{equation*}
+%
+In particular, it explained the electron's spin and predicted its antiparticle, the positron. A major triumph was Carl Anderson's experimental confirmation of the positron in 1932.
+
+Nevertheless, the interpretation of the Dirac equation as a wave equation led to puzzling contradictions. In addition, problems arose with the quantisation of electrodynamics, which is also a theory where $c^{−1}$ is switched on. As a way out, \textit{quantum field theory} (QFT) was developed in the late 1940's as a relativistically consistent many-particle theory. This eventually led some 20 years later to the standard model of elementary particles, which since then precisely describes all forces of nature with the exception of gravity.
+
+
+\subsection*{Standard model}
+
+The correct quantisation of electromagnetic fields~-- more precisely, the so-called abelian gauge fields~-- leads to quantum electrodynamics (QED). This is the most thoroughly tested theory ever established. The quanta of these fields are nothing other than Einstein's photons, which also have a spin. But unlike the case of the electron, its value is one. The nuclear forces are very successfully described by quantum field theories as well, employing further spin 1 particles: the eight gluons of the strong nuclear forces and the W$^+$, W$^-$ and Z-bosons of the weak nuclear forces. To describe these particles and the forces of nature corresponding to them, the abelian gauge fields have to be replaced by mathematically much more involved non-abelian fields. Overall, this results in the current standard model of elementary particle physics. Its non-abelian gauge symmetry group is $\mathrm{SU}(3) \times \mathrm{SU}(2) \times \mathrm{U}(1)$, where the first factor is related to the strong nuclear forces (quantum chromo dynamics: QCD), the second to the weak nuclear forces and the third to QED. One open mystery is why nature chooses precisely this gauge group. Another mystery are the unexplained 19 free parameters of the standard model, extended by another seven free parameters for the elusive, slightly massive and chameleon-like neutrinos.
+
+Of particular note is the standard model's Higgs field, which was already predicted in the early 1960s and, after a long search, was finally discovered in 2012 with the Large Hadron Collider (LHC) at CERN, Geneva. It gives most elementary particles a mass, see the $m$ in the Dirac equation above in the case of the spin $\frac12$ particle.
+
+
+\subsection*{The graviton}
+
+So far it has not been possible to integrate the theory of gravity into the standard model. However, the hypothetical particle carrying the gravitational force has already been christened graviton. If it exists, it should have spin 2. Its inclusion would lead from the tetrahedron $(0, c^{-1},h,0)$ to the tetrahedron $(G,c^{-1},h,0)$ of the hexadecachoron, i.\,e.\ to the theory of everything (TOE).
+
+
+\subsection*{Rethinking quantum field theory}
+
+As a theory, QFT appears to be somewhat poorly defined, despite the huge number of textbooks written on it. For a mathematician, it is simply ill-defined. The main practical handle to deal with it are elaborate perturbative methods based on Feynman diagrams, or a numerical but non-perturbative reformulation called lattice gauge theory. There are ongoing exciting attempts to develop entirely new approaches to QFT. There are also fascinating recent applications of the formalism of QFT to gravitational wave research in the classical $(G,c^{-1},0,0)$ theory (= general relativity).
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage \addsec{Quantum field theory and temperature $(0,c^{-1},h,\kboltz)$ $\rightarrow$ transl.}
+\label{sec:0111}
+
+Interestingly, interacting quantum field theory (QFT) is already, by its very construction, a many-particle theory: Even when one restricts to, say, the scattering of just a few external particles, infinitely many further internal, \enquote*{virtual} particles will necessarily appear in intermediate channels of the scattering process. However, no notion of temperature is involved. Accordingly, Boltzmann's constant $\kboltz$ is not needed when one initially formulates QFT. This changes when one considers a large number of external physical particles, such as the photons that, by the wave-particle duality, making up the radiation of a black body in thermal equilibrium with the environment. In fact, Planck's black body law (1900) accurately describes this situation. To be precise, Planck's spectral radiance $B(\nu,T)$ of a body for frequency $\nu$ at absolute temperature $T$ reads
+
+\begin{equation*}
+  B(\nu,T)=\frac{2 h \nu^3}{c^2} \frac{1}{\exp\left(\frac{h \nu}{\kboltz T}\right)-1}\,.
+\end{equation*}
+%
+It was humankind's first experimentally driven and theoretically derived quantum formula and includes $\kboltz$ along with $c^{-1}$ and $h$. Note that quantum mechanics, without both $k_B$ and $c^{-1}$, was only developed some 25 years later, and quantum field theory proper, i.\,e.\ the theory without $\kboltz$ but including $c^{-1}$, some 50 years later! And indeed, Planck's derivation was solely based on statistical considerations in conjunction with intuitive assumptions about the quantum nature of radiation. The ultimate theoretical justification of his formula, however, is based on both Quantum Electro Dynamics (QED), a quantum field theory, and Bose-Einstein statistics.
+
+
+\subsection*{Finite temperature quantum field theory}
+
+However, there is an altogether different way to \emph{formally} relate quantum field theory and statistical mechanics that goes by the name of \enquote*{thermal QFT} or \enquote*{finite temperature QFT}. It is based on a deep analogy between the quantum mechanical phase factor $\exp\left(i \hbar S\right)$ and the Boltzmann factor $\exp\left(-\frac{E}{\kboltz T}\right)$. 
+Formally, time becomes imaginary, which transforms spacetime into a four-dimensional cylinder with three infinitely extended spatial directions and a periodic \enquote{temporal} direction with extension
+$\frac{1}{\kboltz T}$.
+So here we do not have a theory built upon the three constants $c^{-1}$, $h$ and $\kboltz$, but instead one where we start from $c^{-1}$, $h$, and subsequently replace $h$ by $\kboltz$ according to the rule
+
+\begin{equation*}
+  \frac{t}{\hbar} \rightarrow \frac{1}{i \kboltz T}\,.
+\end{equation*}
+
+
+
+
+\subsection*{Unruh effect}
+
+The \emph{Unruh temperature}, derived separately by Paul Davies (1975) and William Unruh (1976), is the effective temperature $T_{\text{U}}$ measured by a detector moving in a vacuum field with a uniform acceleration $a$. It reads
+
+\begin{equation*}\label{eq:Unruh}
+  T_{\text{U}}=\frac{\hbar}{2 \pi c\, \kboltz} a.
+\end{equation*}
+%
+The associated quantum field theoretic phenomenon is called the \emph{Unruh effect}. Its existence has been contended by some physicists, and has not yet been measured, at least not in a generally accepted way. Figuratively speaking, it predicts that if one waves around a thermometer at zero temperature in an otherwise empty space, it will suddenly show a temperature. The underlying mechanism is vacuum polarization viewed from different reference frames.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage \addsec{Non-relativistic quantum gravity $(G,0,h,0)$ $\rightarrow$ transl.}
+\label{sec:1010}
+
+Adding the gravitational constant $G$ to non-relativistic quantum mechanics is in principle quite straightforward: One solves the Schrödinger equation for massive particles moving in the Newtonian gravitational potential. A more interesting consideration is to assume the existence of a theory of really everything (TORE), still to be established, and to imagine carefully switching off the inverse speed of light $c^{−1}$ by mathematically taking the limit $c\rightarrow\infty$ in all of that putative theory's formulas.
+
+Does this really not lead to any unexpected measurable effects? Do we really only have the rather boring quantum mechanical scenario outlined at the beginning? The answers are still pending. In this respect, non-relativistic quantum gravity does not currently represent a theory of its own in physics, and there is hardly any research on it. However, it should be mentioned that a number of unconventional approaches to quantum gravity precisely play with the possibility of breaking the Lorentz symmetry between space and time.
+
+
+\subsection*{Experimental findings}
+
+Since the 1960s, numerous experiments with quantum particles in classical gravitational fields, such as the one of the Earth, have been carried out. Clearly it is essential to use slow quantum particles, singling out neutrons to be particularly suitable. In 1975, for example, Colella, Overhauser and Werner carried out an experiment whose result depended on both Newton's theory of gravity and quantum mechanics. A beam of very slow neutrons was first split and then examined interferometrically. By rotating the measuring device by an angle $\Phi$, they could show that a quantum mechanical phase shift of the slow neutrons occurs due to their interaction with the gravitational field of the Earth. Somewhat disappointingly, the experimental findings are in perfect agreement with the theoretical prediction of the Schrödinger equation equipped with a Newtonian gravitational potential. More recent experiments have even been able to demonstrate the quantisation of weak binding states of ultracold, i.\,e.\ very slow neutrons to the Earth's gravitational field.
+
+
+\subsection*{More clues}
+
+These experiments are potentially relevant for supporting or excluding various scenarios for the theory of everything (TOE). For example, some versions of superstring theory predict deviations from Newton's gravitational potential on length scales far above the Planck scale. However, no such deviations could so far be found.
+
+The breaking of Lorentz symmetry between space and time generated by the $c^{−1}\rightarrow 0$ limit also inspires research on a purely theoretical level. For example, in 2009 Petr Hořava proposed a new theory of gravity that modifies general relativity on small length scales. This has already resulted in more than \num{2600} subsequent publications. Nonetheless, the status of this so-called Hořava-Lifshitz Gravity Theory remains unclear.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage \addsec{Non-relativistic quantum gravity and temperature $(G,0,h,\kboltz)$ $\rightarrow$ transl.}
+\label{sec:1011}
+
+We are currently lacking a generally accepted theory of quantum gravity, even though there are experimentally unverified and theoretically incomplete candidates such as string theory or loop quantum gravity. This situation does not improve,  of course, if one includes temperature, even though there are interesting conjectures about the consequences of such an all-encompassing \emph{theory of really everything} (TORE), involving all four constants $(G,c^{-1},h,\kboltz)$, such as Hawking radiation or Bekenstein-Hawking entropy.
+
+One might hope that a non-relativistic (i.\,e.\ $c^{-1}=0$) version of the sought TORE model, based on the constants $(G,0,h,\kboltz)$, should be easier to find. However, this does not seem to be the case, and basically no viable suggestions have been made. There are nevertheless very interesting, topical experiments relating quantum particles, temperature and gravity: These are studies of ultracold neutrons (UCN), going back to early ideas of Enrico Fermi in the mid-thirties.
+
+UCN are essentially free and extremely slow (= cold) neutrons trapped in suitable containers: Their walls perfectly reflect any incident neutrons. This allows to treat UCN as a kind of dilute ideal gas with a temperature of less than \qty{4}{\milli\kelvin} (Millikelvin). Since the kinetic energy of the UCN is very small, the gravitational force plays a significant role in the description of the system. These experiments go by the name of \emph{neutron bottle experiments.}
+
+There is an interesting puzzle related to the lifetime of free neutrons when comparing the values measured from the bottle experiments to the one measured in neutron beam experiments. The lifetime currently (2024) reported by the \emph{particle data group} is \qty{878.4(0.5)}{\second} (roughly 15 minutes). This average value, which takes into account only measurements from the bottle experiments, is about \qty{9}{\second} off the typical values obtained from the beam experiments. There is an ongoing debate on this on how to get a better experimental but especially theoretical understanding of this discrepancy.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage \addsec{Theory of everything $(G,c^{-1},h,0)$ $\rightarrow$ transl.}
+\label{sec:1110}
+
+Considered by many the so far undiscovered holy grail of modern physics. This theory would include the three fundamental constants $G,c^{−1}$ and $h$, omitting Planck's fourth choice $\kboltz$, the Boltzmann constant. There are quite a few ambitious candidates for the throne, most notably string theory and loop quantum gravity. However, it has not yet been possible to test whether either of these theories is correct~-- in the end probably both are wrong, or at least incomplete. By combining the three fundamental natural constants $G$, $c^{-1}$ and $h$ we can derive Planck's natural units for space, time and mass, disregarding temperature. It turns out that quantum gravity becomes relevant at orders of magnitude that correspond to these Planck units.
+
+Unfortunately, these scales are extremely far away from anything that we can directly deduce experimentally. For example, the Planck length is about $10^{−35}$ metres, which is an almost unthinkable scale $10^{20}$ times smaller than the size of the proton.
+
+
+\subsection*{A world formula?}
+
+What exactly is the theory $(G,c^{-1},h,0)$ of the hexadecachoron of physics? It should be mathematically consistent and experimentally predictive, and thus falsifiable. In German, this sought-after theory is often abbreviated \enquote{Weltformel} (\enquote{world formula}), although it is a priori unclear whether it is based on a single formula, even if this theory exists. In English, on the other hand, it is brazenly called \enquote{theory of everything} (TOE).
+
+The theory of everything seeks the unification of quantum field theory and general relativity. Gravity should be \enquote*{quantised} and the constant $h$ should somehow be related to gravity. Likewise $G$ should be connected to quantum field theory. However, if general relativity is \enquote*{quantised} in a naive way in analogy to electrodynamics, e.\,g.\ by summing up all possible metrics, a catastrophe occurs: An infinite number of uncontrollable \enquote*{divergences} appears, entirely destroying the predictive power of the theory.
+
+The two most prominent of all currently pursued approaches that attempt to circumvent this difficulty are superstring theory and loop quantum gravity. To date, both share the \enquote*{feature} of not being connected to experiment. Related to this, they each come in a large variety of different versions. They are thus more like classes of theories than specific theories.
+
+
+\subsection*{Superstring theory}
+
+Superstring theory has its roots in quantum field theory, whose point particles are replaced by vibrating strings. The different particles of nature are then represented by the allowed oscillatory modes of these strings. Through this approach, the said divergences disappear, and particle and gravitational physics are united. A hypothetical \enquote{graviton} appears, all worlds become ten or even eleven-dimensional, and our specific world is apparently only one of at least $10^{500}$ many. Some of these worlds are at least similar to the standard model of particle physics, but unfortunately an exact match has not been discovered yet. A speculative way out is the idea of the multiverse, where many of these possible worlds exist in parallel universes that, somewhat depressingly, do not communicate with each other. In this scenario, the many yet unexplained parameters of the standard model would ultimately be randomly set or else fixed in that they enable intelligent life (anthropic principle). Not so nice.
+
+
+\subsection*{Loop quantum gravity}
+
+Loop quantum gravity has its roots in general relativity. The latter is directly quantised; this leads to a kind of \enquote*{quantum foam} on the Planck scale in the range of $10^{-35}$ metres. There are many partially contradictory approaches, and none of them has yet achieved a natural unification with the quantum field theories of the standard model. These have to basically be \enquote*{added by hand}. Not nice, either.
+
+
+\subsection*{Open questions \dots}
+
+Is there any need at all for a theory that combines quantum field theory and general relativity? There is a broad and affirmative consensus in physics on this question. For instance, given the current framework of physical theory, it is obvious that both the detailed description of black holes and that of the big bang require quantum mechanics. In addition, it is at least experimentally clear that something fundamental is missing from the current body of theories in physics: About 96 percent of the matter and energy of our universe seem to be unknown, or, as one says, \enquote*{dark}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage \addsec{Theory of really everything $(G,c^{-1},h,\kboltz)$ $\rightarrow$ transl.}
+\label{sec:1111}
+
+The outermost tetrahedron of the hexadecachoron, encompassing all other 15 tetrahedra, should be the ultimate \emph{theory of really everything}: TORE. It should be the unified theory behind all four of Planck's natural constants $(G,c^{-1},h,\kboltz)$ that he singled out in 1899 in his quest to define universal units for length, time, mass and temperature. While we are certainly still lacking an experimentally verifiable TORE, and while it is of course not even clear that it must exist, certainly a number of important hints have been discovered. They are all related to \emph{black holes}, which are a sound prediction of Einstein's general theory of relativity $(G,c^{-1},0,0)$. Their physical existence has been experimentally established beyond reasonable doubt in recent years.
+
+
+\subsection*{Black holes}
+
+
+Karl Schwarzschild predicted black holes in 1916 after he had subjected Einstein's field equations of general relativity $(G,c^{-1},0,0)$ to an in-depth analysis in a  World War I trench. According to him, a black hole is a space-time region with a gravitational field so intense that everything, including light, is prevented from escaping from it.
+
+However, in 1974 Stephen Hawking discovered that the inclusion of quantum field theory $(0,c^{-1},h,0)$ leads to dramatically different predictions. Hawking was able to theoretically prove that black holes have an absolute temperature $T_\mathrm{H}$, now called \emph{Hawking temperature}, and consequently emit thermal radiation. Accordingly, they are not as \enquote*{black} as they seemed at first, and their correct theoretical description requires thermodynamics $(0,0,0,\kboltz)$!
+
+
+\subsection*{Hawking radiation}
+
+Vacuum polarization leads to a \enquote{glowing horizon}. Associated to this radiation of particles out of the horizon is a \emph{temperature}, called Hawking temperature $T_{\text{H}}$, of the black hole: One can \emph{see} black holes in principle. Hawking radiation has not yet been confirmed experimentally. Introducing a temperature means that there is a many-body system close to black holes. 
+%Can we find a formula for this temperature and define it rigorously by dimensional analysis?
+
+
+\subsection*{Hawking temperature}
+
+Hawking's famous formula for the temperature $T_{\text{H}}$ of a black hole as a function of its mass $M$ links all four of Planck's fundamental constants:
+
+\begin{equation*}\label{eq:HawkingT}
+  T_{\text{H}} = \frac{1}{8 \pi}\, \frac{\hslash\, c^3}{\kboltz\, G}\, \frac{1}{M}
+\end{equation*}
+%
+If $\hslash=\frac{h}{2\pi}\rightarrow0$, then $T_\text{H}\rightarrow0$, and then there is no Hawking radiation: it's really a quantum effect!
+
+Because of vacuum polarization, quantum field theory is by construction a many-particle theory. Near the horizon of a black hole, virtual particles may become real. Thus, the crucial take-home message is~-- quantum field theory with gravity forces us to consider temperature and thermodynamics.
+
+
+\subsection*{Bekenstein-Hawking entropy}
+
+Bekenstein postulated: Since black holes are intrinsically thermodynamic objects due to Hawking radiation, they must have entropy. And the latter always increases in line with the 2nd law of thermodynamics.
+
+This allows for a second seminal result that links all four fundamental constants: the entropy $S_{\text{BH}}$ of a black hole due to Bekenstein and Hawking. It states that $S_{\text{BH}}$ is proportional to the area $A$ of the black hole's two-dimensional horizon:
+
+\begin{equation*}
+  S_{\text{BH}} = \frac{\kboltz\, c^3}{\hslash\, G}\, \frac{A}{4}
+\end{equation*}
+%
+This is strange and mysterious and has been a subject of heated debate ever since its discovery: In \enquote*{usual} thermodynamic systems the entropy is always extensive, i.\,e.\ proportional to a three-dimensional volume. Is this the smoking gun that points to TORE, the final \emph{theory of really everything}? 
+
+
+\end{document}

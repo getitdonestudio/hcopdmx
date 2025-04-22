@@ -5,6 +5,14 @@ function populateLanguageSwitcher() {
     const languageSwitcher = document.getElementById('languageSwitcher');
     if (!languageSwitcher) return;
   
+    // Prüfen, ob der Language-Switcher bereits manuell mit den richtigen Attributen befüllt wurde
+    const links = languageSwitcher.querySelectorAll('a[data-lang]');
+    if (links.length >= 2) {
+        // Language-Switcher ist bereits korrekt eingerichtet, nichts tun
+        console.log('Language-Switcher bereits richtig eingerichtet');
+        return;
+    }
+  
     // Aktuelle Sprache und Seite aus dem <body>-Attribut auslesen
     const currentLang = document.body.getAttribute('data-lang') || 'de';
     const currentPage = document.body.getAttribute('data-page') || '0000';
@@ -14,7 +22,8 @@ function populateLanguageSwitcher() {
     
     // Links für Deutsch und Englisch erstellen
     const linkDE = document.createElement('a');
-    linkDE.href = `../de/${currentPage}.html`;
+    linkDE.href = `javascript:void(0)`;
+    linkDE.setAttribute('data-lang', 'de');
     linkDE.className = `lang-de${currentLang === 'de' ? ' active' : ''}`;
     linkDE.textContent = 'DEU';
     fragment.appendChild(linkDE);
@@ -24,7 +33,8 @@ function populateLanguageSwitcher() {
     fragment.appendChild(separator);
     
     const linkEN = document.createElement('a');
-    linkEN.href = `../en/${currentPage}.html`;
+    linkEN.href = `javascript:void(0)`;
+    linkEN.setAttribute('data-lang', 'en');
     linkEN.className = `lang-en${currentLang === 'en' ? ' active' : ''}`;
     linkEN.textContent = 'EN';
     fragment.appendChild(linkEN);
@@ -32,10 +42,10 @@ function populateLanguageSwitcher() {
     // Fragment zum DOM hinzufügen (nur ein Reflow)
     languageSwitcher.innerHTML = '';
     languageSwitcher.appendChild(fragment);
-  }
+}
   
-  // Die Funktion wird ausgeführt, sobald der DOM geladen wurde
-  document.addEventListener('DOMContentLoaded', populateLanguageSwitcher);
+// Die Funktion wird ausgeführt, sobald der DOM geladen wurde
+document.addEventListener('DOMContentLoaded', populateLanguageSwitcher);
   
 
 //

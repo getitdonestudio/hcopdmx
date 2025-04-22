@@ -1,4 +1,51 @@
-<h1>Theory of Everything</h1>
-      <p>Lorem ipsum dolor sit amet, consectetuer adipiscing Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincid.</p>
-      <p style="text-align: center"><img class="formel" src="/img/0000.svg"></p>
-      <p>Lorem ipsum dolor sit amet, consectetuer adipiscing Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincid. (200 ZmL)</p>
+<style>
+  .equation {
+    display: block;
+    text-align: center;
+    margin: 1.5em 0;
+  }
+  .katex { font-size: 1.1em; }
+  .katex-display { overflow: auto hidden; }
+</style>
+
+<h1>Quantum mechanics $(0,0,h,0)$</h1>
+
+<p>At the end of the 19th century, physical experiments penetrated deeper and deeper into the atomic realm, producing very strange results that often contradicted everyday logic. Around 1900, Max Planck succeeded in resolving some of the experimental peculiarities by introducing a new fundamental constant, which we now call Planck's quantum of action $h$. In 1905, Einstein, in order to explain the photoelectric effect, unwillingly discovered the quanta of light, later christened photons by Arthur Compton. Their energy $E$ is related to the light's frequency $\nu$ by the formula</p>
+
+<p class="equation">
+\begin{equation*}
+  E=h\,\nu\,.
+\end{equation*}
+</p>
+
+<p>Since its discovery, its value was measured ever more accurately, and finally fixed in 2019 to the <em>exact</em> (rational) value</p>
+
+<p class="equation">
+\begin{equation*}
+  h = 6.626\,070\,15 \times 10^{-34} \text{Js}\,.
+\end{equation*}
+</p>
+
+<p>While the speed of light $c$ as an experimental value was already known in the 17th century and was elevated to the rank of a fundamental natural constant by Einstein's theory of relativity, the history and systematics of the hexadecachoron model are rooted in the year 1900: Planck unintentionally prepared the ground for a new theory $(0,0,h,0)$: quantum mechanics. Its actual mathematical and (arguably, yells Einstein from his non-existing grave) conceptually convincing formulation happened a quarter of a century later with the establishment of Schrödinger's wave mechanics and Heisenberg's more general matrix mechanics. This allowed to determine the probability for a particle to be present at a given location. Accordingly, the precise location may only be pinned down by a measurement. The latter, however, leads to a collapse of the wave function. This phenomenon is decisive for all measurement processes in quantum mechanics. It leads to a multitude of further counter intuitive effects, but also to revolutionary technical developments.</p>
+
+<h2>Action principle</h2>
+
+<p>How does quantum mechanics conceptually relate to classical mechanics, i. e. the theory $(0,0,0,0)$? Newtonian mechanics appears to describe equally well point-like masses and extended bodies, such as apples or planets. As was first understood by Euler and Lagrange, classical physics may be derived by the following assumption: Nature always chooses a trajectory that minimises the action. However, a justification of this action principle is needed. To this end, metaphysical principles were invoked in the 18th century. Fortunately, or unfortunately, on the smallest length scales, in the range of atomic dimensions and below, action minimisation and therefore Newtonian mechanics utterly fails.</p>
+
+<h2>Hilbert space</h2>
+
+<p>Instead, quantum mechanics posits that a given particle takes all possible paths, and then assigns a probability to each of these. One considers so-called probability amplitudes, the square of their magnitude indicating the probability densities of the respective paths. If a measurement is performed, the above mentioned amplitudes are severely modified. Leaving aside possible new metaphysical qualms associated with this approach, quantum mechanics still allows to make essentially exact predictions on the level of macroscopic particle systems.</p>
+
+<p>Nevertheless, all verifiable predictions of quantum mechanics for individual particles are in principle statistical. Moreover, classical particles are strictly distinguishable. Quantum mechanical particles, on the other hand, cannot be distinguished from one another, while particles of different types may be entangled in Hilbert space. This requires different statistics than for classical particles.</p>
+
+<h2>Relation to relativity</h2>
+
+<p>How does quantum mechanics $(0,0,h,0)$ conceptually relate to relativity? The aforementioned probability amplitude, usually denoted by $\Psi$, for a free particle of mass $m$ is determined by the (deterministic) Schrödinger equation (1926), in this case</p>
+
+<p class="equation">
+\begin{equation*}
+  i\hbar\frac{\partial}{\partial t}\Psi=-\frac{\hbar^2}{2m}\left(\frac{\partial^2}{\partial x^2}+\frac{\partial^2}{\partial y^2}+\frac{\partial^2}{\partial z^2}\right)\Psi
+\end{equation*}
+</p>
+
+<p>Note the asymmetry of space and time: The time derivative is of first order, the derivatives according to the space coordinates $x,y,z$ are of second order. No wonder, since the equation originates from the quantum mechanical generalisation of Newton's mechanics, thereby flatly contradicting the special theory of relativity. And indeed, the speed of light $c$ does not even occur in Schrödinger's equation.</p>

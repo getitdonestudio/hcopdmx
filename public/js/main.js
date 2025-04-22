@@ -493,6 +493,13 @@ function transitionToScreensaver() {
   previousPage = currentPage;
   currentPage = 'screensaver';
   
+  // Change info button icon to close icon
+  const infoButtonImg = document.querySelector('#infoButton img');
+  if (infoButtonImg) {
+    infoButtonImg.src = '/assets/close-icon.svg';
+    infoButtonImg.alt = 'Close';
+  }
+  
   // Reset font size to default when entering screensaver
   resetFontSize();
   
@@ -576,6 +583,13 @@ async function returnFromScreensaver() {
   
   console.log("Starting return from screensaver");
   
+  // Change close button icon back to info icon
+  const infoButtonImg = document.querySelector('#infoButton img');
+  if (infoButtonImg) {
+    infoButtonImg.src = '/assets/info-icon.svg';
+    infoButtonImg.alt = 'Info';
+  }
+  
   // Get the last page we were on
   const lastPage = sessionStorage.getItem('lastPage') || '0000';
   const targetDMXKey = binaryToKey[lastPage];
@@ -621,7 +635,54 @@ document.addEventListener('click', function(event) {
   // Reset screensaver timer on any click
   resetScreensaverTimer();
   
-  // Find if this is a navigation link
+  // Handle info button click
+  if (event.target.closest('#infoButton')) {
+    console.log('Info/close button clicked');
+    
+    // If in screensaver mode, return from screensaver
+    if (currentPage === 'screensaver') {
+      console.log('In screensaver mode, returning from screensaver');
+      returnFromScreensaver();
+    } else {
+      // Otherwise, transition to screensaver
+      console.log('Not in screensaver mode, transitioning to screensaver');
+      transitionToScreensaver();
+    }
+    return;
+  }
+  
+  // Speziell für den Screensaver-Modus
+  if (currentPage === 'screensaver') {
+    // Exit-Button für den Screensaver
+    if (event.target.closest('.exit-screensaver')) {
+      console.log('Exit button clicked, returning from screensaver');
+      returnFromScreensaver();
+      return;
+    }
+    
+    // Sprachwechsel im Screensaver erlauben
+    if (event.target.closest('.language-switcher')) {
+      const link = event.target.closest('a');
+      if (link && link.getAttribute('data-lang')) {
+        event.preventDefault();
+        event.stopPropagation();
+        
+        const clickedLang = link.getAttribute('data-lang');
+        if (clickedLang && clickedLang !== currentLang) {
+          console.log(`Language switched in screensaver mode to: ${clickedLang}`);
+          loadContent('screensaver', clickedLang);
+        }
+      }
+      return;
+    }
+    
+    // Alle anderen Klicks im Screensaver ignorieren
+    event.preventDefault();
+    event.stopPropagation();
+    return;
+  }
+  
+  // Standard-Handling für alle Klicks (nicht im Screensaver)
   const link = event.target.closest('a');
   if (link && link.getAttribute('href')) {
     // Always prevent default navigation
@@ -629,13 +690,6 @@ document.addEventListener('click', function(event) {
     event.stopPropagation();
     
     const href = link.getAttribute('href');
-    
-    // Return from screensaver on click anywhere when in screensaver mode
-    if (currentPage === 'screensaver') {
-      console.log('Screensaver clicked, returning to previous page');
-      returnFromScreensaver();
-      return;
-    }
     
     // Handle language switcher clicks
     if (link.closest('.language-switcher')) {
@@ -683,13 +737,8 @@ document.addEventListener('click', function(event) {
       // Transition to the new page without page navigation
       transitionToPage(pageId);
     }
-  } else if (currentPage === 'screensaver') {
-    // Return from screensaver even if clicking on a non-link element
-    console.log('Screensaver clicked (non-link), returning to previous page');
-    returnFromScreensaver();
-    return;
   }
-}, true); // Use capture phase
+}, true);
 
 // Add mouse movement handler for screensaver
 let lastMouseMoveTime = 0;

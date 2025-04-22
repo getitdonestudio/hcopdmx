@@ -1,0 +1,72 @@
+
+\newpage \addsec{Statistische Quantenmechanik $(0,0,h,\kboltz)$}
+\label{sec:0011}
+
+Die Verbindung von nicht-relativistischer Quantenmechanik $(0,0,h,0)$ und statistischer Mechanik $(0,0,0,\kboltz)$ führte zu einer perfekten \enquote*{Eheschließung}: der Quanten-Boltzmann-Statistik. Dabei entstand sogar ein wunderbarer Nachwuchs: Die Boltzmann-Statistik musste entsprechend angepasst werden, sobald die Statistik \emph{identische Teilchen} entweder bosonischer oder aber fermionischer Natur betraf.
+
+
+\subsection*{Quanten-Boltzmann-Statistik}
+
+Auf formaler Ebene lassen sich die Zustandssummen der klassischen statistischen Mechanik leicht an die Quantenmechanik anpassen, indem ein Dichteoperator $\hat\rho$ für ein kanonisches Teilchenensemble wie folgt eingeführt wird:
+
+\begin{equation*}
+  \hat \rho=\frac{1}{Z} \exp\left(-\frac{\hat H}{\kboltz T}\right)
+    \qquad \textrm{mit} \qquad
+    Z=\Tr \exp\left(-\frac{\hat H}{\kboltz T}\right)\,,
+\end{equation*}
+%
+wobei $\hat H$ der Hamilton-Operator des Systems und $Z$ seine Zustandssumme ist, die als Spur über den Hilbert-Raum angegeben wird. Offenbar kann man $\hat\rho$ als eine normierte Operatorversion des klassischen Boltzmann-Faktors interpretieren, wobei $\kboltz$ explizit erscheint.
+
+Der Dichteoperator ist offensichtlich auf Eins normiert: $\Tr \hat \rho=1$. In einer Basis von Energieeigenzuständen, bei denen $\hat H |\psi_n\rangle=E_n |\psi_n\rangle$, gilt
+
+\begin{equation*}
+  \hat \rho=\sum_n p_n |\psi_n\rangle \langle \psi_n|
+    \qquad \textrm{mit} \qquad
+    p_n=\frac{1}{Z} \exp\left(-\frac{E_n}{\kboltz T}\right)\,.
+\end{equation*}
+%
+Hierbei ist $p_n$ die Wahrscheinlichkeit (und nicht die Wahrscheinlichkeitsamplitude!), dass der Zustand des Systems die Energie $E_n$ hat. In einem quantenmechanischen System ist die Anwesenheit des Planckschen Wirkungsquantums $h$ implizit; sie wird im Ausdruck für $\hat H$ erscheinen. Explizit taucht sie jedoch in der {von-Neumann-Gleichung} für die zeitliche Entwicklung des Dichteoperators auf:
+
+\begin{equation*}\label{eq:vNeumann}
+  i \hbar \frac{\partial \hat \rho}{\partial t}=\left[\hat H, \hat \rho\right]\,,
+\end{equation*}
+%
+wobei die Klammern für einen Kommutator stehen. Dies kann als Verallgemeinerung der Schrödinger-Gleichung für reine Zustände zu einer Bewegungsgleichung für statistisch gemischte Zustände betrachtet werden. Man beachte, dass in dieser Interpretation $\hat \rho$ einen quantenstatistischen \emph{Zustand} im Gegensatz zu einem quantenmechanischen \emph{Operator} bezeichnet, für den ein Minuszeichen auf der rechten Seite dieses Zeitentwicklungsoperators erscheinen würde. Mit dem Dichteoperator $\hat \rho$ erhält man die \emph{von-Neumann-Entropie} $S$ durch eine weitere Spur über den Hilbertraum:
+
+\begin{equation*}
+  S=-\kboltz \Tr \left( \hat \rho \log \hat \rho \right).
+\end{equation*}
+%
+Man achte wieder auf das explizite Auftreten von $\kboltz$ in dieser Gleichung.
+
+
+\subsection*{Bose-Einstein-Statistik für Bosonen}
+
+Für den Übergang von der klassischen Mechanik zur Quantenmechanik spielte die kinetische Gastheorie eine wichtige Rolle: Max Planck und Albert Einstein verwendeten die statistischen Methoden von James Clerk Maxwell und Ludwig Boltzmann, um eine Quantentheorie der Strahlung zu entwickeln. Die Quanten der Strahlung sind Photonen, die \emph{Bosonen} mit Spin Eins sind.
+
+Zur Herleitung betrachtet man ein ideales bosonisches Quantengas, das an ein Wärmebad und ein Teilchenreservoir gekoppelt ist, und definiert die großkanonische Zustandssumme
+
+\begin{equation*}
+  Z_{\mathrm{G}}=\Tr \exp\left(-\frac{\hat H-\mu \bar N}{\kboltz T} \right)\,.
+\end{equation*}
+%
+Die Spur wird über alle Energiezustände des Systems sowie über alle möglichen Teilchenzahlen $N$ genommen, wobei $\hat N$ der Teilchenzahloperator und $\mu$ das chemische Potential ist. Unter Annahme der grundlegenden Eigenschaft, dass die Energieeigenwerte von $\hat H$ durch eine beliebige Anzahl $n_\nu=0,1,2,3, \ldots$ von Bosonen erreicht werden können (die sogenannten Besetzungszahlen des $\nu$-ten Einteilchenenergiezustands $E_\nu$, so dass der Gesamtenergieeigenwert von $\hat H$ $E=\sum_\nu n_\nu E_\nu$ und der Gesamtzahleigenwert des Teilchenzahloperators von $\hat N$ $N=\sum_\nu n_\nu$ ist), erhält man den Erwartungswert
+
+\begin{equation*}
+  \langle n_\nu \rangle=
+    \frac{1}{\exp\left(\frac{E_\nu-\mu}{\kboltz T} \right)-1}\,.
+\end{equation*}
+%
+Dies ist die Bose-Einstein-Verteilung, die erstmals in Max Plancks Gesetz der Schwarzkörperstrahlung aus dem Jahr 1900 auftauchte. Plancks Konstante $h$ ist in $E_\nu$ verborgen.
+
+Eine spannende Anwendung ist das Bose-Einstein-Kondensat, das 1924 vorhergesagt und 1995 erstmals gemessen wurde. Es handelt sich um einen Materiezustand, in dem ein Gas bosonischer (Quasi-)Teilchen (= Anregungen, die sich effektiv wie Quantenteilchen verhalten) auf Temperaturen unterhalb seiner kritischen Temperatur abgekühlt wird. Unter solchen Bedingungen \emph{kondensiert} eine Vielzahl von Teilchen in den niedrigsten Quantenzustand.
+
+
+\subsection*{Fermi-Dirac-Statistik für Fermionen}
+
+1926 schlugen Paul Dirac und Enrico Fermi die quantenmechanische Version eines idealen Gases vor, das aus nicht wechselwirkenden Fermionen wie Elektronen besteht und in der Festkörperphysik von großer Bedeutung ist. Diese gehorchen dem Pauli-Prinzip, was bedeutet, dass die oben betrachteten Besetzungszahlen nur noch $n_\nu=0,1$ sein dürfen. Man erhält dann für den Erwartungswert der Besetzungszahl $n_\nu$ des $\nu$-ten Einzelteilchenenergiezustands $E_\nu$ die Fermi-Dirac-Verteilung
+
+\begin{equation*}
+  \langle n_\nu \rangle=
+    \frac{1}{\exp\left(\frac{E_\nu-\mu}{\kboltz T} \right)+1}\,.
+\end{equation*}

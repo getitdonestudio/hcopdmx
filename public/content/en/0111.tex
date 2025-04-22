@@ -1,0 +1,33 @@
+
+\newpage \addsec{Quantum field theory and temperature $(0,c^{-1},h,\kboltz)$}
+\label{sec:0111}
+
+Interestingly, interacting quantum field theory (QFT) is already, by its very construction, a many-particle theory: Even when one restricts to, say, the scattering of just a few external particles, infinitely many further internal, \emph{virtual} particles will necessarily appear in intermediate channels of the scattering process. However, no notion of temperature is involved. Accordingly, Boltzmann's constant $\kboltz$ is not needed when one initially formulates QFT. This changes when one considers a large number of external physical particles, such as the photons that, by the wave-particle duality, making up the radiation of a black body in thermal equilibrium with the environment. In fact, Planck's black body law (1900) accurately describes this situation. To be precise, Planck's spectral radiance $B(\nu,T)$ of a body for frequency $\nu$ at absolute temperature $T$ reads
+
+\begin{equation*}
+  B(\nu,T)=\frac{2 h \nu^3}{c^2} \frac{1}{\exp\left(\frac{h \nu}{\kboltz T}\right)-1}\,.
+\end{equation*}
+%
+It was humankind's first experimentally driven and theoretically derived quantum formula and includes $\kboltz$ along with $c^{-1}$ and $h$. Note that quantum mechanics, without both $k_B$ and $c^{-1}$, was only developed some 25 years later, and quantum field theory proper, i.\,e.\ the theory without $\kboltz$ but including $c^{-1}$, some 50 years later! And indeed, Planck's derivation was solely based on statistical considerations in conjunction with intuitive assumptions about the quantum nature of radiation. The ultimate theoretical justification of his formula, however, is based on both Quantum Electro Dynamics (QED), a quantum field theory, and Bose-Einstein statistics.
+
+
+\subsection*{Finite temperature quantum field theory}
+
+However, there is an altogether different way to \emph{formally} relate quantum field theory and statistical mechanics that goes by the name of \emph{thermal QFT} or \emph{finite temperature QFT}. It is based on a deep analogy between the quantum mechanical phase factor $\exp\left(i \hbar S\right)$ and the Boltzmann factor $\exp\left(-\frac{E}{\kboltz T}\right)$. Formally, time becomes imaginary, which transforms spacetime into a four-dimensional cylinder with three infinitely extended spatial directions and a periodic \emph{temporal} direction with extension
+$\frac{1}{\kboltz T}$. So here we do not have a theory built upon the three constants $c^{-1}$, $h$ and $\kboltz$, but instead one where we start from $c^{-1}$, $h$, and subsequently replace $h$ by $\kboltz$ according to the rule
+
+\begin{equation*}
+  \frac{t}{\hbar} \rightarrow \frac{1}{i \kboltz T}\,.
+\end{equation*}
+
+
+\subsection*{Unruh effect}
+
+The \emph{Unruh temperature}, derived separately by Paul Davies (1975) and William Unruh (1976), is the effective temperature $T_{\text{U}}$ measured by a detector moving in a vacuum field with a uniform acceleration $a$. It reads
+
+\begin{equation*}\label{eq:Unruh}
+  T_{\text{U}}=\frac{\hbar}{2 \pi c\, \kboltz} a.
+\end{equation*}
+%
+The associated quantum field theoretic phenomenon is called the \emph{Unruh effect}. Its existence has been contended by some physicists, and has not yet been measured, at least not in a generally accepted way. Figuratively speaking, it predicts that if one waves around a thermometer at zero temperature in an otherwise empty space, it will suddenly show a temperature. The underlying mechanism is vacuum polarization viewed from different reference frames.
+

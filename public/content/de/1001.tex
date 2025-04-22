@@ -1,0 +1,45 @@
+
+\newpage \addsec{Statistische Mechanik und Newtonsche Gravitationstheorie $(G,0,0,\kboltz)$}
+\label{sec:1001}
+
+Die Vereinigung $(G,0,0,\kboltz)$ von Newtonscher Gravitationtheorie $(G,0,0,0)$ und klassischer statistischer Mechanik $(0,0,0,\kboltz)$ verursacht weder technische noch konzeptionelle Probleme. Es gibt viele interessante Anwendungen, für die im Folgenden zwei Beispiele angeführt werden: Die barometrische Höhenformel für den atmosphärischen Druck in planetarischen Körpern wie unserer Erde und ein grobes Bild der Sternentstehung aus sich zusammenziehenden Gaswolken. Es sollte jedoch darauf hingewiesen werden, dass diese Vereinigung nur eine \enquote*{Summe ihrer Teile} darstellt, d.\,h.\ man erhält keine interessante, neue \emph{einheitliche Theorie}.
+
+
+\subsection*{Barometrische Höhenformel}
+
+Befindet sich ein ideales Gas aus Molekülen der Masse $m$ in einem Gravitationsfeld, das durch eine Masse $M$ erzeugt wird, entsteht ein barometrischer Gasdruck, der exponentiell im Verhältnis zur Gravitationsenergie der Gasmoleküle und ihrer thermischen Energie abnimmt. Um diese Beziehung herzuleiten, betrachtet man die Boltzmann-Verteilung der Moleküle in der Atmosphäre. Ein Molekül der Masse $m$, das sich in einer Höhe $H$ befindet, hat eine potentielle Energie $E=m g H$, wobei die Gravitationsbeschleunigung $g$ auf bzw.\ leicht über der Erdoberfläche durch die Newtonsche Gravitationskonstante $G$, sowie durch die Masse $M$ und den Radius $R$ der Erde ausgedrückt wird: $g=G M/R^2$. Daraus ergibt sich, dass die Wahrscheinlichkeitsverteilung der Moleküle proportional ist zu 
+
+\begin{equation*}\label{eq:barometric_height}
+  \exp\left(-\frac{m M}{R^2}\frac{G}{\kboltz} \frac{H}{T}\right).
+\end{equation*}
+%
+Man beachte in dieser Formel das Verhältnis $G/\kboltz$ der beiden relevanten Fundamentalkonstanten.
+
+Wir sollten diese von den situationsbezogenen (zufälligen) Konstanten $m, M, R^2$ unterscheiden. Die Variablen der Konstellation sind dagegen $H$ und $T$. Die genaue Wahrscheinlichkeitsverteilung ist dann gegeben durch
+
+\begin{equation*}\label{eq:barometric_height_full_1}
+  P(H)=\frac{m M}{R^2}\frac{G}{\kboltz T} \exp\left(-\frac{m M}{R^2}\frac{G}{\kboltz} \frac{H}{T}\right),
+\end{equation*} 
+%
+was tatsächlich $\int_0^\infty dH P(H)=1$ erfüllt. Daraus folgt, dass das Verhältnis der Luftdrücke $p(H_2)$, $p(H_1)$ in den Höhen $H_2$, $H_1$ gegeben ist durch
+
+\begin{equation*}\label{eq:barometric_height_full_2}
+  \frac{p(H_2)}{p(H_1)}=\exp\left(-\frac{m M}{R^2}\frac{G}{\kboltz} \frac{H_2-H_1}{T}\right).
+\end{equation*}
+
+
+\subsection*{Sternentstehung}
+
+Was ist die kritische Masse, bei der interstellare Gaswolken kollabieren und einen neuen Stern bilden? Die Jeans-Instabilität, benannt nach Sir James Jeans, beschreibt die Grenze, oberhalb derer der nach außen gerichtete interne Gasdruck nicht mehr stark genug ist, um die nach innen wirkende Gravitationskraft der Gesamtheit der Gasteilchen auszugleichen. Die Gaswolke kollabiert unter dem Einfluss der Schwerkraft, wodurch die erste Stufe der Bildung eines Protosterns erreicht wird.
+
+Dieses Problem, das in der Astrophysik von entscheidender Bedeutung ist, kann näherungsweise durch die Anwendung der Grundprinzipien der Newtonschen Gravitation in Verbindung mit den Grundprinzipien der klassischen statistischen Mechanik behandelt werden. Natürlich sollte die Gesamtmasse nicht zu groß sein, und die Quanteneffekte der Kompression des Gases sollten vernachlässigt werden. Unter Verwendung einer Vielzahl weiterer Näherungen und vereinfachender Annahmen findet man dann die kritische \emph{Jeans-Masse}, oberhalb derer die potentielle Gravitationsenergie des Systems größer ist als die kinetische Energie seiner Komponenten, was zum Gravitationskollaps führt, der für die Geburt eines neuen Sterns erforderlich ist:
+
+\begin{equation*}
+  M_{\mathrm {Jeans}}=\alpha\,
+    \left(\frac {\kboltz}{G}\right)^{\frac{3}{2}}\,
+    \sqrt {{\frac {1}{\rho}}\, 
+    \left({\frac {T}{m}}\right)^3}\,.
+\end{equation*}
+%
+Hierbei ist $T$ die absolute Temperatur des Gases, $m$ die Masse seiner elementaren Bestandteile und $\rho$ ihre Dichte, während $\alpha$ eine numerische Konstante ist, die von den Details der Näherung abhängt (in der Regel findet man eine Zahl zwischen 1 und 10). Am relevantesten für das Hexadekachor-Modell ist, dass $M_{\mathrm {Jeans}}$ von den beiden Fundamentalkonstanten $\kboltz$ und $G$ abhängt. Beachten Sie, dass $c^{-1}$ und $h$ nicht auftauchen, da wir alle relativistischen bzw.\ alle Quanteneffekte außer Acht gelassen haben.
+
