@@ -18,6 +18,7 @@ A Node.js application for controlling DMX lighting via the Art-Net protocol, opt
   - [Screensaver Modes](#screensaver-modes)
   - [Logging](#application-logs)
   - [DMX Channel Scaling](#dmx-channel-scaling)
+  - [Secret Settings Access](#secret-settings-access)
 - [API Endpoints](#api-endpoints)
 - [Troubleshooting](#troubleshooting)
 - [Development](#development)
@@ -213,6 +214,15 @@ Although autostart is done through systemd, PM2 is installed for monitoring purp
 
 ## Configuration
 
+### Secret Settings Access
+
+The application provides a secure way to access the settings page:
+
+1. Click 5 times within 3 seconds in the top-right corner of the screen
+2. When prompted, enter the password: `250628`
+
+This hidden access method is designed to prevent accidental changes to the system configuration while still allowing authorized users to access settings when needed.
+
 ### Application Logs
 
 The application uses a built-in logging system with the following features:
@@ -317,87 +327,4 @@ The application provides the following API endpoints:
 - `POST /dmx/:key` - Activate a DMX program (replace `:key` with the program identifier from the CSV)
 - `POST /dmx/fade/:key` - Fade to a DMX program with a specified duration
 - `POST /dmx/direct` - Directly set DMX channel values for advanced control
-- `GET /dmx/program/:key` - Get a specific DMX program's channel values
-- `GET /dmx/programs` - List all available DMX programs
-- `GET /state` - Get the current DMX state
-- `GET /api/settings` - Get current settings
-- `POST /api/settings` - Update settings
-- `POST /api/settings/reset` - Reset settings to defaults
-
-### Web Interface
-
-The application provides a web interface accessible at:
-- `http://your-raspberry-pi-ip:3000`
-
-The interface supports multiple languages with pages in the `/de/` (German) and `/en/` (English) directories.
-
-## Troubleshooting
-
-### Common Issues and Solutions
-
-1. **Application Not Starting After Installation**
-   - Check systemd status: `sudo systemctl status dmx-server.service`
-   - View logs: `sudo journalctl -u dmx-server.service -f`
-   - Check Node.js version: `node --version` (should be 18.x or newer)
-   - Check application directory permissions: `ls -la ~/hcopdmx`
-   - Ensure server.js is executable: `chmod +x ~/hcopdmx/server.js`
-
-2. **Error: "Port already in use"**
-   - Check if multiple instances are running: `ps aux | grep node`
-   - If PM2 is also starting the app: `pm2 stop dmxserver && pm2 delete dmxserver && pm2 save`
-   - Restart systemd service: `sudo systemctl restart dmx-server.service`
-
-3. **DMX Not Working**
-   - Check the IP address configuration in `server.js`
-   - Ensure your DMX interface is powered on and connected to the network
-   - Check network connectivity: `ping your-dmx-interface-ip`
-   - Check firewall settings: `sudo iptables -L`
-   - Art-Net typically uses UDP port 6454: `sudo lsof -i UDP:6454`
-
-4. **Screensaver Modes Stop Working**
-   - Check browser console for errors
-   - Try switching to a different screensaver mode
-   - The system includes automatic recovery mechanisms that should handle most issues
-   - If problems persist, restart the server: `sudo systemctl restart dmx-server.service`
-
-5. **Raspberry Pi Not Auto-starting the Application**
-   - Check systemd service status: `sudo systemctl status dmx-server.service`
-   - Enable autostart if not enabled: `sudo systemctl enable dmx-server.service`
-   - Check systemd logs: `sudo journalctl -u dmx-server.service`
-   - Reinstall the service: `./setup-systemd.sh`
-
-6. **Node.js Errors and Crashes**
-   - Check Node.js version: `node --version`
-   - Check memory usage: `free -m`
-   - Check CPU usage: `htop` (install with `sudo apt install htop`)
-   - Look for Node.js crashes in logs: `sudo journalctl -u dmx-server.service | grep -i error`
-
-## Arduino Controller Setup
-
-The project includes support for an Arduino-based button controller (`hcopButton.ino`) that allows physical control of the DMX system:
-
-- **Hardware Requirements**:
-  - Arduino Leonardo (or compatible board with native USB HID support)
-  - 4 buttons connected to pins 3, 4, 5, 6 (with pull-up resistors)
-  - 4 relays/LEDs connected to pins 10, 11, 12, 13
-
-- **Functionality**:
-  - Each button toggles a corresponding bit in a 4-bit state (16 possible combinations)
-  - The state is translated to keyboard characters 'a' through 'p' corresponding to DMX programs
-  - Visual feedback via relays/LEDs shows the current state
-  - Full binary-to-character mapping:
-    - 0000 → 'a', 0001 → 'b', 0010 → 'c', ..., 1111 → 'p'
-
-- **Debugging Mode**:
-  - Set `debugMode = true` in the Arduino code to enable detailed logging
-  - Debug output includes button state changes, timings, and relay operations
-  - Helps with troubleshooting hardware connectivity issues
-  - Disable for normal operation (`debugMode = false`)
-
-- **Installation**:
-  1. Open `hcopButton.ino` in the Arduino IDE
-  2. Connect your Arduino Leonardo via USB
-  3. Upload the sketch to the board
-  4. Connect the buttons and relays according to the pin configuration
-
-When a button is pressed, the Arduino sends the corresponding character to the computer, which is then interpreted by the DMX controller web interface.
+- `

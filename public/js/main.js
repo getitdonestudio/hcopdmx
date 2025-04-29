@@ -946,4 +946,55 @@ document.addEventListener('DOMContentLoaded', async function() {
   
   // Load saved font size
   loadSavedFontSize();
-}); 
+  
+  // Initialize secret settings access
+  initSecretSettingsAccess();
+});
+
+/**
+ * Initialize secret access to settings page through top-right corner clicks
+ */
+function initSecretSettingsAccess() {
+  // Create an invisible area in the top-right corner for click detection
+  const secretArea = document.createElement('div');
+  secretArea.id = 'secretSettingsArea';
+  secretArea.style.position = 'fixed';
+  secretArea.style.top = '0';
+  secretArea.style.right = '0';
+  secretArea.style.width = '150px';
+  secretArea.style.height = '150px';
+  secretArea.style.zIndex = '9999';
+  secretArea.style.cursor = 'default';
+  document.body.appendChild(secretArea);
+  
+  // Set up click counter and timer
+  let clickCount = 0;
+  let lastClickTime = 0;
+  
+  secretArea.addEventListener('click', function(e) {
+    const currentTime = new Date().getTime();
+    
+    // Reset counter if more than 3 seconds have passed
+    if (currentTime - lastClickTime > 3000) {
+      clickCount = 0;
+    }
+    
+    // Increment counter and update last click time
+    clickCount++;
+    lastClickTime = currentTime;
+    
+    // If 5 clicks detected, prompt for password
+    if (clickCount >= 5) {
+      clickCount = 0; // Reset click count
+      
+      // Prompt for password
+      const password = prompt('Bitte Passwort eingeben:');
+      if (password === '250628') {
+        // Redirect to settings page
+        window.location.href = '/settings.html';
+      }
+    }
+  });
+  
+  
+} 
