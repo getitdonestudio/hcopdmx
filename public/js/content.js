@@ -96,3 +96,41 @@ function updateBinaryDisplay() {
     updateBinaryDisplay();
   }
   
+//
+// Hilfsfunktion, um Satzzeichen am Anfang neuer Zeilen zu verhindern
+//
+function preventPunctuationAtLineStart() {
+  // Die Funktion wird aufgerufen, nachdem der Inhalt geladen wurde
+  const paragraphs = document.querySelectorAll('p');
+  const punctuationMarks = ['.', ',', ';', ':', '!', '?', ')', ']', '}', '"', '»', '\''];
+  
+  paragraphs.forEach(p => {
+    // Nur den Text innerhalb der Paragraphen verarbeiten (keine verschachtelten Tags)
+    const textNodes = Array.from(p.childNodes)
+      .filter(node => node.nodeType === Node.TEXT_NODE);
+    
+    textNodes.forEach(textNode => {
+      let content = textNode.textContent;
+      
+      // Ersetze Leerzeichen vor Satzzeichen durch geschützte Leerzeichen
+      punctuationMarks.forEach(mark => {
+        // Regulärer Ausdruck, der ein Leerzeichen vor dem Satzzeichen findet
+        const regex = new RegExp(` \\${mark}`, 'g');
+        // Ersetze mit geschütztem Leerzeichen + Satzzeichen
+        content = content.replace(regex, `\u00A0${mark}`);
+      });
+      
+      textNode.textContent = content;
+    });
+  });
+}
+
+// Die Funktion wird registriert, um nach dem Laden von Inhalten ausgeführt zu werden
+document.addEventListener('DOMContentLoaded', () => {
+  // Initiale Ausführung
+  preventPunctuationAtLineStart();
+});
+
+// Funktion exportieren, damit sie nach dem dynamischen Laden von Inhalten aufgerufen werden kann
+window.preventPunctuationAtLineStart = preventPunctuationAtLineStart;
+  

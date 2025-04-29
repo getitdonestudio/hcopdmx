@@ -2,12 +2,12 @@
   "screensaver": {
     "timeDelay": 3600000,
     "mode": "dimToOn",
-    "lightPower": 218,
+    "lightPower": 113,
     "transitionSpeed": 1000
   },
   "system": {
-    "lastUpdated": "2025-04-22T15:28:40.560Z"
+    "lastUpdated": "2025-04-22T19:22:25.891Z"
   },
-  "lightPower": 95,
+  "lightPower": 113,
   "linkLightPowers": false
 }

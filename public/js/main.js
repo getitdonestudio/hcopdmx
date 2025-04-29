@@ -265,6 +265,11 @@ async function loadContent(pageId, lang = currentLang) {
       initAccordions();
     }
     
+    // Verhindere Satzzeichen am Anfang neuer Zeilen, falls die Funktion verfügbar ist
+    if (typeof preventPunctuationAtLineStart === 'function') {
+      preventPunctuationAtLineStart();
+    }
+    
     // Update state and attributes
     currentPage = pageId;
     currentLang = lang;
@@ -493,13 +498,6 @@ function transitionToScreensaver() {
   previousPage = currentPage;
   currentPage = 'screensaver';
   
-  // Change info button icon to close icon
-  const infoButtonImg = document.querySelector('#infoButton img');
-  if (infoButtonImg) {
-    infoButtonImg.src = '/assets/close-icon.svg';
-    infoButtonImg.alt = 'Close';
-  }
-  
   // Reset font size to default when entering screensaver
   resetFontSize();
   
@@ -582,13 +580,6 @@ async function returnFromScreensaver() {
   if (currentPage !== 'screensaver' || isLoadingContent) return;
   
   console.log("Starting return from screensaver");
-  
-  // Change close button icon back to info icon
-  const infoButtonImg = document.querySelector('#infoButton img');
-  if (infoButtonImg) {
-    infoButtonImg.src = '/assets/info-icon.svg';
-    infoButtonImg.alt = 'Info';
-  }
   
   // Get the last page we were on
   const lastPage = sessionStorage.getItem('lastPage') || '0000';

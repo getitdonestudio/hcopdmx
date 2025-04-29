@@ -1,0 +1,56 @@
+/* Silbentrennung für wissenschaftliche Texte
+ * Diese Regeln trennen nur Wörter mit mehr als 7 Buchstaben
+ * und stellen sicher, dass mindestens 3 Buchstaben vor und nach dem Bindestrich stehen
+ */
+
+/* Grundlegende Silbentrennung für alle Paragraphen */
+p {
+  /* Aktiviert automatische Silbentrennung */
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  -ms-hyphens: auto;
+  
+  /* Nur Wörter mit mehr als 7 Buchstaben trennen */
+  hyphenate-limit-chars: 7 3 3;
+  -webkit-hyphenate-limit-chars: 7 3 3;
+  -moz-hyphenate-limit-chars: 7 3 3;
+  
+  /* Mindestens 3 Zeichen vor/nach dem Trennstrich */
+  hyphenate-limit-before: 3;
+  hyphenate-limit-after: 3;
+  -webkit-hyphenate-limit-before: 3;
+  -webkit-hyphenate-limit-after: 3;
+  -moz-hyphenate-limit-before: 3;
+  -moz-hyphenate-limit-after: 3;
+  
+}
+
+h1, h2, h3, h4, h5, h6 {
+  /* Aktiviert automatische Silbentrennung */
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  -ms-hyphens: auto;
+  
+  /* Nur Wörter mit mehr als 7 Buchstaben trennen */
+  hyphenate-limit-chars: 8 5 5;
+  -webkit-hyphenate-limit-chars: 8 5 5;
+  -moz-hyphenate-limit-chars: 8 5 5;
+  
+  /* Mindestens 3 Zeichen vor/nach dem Trennstrich */
+  hyphenate-limit-before: 5;
+  hyphenate-limit-after: 5;
+  -webkit-hyphenate-limit-before: 5;
+  -webkit-hyphenate-limit-after: 5;
+  -moz-hyphenate-limit-before: 5;
+  -moz-hyphenate-limit-after: 5;
+  
+}
+
+/* Spezifische Spracheinstellungen für die Silbentrennung */
+body[data-lang="de"] p {
+  lang: de;
+}
+
+body[data-lang="en"] p {
+  lang: en;
+} 

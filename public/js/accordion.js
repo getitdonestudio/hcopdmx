@@ -67,12 +67,24 @@ function transformAccordions() {
     
     // Add click event to toggle the accordion
     accordionTitle.addEventListener('click', () => {
+      const content = accordion.querySelector('.accordion-content');
       accordion.classList.toggle('open');
       
-      // Scroll the accordion title to the top of the viewport
-      setTimeout(() => {
-        accordion.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 150); // Small delay to let any animations/transitions start
+      if (accordion.classList.contains('open')) {
+        // Set max-height for opening animation
+        content.style.maxHeight = content.scrollHeight + 'px';
+        
+        // Scroll the accordion title to the top of the viewport
+        setTimeout(() => {
+          // Check if still open before scrolling
+          if (accordion.classList.contains('open')) { 
+            accordion.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 150); // Small delay to let any animations/transitions start
+      } else {
+        // Remove max-height for closing animation (rely on CSS)
+        content.style.maxHeight = null;
+      }
     });
   });
 }

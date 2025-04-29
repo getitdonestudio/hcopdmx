@@ -60,6 +60,24 @@
     font-style: italic;
     font-display: swap;
   }
+
+  @font-face {
+    font-family: 'Yorkten Slab';
+    src: url('fonts/Yorkten-Slab-Norm-Thin-Ital.woff2') format('woff2'),
+        url('fonts/Yorkten-Slab-Norm-Thin-Ital.woff') format('woff');
+    font-weight: 100;
+    font-style: italic;
+    font-display: swap;
+  }
+  
+  @font-face {
+    font-family: 'Yorkten Slab';
+    src: url('fonts/Yorkten-Slab-Norm-Thin.woff2') format('woff2'),
+        url('fonts/Yorkten-Slab-Norm-Thin.woff') format('woff');
+    font-weight: 100;
+    font-style: normal;
+    font-display: swap;
+  }
   
   @font-face {
     font-family: 'Yorkten Slab';

@@ -29,20 +29,40 @@ code::-webkit-scrollbar {
 
 
 /* Font size variations */
-body[data-font-size="1"] {
+body[data-font-size="1"] p, body[data-font-size="1"] blockquote{
   font-size: 16pt;
+  line-height: 1.5;
 }
-body[data-font-size="2"] {
-  font-size: 22pt; /* Default */
+body[data-font-size="1"] h2{
+  font-size: 18pt;
 }
-body[data-font-size="3"] {
+body[data-font-size="2"] p, body[data-font-size="2"] blockquote{
+  font-size: 20pt; /* Default */
+  line-height: 1.5;
+}
+body[data-font-size="2"] h2{
+  font-size: 22pt;
+}
+body[data-font-size="3"] p, body[data-font-size="3"] blockquote{
+  font-size: 23pt;
+  line-height: 1.5;
+}
+body[data-font-size="3"] h2{
+  font-size: 25pt;
+}
+body[data-font-size="4"] p, body[data-font-size="4"] blockquote{
   font-size: 26pt;
+  line-height: 1.5;
 }
-body[data-font-size="4"] {
+body[data-font-size="4"] h2{
+  font-size: 28pt;
+}
+body[data-font-size="5"] p, body[data-font-size="5"] blockquote{
   font-size: 30pt;
+  line-height: 1.5;
 }
-body[data-font-size="5"] {
-  font-size: 34pt;
+body[data-font-size="5"] h2{
+  font-size: 32pt;
 }
 
 body::after {
@@ -62,9 +82,9 @@ h1 {
   font-family: Stolzl, sans-serif;
   font-size: 50pt;
   font-weight: normal;
-  margin: 15px 0;
   display: flex;
   flex-direction: column;
+  line-height: 1.2em;
 }
 h1 .katex {
   font-size: .8em;
@@ -73,8 +93,8 @@ h1 .katex {
 h1 > span {
   display: flex;
   justify-content: end;
+  /*display: none;*/
 }
-
 
 /* Header und Language-Switcher */
 header {
@@ -90,14 +110,14 @@ header {
 
 .language-switcher {
   font-family: Stolzl, sans-serif;
-  font-size: 14pt;
+  font-size: 18pt;
   width: max-content;
   padding: 22px 20px 20px 15px;
-  background: #ffffff45;
+  background: #ffffff;
   -webkit-backdrop-filter: blur(30px);
   backdrop-filter: blur(30px);
   border-radius: 0 50px 50px 0;
-  box-shadow: 0 0 10px #666;
+  box-shadow: 5px 5px 10px #6666667d;
   position: relative;
   z-index: 10;
   display: flex;
@@ -157,6 +177,9 @@ body[data-lang="de"] a.lang-de {
 .info-icon img {
   height: 37px;
 }
+.font-size-icon.info-icon img {
+  height: 45px !important;
+}
 
 .font-size-options {
   position: absolute;
@@ -164,7 +187,7 @@ body[data-lang="de"] a.lang-de {
   left: 0;
   width: 0;
   height: 100%;
-  background: #ffffff45;
+  background: #94a69e;
   -webkit-backdrop-filter: blur(30px);
   backdrop-filter: blur(30px);
   border-radius: 0 50px 50px 0;
@@ -185,7 +208,7 @@ body[data-lang="de"] a.lang-de {
 .decrease-font, .increase-font {
   background: none;
   border: none;
-  color: #4C7371;
+  color: #fff;
   font-size: 24pt;
   cursor: pointer;
   padding: 0 10px 0 0;
@@ -194,10 +217,6 @@ body[data-lang="de"] a.lang-de {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.decrease-font:hover, .increase-font:hover {
-  background: rgba(255, 255, 255, 0.2);
 }
 
 .settings-link {
@@ -252,7 +271,7 @@ body[data-lang="en"] .site-title::after {
   text-transform: uppercase;
   width: 100%;
   text-align: center;
-  letter-spacing: 12.5px;
+  letter-spacing: 12.8px;
   font-family: Stolzl, sans-serif;
   color: #899195;
   font-weight: 300;
@@ -265,7 +284,7 @@ body[data-lang="de"] .site-title::after {
   text-transform: uppercase;
   width: 100%;
   text-align: center;
-  letter-spacing: 12.5px;
+  letter-spacing: 17.5px;
   font-family: Stolzl, sans-serif;
   color: #899195;
   font-weight: 300;
@@ -274,7 +293,7 @@ body[data-lang="de"] .site-title::after {
   padding-bottom: 25px;
 }
 main {
-  padding: 20px 65px 20px 40px;
+  padding: 20px 85px 100px 60px;
 }
 
 /* Loading indicator */
@@ -291,7 +310,7 @@ main {
 /* Binary Display */
 #binaryDisplay {
   display: flex;
-  flex-direction: column-reverse;
+  flex-direction: column;
   align-items: center;
   margin: 0;
   position: fixed;
@@ -303,12 +322,13 @@ main {
 }
 
 .binary-bit {
-  width: 30px;
+  width: 25px;
   height: 20vh;
   margin: 10px 0px;
   background-color: rgba(255, 255, 255, 0.067);
   border-radius: 50px 0px 0px 50px;
-  outline: 1px solid white;
+  outline: 3px solid white;
+  outline-offset: -1px;
 }
 
 
@@ -348,30 +368,25 @@ body[data-lang="en"] .screensaver {
   background-position: center;
   background-repeat: no-repeat;
 }
-.screensaver #binaryDisplay, .screensaver .site-title {
+.screensaver #binaryDisplay, .screensaver .site-title, .screensaver #fontSizeToggle, .screensaver #infoButton {
   display: none;
 }
-.screensaver #fontSizeToggle {
-  display: none;
+.screensaver .language-switcher {
+   padding: 22px 20px 20px 15px;
+  background: #8FA19A; 
+}
+body[data-page="screensaver"] .language-switcher a, body[data-page="screensaver"] .language-switcher span {
+  color: white !important;
 }
 
 /* Exit button for screensaver */
 .exit-screensaver {
   position: fixed;
-  top: 20px;
-  right: 20px;
-  width: 50px;
-  height: 50px;
-  background-color: rgba(0, 0, 0, 0.5);
-  color: white;
-  font-size: 36px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  top: 40px;
+  right: 40px;
+  width: 40px;
   cursor: pointer;
   z-index: 1010;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 
 .exit-screensaver:hover {
@@ -649,7 +664,12 @@ body[data-page="settings"] h1 {
 .accordion {
   overflow: hidden;
   border: solid white;
-  border-width: 2px 0px 0px 0px;
+  border-width: 0px;
+  border-bottom-width: 3px;
+}
+.accordion:first-of-type {
+  margin-top: 50px;
+  border-top-width: 3px;
 }
 
 .accordion-title {
@@ -666,7 +686,7 @@ body[data-page="settings"] h1 {
   padding: 0;
   font-family: Stolzl, sans-serif;
   font-weight: 400;
-  font-size: 24pt;
+  font-size: 22pt;
 }
 
 .accordion-toggle-icon {
@@ -697,7 +717,7 @@ body[data-page="settings"] h1 {
 }
 
 .accordion.open .accordion-toggle-icon::before {
-  transform: rotate(135deg);
+  transform: rotate(225deg);
 }
 
 .accordion.open .accordion-toggle-icon::after {

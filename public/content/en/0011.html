@@ -17,25 +17,26 @@
 <p>On a formal level, the partition functions of classical statistical mechanics are easily adapted to quantum mechanics by introducing a density operator $\hat\rho$ for a canonical ensemble of particles as follows:</p>
 
 <p class="equation">
-\begin{equation*}
-  \hat \rho=\frac{1}{Z} \exp\left(-\frac{\hat H}{k_B T}\right)
-    \qquad \textrm{with} \qquad
-    Z=\textrm{Tr} \exp\left(-\frac{\hat H}{k_B T}\right),
-\end{equation*}
-</p>
+  $$
+  \begin{align*}
+    \hat \rho &= \frac{1}{Z} \exp\left(-\frac{\hat H}{k_B T}\right) \\
+    \textrm{with} \quad Z &= \textrm{Tr} \exp\left(-\frac{\hat H}{k_B T}\right)\,
+  \end{align*}
+  $$
+  </p>
 
 <p>where $\hat H$ is the Hamilton operator of the system and $Z$ its partition function, given as a trace over the Hilbert space. Clearly one may interpret $\hat\rho$ as a normalized, operatorial version of the Boltzmann factor, with the explicit appearance of $k_B$.</p>
 
 <p>The density operator is obviously normalized to one: $\textrm{Tr} \hat \rho=1$. In a basis of energy eigenstates, where $\hat H |\psi_n\rangle=E_n  |\psi_n\rangle$, one has</p>
 
 <p class="equation">
-\begin{equation*}
-  \hat \rho=\sum_n p_n |\psi_n\rangle \langle \psi_n|
-    \qquad \textrm{with} \qquad
-    p_n=\frac{1}{Z} \exp\left(-\frac{E_n}{k_B T}\right).
-\end{equation*}
-</p>
-
+  $$
+  \begin{align*}
+    \hat \rho &= \sum_n p_n |\psi_n\rangle \langle \psi_n| \\
+    \textrm{with} \quad p_n &= \frac{1}{Z} \exp\left(-\frac{E_n}{k_B T}\right)\,.
+  \end{align*}
+  $$
+  </p>
 <p>Here $p_n$ is the probability (<em>not</em> the probability amplitude!) that the system's state has the energy $E_n$. In a quantum mechanical system, the presence of Planck's constant $h$ is implicit; it will appear in the expression for $\hat H$. However, it does appear explicitly in the <em>von Neumann equation</em> for the time evolution of the density operator</p>
 
 <p class="equation">
