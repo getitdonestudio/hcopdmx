@@ -217,6 +217,8 @@ body[data-lang="de"] a.lang-de {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  bottom: 3px;
 }
 
 .settings-link {
@@ -352,7 +354,7 @@ body[data-lang="de"] .screensaver {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-image: url(/assets/screensaver_de.webp);
+  background-image: url(/assets/screensaver_de.svg);
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
@@ -363,12 +365,12 @@ body[data-lang="en"] .screensaver {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-image: url(/assets/screensaver_en.webp);
+  background-image: url(/assets/screensaver_en.svg);
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
 }
-.screensaver #binaryDisplay, .screensaver .site-title, .screensaver #fontSizeToggle, .screensaver #infoButton {
+.screensaver #binaryDisplay, .screensaver .site-title, .screensaver #fontSizeToggle, .screensaver #infoButton, body[data-page="screensaver"] #settingsLink {
   display: none;
 }
 .screensaver .language-switcher {
@@ -382,7 +384,7 @@ body[data-page="screensaver"] .language-switcher a, body[data-page="screensaver"
 /* Exit button for screensaver */
 .exit-screensaver {
   position: fixed;
-  top: 40px;
+  top: 45px;
   right: 40px;
   width: 40px;
   cursor: pointer;
@@ -485,7 +487,7 @@ body[data-page="settings"] h1 {
   border: none;
   background-color: rgba(255, 255, 255, 0.2);
   color: white;
-  max-width: 200px;
+  max-width: 300px;
 }
 
 .setting-item input[type="range"] {
@@ -541,13 +543,13 @@ body[data-page="settings"] h1 {
 }
 
 .settings-status.success {
-  background-color: rgba(0, 128, 0, 0.1);
-  color: darkgreen;
+  background-color: darkgreen;
+  color: white;
 }
 
 .settings-status.error {
-  background-color: rgba(220, 0, 0, 0.1);
-  color: darkred;
+  background-color: darkred;
+  color: white;
 }
 
 /* Quick Controls section in settings */

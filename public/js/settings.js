@@ -146,6 +146,65 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
   });
   
+  // Add event listener for the linkLightPowers checkbox
+  linkLightPowersCheckbox.addEventListener('change', async function() {
+    // Show/hide screensaver light power container based on checkbox state
+    screensaverLightPowerContainer.style.display = this.checked ? 'none' : 'block';
+    
+    // If checking the box, sync the screensaver power with the normal power
+    if (this.checked) {
+      const normalValue = parseInt(normalLightPowerInput.value);
+      screensaverLightPowerInput.value = normalValue;
+      screensaverLightPowerValue.textContent = normalValue;
+      screensaverLightPowerPercentage.textContent = Math.round((normalValue / 255) * 100);
+    }
+    
+    // Save the setting
+    try {
+      // Get current settings
+      const response = await fetch('/api/settings');
+      if (!response.ok) {
+        console.error('Failed to load settings for update');
+        return;
+      }
+      
+      const currentSettings = await response.json();
+      
+      // Update the settings
+      const updatedSettings = {
+        ...currentSettings,
+        linkLightPowers: this.checked
+      };
+      
+      // If linking is enabled, sync screensaver power with normal power
+      if (this.checked) {
+        updatedSettings.screensaver = {
+          ...updatedSettings.screensaver,
+          lightPower: parseInt(normalLightPowerInput.value)
+        };
+      }
+      
+      // Save the updated settings
+      const saveResponse = await fetch('/api/settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updatedSettings)
+      });
+      
+      if (saveResponse.ok) {
+        console.log('Link light powers setting saved:', this.checked);
+        showStatus('Link setting saved', 'success');
+        
+        // Set the settings updated flag
+        sessionStorage.setItem('settingsUpdated', 'true');
+      }
+    } catch (error) {
+      console.error('Error saving link light powers setting:', error);
+    }
+  });
+  
   // Add a debounced version of the same event to save settings after sliding stops
   let lightPowerSaveTimeout = null;
   normalLightPowerInput.addEventListener('change', async function() {
@@ -277,63 +336,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     }, 500); // 500ms debounce
   });
   
-  // Handle linking/unlinking light power controls
-  linkLightPowersCheckbox.addEventListener('change', async function() {
-    if (this.checked) {
-      // When linked, hide the screensaver control and set its value to match normal
-      screensaverLightPowerContainer.style.display = 'none';
-      screensaverLightPowerInput.value = normalLightPowerInput.value;
-      screensaverLightPowerValue.textContent = normalLightPowerValue.textContent;
-      screensaverLightPowerPercentage.textContent = normalLightPowerPercentage.textContent;
-    } else {
-      // When unlinked, show the screensaver control
-      screensaverLightPowerContainer.style.display = 'block';
-    }
-    
-    // Save the linkLightPowers setting
-    try {
-      // Get current settings
-      const response = await fetch('/api/settings');
-      if (!response.ok) {
-        console.error('Failed to load settings for link update');
-        return;
-      }
-      
-      const currentSettings = await response.json();
-      const normalLightPower = parseInt(normalLightPowerInput.value);
-      
-      // Update the settings
-      const updatedSettings = {
-        ...currentSettings,
-        linkLightPowers: this.checked,
-        screensaver: {
-          ...currentSettings.screensaver,
-          // If linked, set screensaver light power to match normal
-          lightPower: this.checked ? normalLightPower : parseInt(screensaverLightPowerInput.value)
-        }
-      };
-      
-      // Save the updated settings
-      const saveResponse = await fetch('/api/settings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(updatedSettings)
-      });
-      
-      if (saveResponse.ok) {
-        console.log('Light power linking setting saved:', this.checked);
-        showStatus(`Light powers ${this.checked ? 'linked' : 'unlinked'}`, 'success');
-        
-        // Set the settings updated flag
-        sessionStorage.setItem('settingsUpdated', 'true');
-      }
-    } catch (error) {
-      console.error('Error saving light power linking setting:', error);
-    }
-  });
-  
   // Stop any running test when the mode selection changes
   if (screensaverModeSelect) {
     screensaverModeSelect.addEventListener('change', function() {
@@ -439,12 +441,19 @@ document.addEventListener('DOMContentLoaded', async function() {
     screensaverTimeInput.value = settings.screensaver.timeDelay / 1000; // Convert ms to seconds
     screensaverModeSelect.value = settings.screensaver.mode;
     
-    // Set light power controls
-    normalLightPowerInput.value = settings.screensaver.lightPower;
-    normalLightPowerValue.textContent = settings.screensaver.lightPower;
-    normalLightPowerPercentage.textContent = Math.round((settings.screensaver.lightPower / 255) * 100);
+    // Set the checkbox state for linking light powers
+    if (linkLightPowersCheckbox) {
+      linkLightPowersCheckbox.checked = settings.linkLightPowers;
+      // Show/hide screensaver light power control based on link status
+      screensaverLightPowerContainer.style.display = settings.linkLightPowers ? 'none' : 'block';
+    }
     
-    // Set screensaver light power (same as normal for now)
+    // Set normal light power controls
+    normalLightPowerInput.value = settings.lightPower;
+    normalLightPowerValue.textContent = settings.lightPower;
+    normalLightPowerPercentage.textContent = Math.round((settings.lightPower / 255) * 100);
+    
+    // Set screensaver light power
     screensaverLightPowerInput.value = settings.screensaver.lightPower;
     screensaverLightPowerValue.textContent = settings.screensaver.lightPower;
     screensaverLightPowerPercentage.textContent = Math.round((settings.screensaver.lightPower / 255) * 100);
@@ -494,6 +503,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Build settings object
     const settings = {
+      lightPower: lightPower,
+      linkLightPowers: linkLightPowersCheckbox.checked,
       screensaver: {
         timeDelay: screensaverTime,
         mode: screensaverMode,
