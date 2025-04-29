@@ -85,6 +85,7 @@ h1 {
   display: flex;
   flex-direction: column;
   line-height: 1.2em;
+  margin: 50px 0 25px 0;
 }
 h1 .katex {
   font-size: .8em;
@@ -93,7 +94,7 @@ h1 .katex {
 h1 > span {
   display: flex;
   justify-content: end;
-  /*display: none;*/
+  display: none;
 }
 
 /* Header und Language-Switcher */
@@ -110,12 +111,10 @@ header {
 
 .language-switcher {
   font-family: Stolzl, sans-serif;
-  font-size: 18pt;
+  font-size: 19pt;
   width: max-content;
-  padding: 22px 20px 20px 15px;
+  padding: 22px 10px 20px 15px;
   background: #ffffff;
-  -webkit-backdrop-filter: blur(30px);
-  backdrop-filter: blur(30px);
   border-radius: 0 50px 50px 0;
   box-shadow: 5px 5px 10px #6666667d;
   position: relative;
@@ -130,6 +129,8 @@ header {
   margin-right: 5px 0;
   text-decoration: none;
   color: #94A69E;
+  position: relative;
+  top: 2px;
 }
 
 .lang {
@@ -137,10 +138,10 @@ header {
 }
 
 body[data-lang="en"] a.lang-en {
-  font-weight: 700;
+  font-weight: 400;
 }
 body[data-lang="de"] a.lang-de {
-  font-weight: 700;
+  font-weight: 400;
 }
 
 .nav-separator {
@@ -266,6 +267,10 @@ body[data-lang="de"] a.lang-de {
   color: #2a4140;
 }
 
+#settingsLink{
+  display: none;
+}
+
 /* Hauptinhalt */
 
 body[data-lang="en"] .site-title::after {
@@ -273,11 +278,11 @@ body[data-lang="en"] .site-title::after {
   text-transform: uppercase;
   width: 100%;
   text-align: center;
-  letter-spacing: 12.8px;
+  letter-spacing: 14.8px;
   font-family: Stolzl, sans-serif;
   color: #899195;
-  font-weight: 300;
-  font-size: 18pt;
+  font-weight: 400;
+  font-size: 16pt;
   display: flow-root;
   padding-bottom: 25px;
 }
@@ -286,11 +291,11 @@ body[data-lang="de"] .site-title::after {
   text-transform: uppercase;
   width: 100%;
   text-align: center;
-  letter-spacing: 17.5px;
+  letter-spacing: 19px;
   font-family: Stolzl, sans-serif;
   color: #899195;
-  font-weight: 300;
-  font-size: 18pt;
+  font-weight: 400;
+  font-size: 16pt;
   display: flow-root;
   padding-bottom: 25px;
 }
@@ -370,7 +375,7 @@ body[data-lang="en"] .screensaver {
   background-position: center;
   background-repeat: no-repeat;
 }
-.screensaver #binaryDisplay, .screensaver .site-title, .screensaver #fontSizeToggle, .screensaver #infoButton, body[data-page="screensaver"] #settingsLink {
+.screensaver #binaryDisplay, .screensaver .site-title, .screensaver #fontSizeToggle, .screensaver #infoButton, body[data-page="screensaver"] #settingsLink, body[data-page="screensaver"] #secretSettingsArea {
   display: none;
 }
 .screensaver .language-switcher {
@@ -744,4 +749,15 @@ body[data-page="settings"] h1 {
   background: white;
   font-weight: 500;
   cursor: pointer;
+  hyphens: none;
+}
+
+@media (min-width: 1200px) {
+    body {
+      position: relative;
+      box-shadow: 0px 0px 10px #666;
+  }
+  #binaryDisplay {
+    position: absolute;
+}
 }
