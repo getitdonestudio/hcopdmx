@@ -389,9 +389,6 @@ body[data-page="screensaver"] .language-switcher a, body[data-page="screensaver"
   z-index: 1010;
 }
 
-.exit-screensaver:hover {
-  background-color: rgba(180, 0, 0, 0.7);
-}
 
 /* Position DMX controls in a fixed position */
 .dmx-controls {
@@ -733,4 +730,16 @@ body[data-page="settings"] h1 {
 
 .accordion.open .accordion-content {
   max-height: 2000px; /* Arbitrary large value */
+}
+
+#show-cube {
+  all: unset;
+  padding: 10px 30px;
+  font-size: 1em;
+  color: #94a69e;
+  border-radius: 50px;
+  margin: 20px 0 50px 0;
+  background: white;
+  font-weight: 500;
+  cursor: pointer;
 }

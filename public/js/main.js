@@ -74,8 +74,9 @@ function captureKeyboardEvents() {
     
     const key = event.key.toLowerCase();
     
-    // Prevent default for all DMX-related keys
-    if (keyToBinary.hasOwnProperty(key) || key === 'q' || key === 'y' || key === 'z') {
+    // Extended range of DMX-related keys: a-p, q, r-x, y, z
+    if (keyToBinary.hasOwnProperty(key) || key === 'q' || 
+        (key >= 'r' && key <= 'x') || key === 'y' || key === 'z') {
       event.preventDefault();
       event.stopPropagation();
       
@@ -91,10 +92,24 @@ function captureKeyboardEvents() {
         return;
       }
       
-      // Special keys: q (screensaver), y (all on), z (all off)
+      // Special keys: q (screensaver), r-x (direct DMX commands), y (all on), z (all off)
       if (key === 'q') {
         console.log('Q key pressed - activating screensaver');
         transitionToScreensaver();
+      } else if (key >= 'r' && key <= 'x') {
+        console.log(`${key.toUpperCase()} key pressed - sending direct DMX command`);
+        
+        // For R-X, we send direct DMX commands without page navigation
+        const statusElem = document.getElementById('status');
+        if (statusElem) {
+          statusElem.textContent = `Sende DMX-Befehl ${key.toUpperCase()}...`;
+        }
+        sendDMXCommand(key)
+          .then(() => {
+            if (statusElem) {
+              statusElem.textContent = `DMX-Befehl ${key.toUpperCase()} gesendet.`;
+            }
+          });
       } else if (key === 'y') {
         console.log('Y key pressed - All On (without page navigation)');
         

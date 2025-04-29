@@ -33,3 +33,46 @@
 <h2>Offene Fragen ...</h2>
 
 <p>Benötigt man überhaupt eine Theorie, die Quantenfeldtheorie und allgemeine Relativitätstheorie vereint? In dieser Frage herrscht weitgehende, bejahende Einigkeit in der Physik. Es ist nämlich im Rahmen der aktuellen physikalischen Theorien offensichtlich, dass sowohl die Detailbeschreibung von Schwarzen Löchern als auch diejenige des Urknalls die Quantenphysik erfordern. Zudem ist es zumindest experimentell klar, dass etwas Grundlegende im aktuellen Theoriegebäude der Physik fehlt: Etwa 96 Prozent der Materie und Energie unseres Universums sind wohl noch unbekannt, oder, wie man sagt, &bdquo;dunkel&ldquo;.</p>
+
+<h2>Cube of Physics</h2>
+
+<p>Seit 2015 arbeitet eine interdisziplinäre Gruppe von Wissenschaftler*innen unter der Leitung von Christian Kassung, Jürgen P. Rabe und Matthias Staudacher an Projekten, die experimentelle und theoretische Physik sowie Naturwissenschaften mit Kulturgeschichte und -theorie verbinden. Der Cube of Physics ist ein Modell unseres physikalischen Wissens. Er verknüpft dessen Geschichte und Struktur auf Basis der drei fundamentalen Konstanten: G, c⁻¹ und h.</p>
+
+<video autoplay loop muted playsinline width="100%">
+  <source src="/assets/cop.webm" type="video/webm">
+  Dein Browser unterstützt kein transparentes Video.
+</video>
+
+<p>Im Jahr 2022 wurde eine neue multimediale Installation des Cubes im Lise-Meitner-Haus der Humboldt-Universität zu Berlin eröffnet.</p>
+
+<img src="/assets/cop.webp" alt="Cube of Physics in Berlin" width="100%">
+
+<p style="text-align: center">
+<button id="show-cube" onclick="
+  if(this.getAttribute('data-state') === 'active') {
+    // Button wurde bereits geklickt, sende DMX-Befehl 'o'
+    if(typeof sendDMXCommand === 'function') {
+      sendDMXCommand('o');
+      console.log('DMX-Befehl o gesendet');
+    } else {
+      fetch('/dmx/o', {method:'POST', headers:{'Content-Type':'application/json'}})
+        .then(r => console.log('DMX-Befehl o via fetch gesendet'));
+    }
+    // Zurücksetzen auf Ausgangszustand
+    this.textContent = 'Bring den Cube of Physics zum Leuchten';
+    this.setAttribute('data-state', 'inactive');
+  } else {
+    // Erster Klick, sende DMX-Befehl 'x'
+    if(typeof sendDMXCommand === 'function') {
+      sendDMXCommand('x');
+      console.log('DMX-Befehl x gesendet');
+    } else {
+      fetch('/dmx/x', {method:'POST', headers:{'Content-Type':'application/json'}})
+        .then(r => console.log('DMX-Befehl x via fetch gesendet'));
+    }
+    // Ändere Text und Status
+    this.textContent = 'Zurück zur Theorie von Allem';
+    this.setAttribute('data-state', 'active');
+  }
+">Bring den Cube of Physics zum Leuchten</button>
+</p>

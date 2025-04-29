@@ -33,3 +33,45 @@
 <h2>Open questions ...</h2>
 
 <p>Is there any need at all for a theory that combines quantum field theory and general relativity? There is a broad and affirmative consensus in physics on this question. For instance, given the current framework of physical theory, it is obvious that both the detailed description of black holes and that of the big bang require quantum mechanics. In addition, it is at least experimentally clear that something fundamental is missing from the current body of theories in physics: About 96 percent of the matter and energy of our universe seem to be unknown, or, as one says, &bdquo;dark&ldquo;.</p>
+
+<h2>Cube of Physics</h2>
+<p>Since 2015, an interdisciplinary group of scholars led by Christian Kassung, Jürgen P. Rabe, and Matthias Staudacher has been working on projects bridging experimental and theoretical physics as well as natural sciences with cultural history and theory. The Cube of Physics is a model of our physical knowledge. It intertwines its history and structure based on the three fundamental constants: G, c⁻¹, and h.</p>
+
+<video autoplay loop muted playsinline width="100%">
+  <source src="/assets/cop.webm" type="video/webm">
+  Your browser does not support transparent video.
+</video>
+
+<p>In 2022, a new multimedia installation of the Cube was opened in the Lise-Meitner-Haus of Humboldt University in Berlin.</p>
+
+<img src="/assets/cop.webp" alt="Cube of Physics in Berlin" width="100%">
+
+<p style="text-align: center">
+<button id="show-cube" onclick="
+  if(this.getAttribute('data-state') === 'active') {
+    // Button has already been clicked, send DMX command 'o'
+    if(typeof sendDMXCommand === 'function') {
+      sendDMXCommand('o');
+      console.log('DMX command o sent');
+    } else {
+      fetch('/dmx/o', {method:'POST', headers:{'Content-Type':'application/json'}})
+        .then(r => console.log('DMX command o sent via fetch'));
+    }
+    // Reset to initial state
+    this.textContent = 'Make the Cube of Physics glow';
+    this.setAttribute('data-state', 'inactive');
+  } else {
+    // First click, send DMX command 'x'
+    if(typeof sendDMXCommand === 'function') {
+      sendDMXCommand('x');
+      console.log('DMX command x sent');
+    } else {
+      fetch('/dmx/x', {method:'POST', headers:{'Content-Type':'application/json'}})
+        .then(r => console.log('DMX command x sent via fetch'));
+    }
+    // Change text and status
+    this.textContent = 'Back to the Theory of Everything';
+    this.setAttribute('data-state', 'active');
+  }
+">Make the Cube of Physics glow</button>
+</p>
