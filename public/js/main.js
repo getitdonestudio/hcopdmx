@@ -501,7 +501,7 @@ async function transitionToPage(pageId) {
 /**
  * Transition to screensaver mode
  */
-function transitionToScreensaver() {
+async function transitionToScreensaver() {
   if (currentPage === 'screensaver') return;
   
   // Store the last page before screensaver
@@ -519,72 +519,98 @@ function transitionToScreensaver() {
   // Load the screensaver content
   loadContent('screensaver', currentLang);
   
-  // Get chosen screensaver mode from settings
-  fetch('/api/settings')
-    .then(response => response.json())
-    .then(settings => {
-      const modeKey = settings.screensaver.mode || 'dimToOn';
-      const lightPower = settings.screensaver.lightPower || 255;
-      const transitionSpeed = settings.screensaver.transitionSpeed || 1000;
-      console.log(`Starting screensaver mode: ${modeKey} with light power: ${lightPower}`);
-      
-      updateStatus('Screensaver aktiviert...');
-      
-      // Use the mode manager for all modes including built-in ones
-      if (typeof screensaverModeManager !== 'undefined') {
+  try {
+    // Get chosen screensaver mode from settings
+    const response = await fetch('/api/settings');
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const settings = await response.json();
+    const modeKey = settings.screensaver.mode || 'dimToOn';
+    const lightPower = settings.screensaver.lightPower || 255;
+    const transitionSpeed = settings.screensaver.transitionSpeed || 1000;
+    console.log(`Starting screensaver mode: ${modeKey} with light power: ${lightPower}`);
+    
+    updateStatus('Screensaver aktiviert...');
+    
+    // Use the mode manager for all modes including built-in ones
+    if (typeof screensaverModeManager !== 'undefined') {
+      try {
         // First make sure any existing mode is stopped
         screensaverModeManager.stopActiveMode();
         
         // Start the selected mode
         console.log('Starting screensaver mode via mode manager:', modeKey);
-        screensaverModeManager.startMode(modeKey);
-      } else {
-        console.error('Screensaver mode manager not found! Falling back to direct implementation.');
+        await screensaverModeManager.startMode(modeKey);
+        console.log('Screensaver mode started successfully');
+      } catch (error) {
+        console.error('Error starting screensaver mode via manager:', error);
+        // Fall back to direct implementation
+        fallbackScreensaver(modeKey, lightPower, transitionSpeed);
+      }
+    } else {
+      console.error('Screensaver mode manager not found! Falling back to direct implementation.');
+      fallbackScreensaver(modeKey, lightPower, transitionSpeed);
+    }
+  } catch (error) {
+    console.error('Error starting screensaver:', error);
+    updateStatus('Fehler beim Starten des Bildschirmschoners');
+  }
+}
+
+/**
+ * Fallback implementation for screensaver mode when the mode manager fails
+ * @param {string} modeKey - The screensaver mode (dimToOn, dimToOff, etc.)
+ * @param {number} lightPower - The light power level (0-255)
+ * @param {number} transitionSpeed - Transition speed in ms
+ */
+async function fallbackScreensaver(modeKey, lightPower, transitionSpeed) {
+  if (modeKey === 'dimToOff') {
+    // Transition all lights to off
+    try {
+      await sendDMXFadeCommand('z', transitionSpeed);
+      updateStatus('Screensaver: Alle Lichter aus');
+    } catch (error) {
+      console.error('Error sending DMX fade command:', error);
+      updateStatus('Fehler beim Dimmen der Lichter');
+    }
+  } else {
+    // Default to dimToOn behavior
+    try {
+      const response = await fetch('/state');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      if (data.success) {
+        // Set all channels to the screensaver power level
+        const channels = new Array(data.channels.length).fill(lightPower);
         
-        // Fallback to direct implementation
-        if (modeKey === 'dimToOff') {
-          // Transition all lights to off
-          sendDMXFadeCommand('z', transitionSpeed)
-            .then(() => {
-              updateStatus('Screensaver: Alle Lichter aus');
-            });
+        // Send with fade
+        const result = await fetch('/dmx/direct', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            channels: channels,
+            useScreensaverPower: true
+          })
+        }).then(res => res.json());
+        
+        if (result.success) {
+          updateStatus('Screensaver: Alle Lichter gedimmt');
         } else {
-          // Default to dimToOn behavior
-          fetch('/state')
-            .then(response => response.json())
-            .then(data => {
-              if (data.success) {
-                // Set all channels to the screensaver power level
-                const channels = new Array(data.channels.length).fill(lightPower);
-                
-                // Send with fade
-                fetch('/dmx/direct', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json'
-                  },
-                  body: JSON.stringify({
-                    channels: channels,
-                    useScreensaverPower: true
-                  })
-                })
-                .then(response => response.json())
-                .then(result => {
-                  if (result.success) {
-                    updateStatus('Screensaver: Alle Lichter gedimmt');
-                  } else {
-                    updateStatus('Fehler beim Dimmen der Lichter');
-                  }
-                });
-              }
-            });
+          updateStatus('Fehler beim Dimmen der Lichter');
         }
       }
-    })
-    .catch(error => {
-      console.error('Error fetching settings:', error);
-      updateStatus('Fehler beim Starten des Bildschirmschoners');
-    });
+    } catch (error) {
+      console.error('Error in fallback screensaver:', error);
+      updateStatus('Fehler beim Dimmen der Lichter');
+    }
+  }
 }
 
 /**
@@ -598,33 +624,47 @@ async function returnFromScreensaver() {
   
   // Get the last page we were on
   const lastPage = sessionStorage.getItem('lastPage') || '0000';
-  const targetDMXKey = binaryToKey[lastPage];
+  console.log(`Last page was: ${lastPage}`);
+  
+  let targetDMXKey = binaryToKey[lastPage];
   
   if (!targetDMXKey) {
-    console.error(`No DMX mapping found for page ${lastPage}`);
-    return;
-  }
-  
-  // Stop any active screensaver mode
-  screensaverModeManager.stopActiveMode();
-  
-  // Status update
-  const statusElem = document.getElementById('status');
-  if (statusElem) {
-    statusElem.textContent = 'Lade vorherige Seite...';
+    console.error(`No DMX mapping found for page ${lastPage}, falling back to 'a'`);
+    // Default to program 'a' if no mapping found
+    targetDMXKey = 'a';
   }
   
   try {
-    // Load the content for the previous page
-    const contentLoaded = await loadContent(lastPage);
-    
-    // Send the DMX command for that page without fade
-    if (contentLoaded) {
-      await sendDMXCommand(targetDMXKey);
+    // Stop any active screensaver mode
+    if (typeof screensaverModeManager !== 'undefined') {
+      console.log("Stopping active screensaver mode");
+      screensaverModeManager.stopActiveMode();
+    } else {
+      console.error("Screensaver mode manager not available for cleanup");
     }
     
-    if (statusElem) {
-      statusElem.textContent = `Programm ${targetDMXKey.toUpperCase()} aktiv.`;
+    // Update status
+    updateStatus('Lade vorherige Seite...');
+    
+    // Load the content for the previous page
+    console.log(`Loading content for page: ${lastPage}`);
+    const contentLoaded = await loadContent(lastPage, currentLang);
+    
+    if (!contentLoaded) {
+      console.error(`Failed to load content for page ${lastPage}, trying alternative approach`);
+      // Try to reload the page as a fallback
+      window.location.href = `/${currentLang}/${lastPage}.html`;
+      return;
+    }
+    
+    // Send the DMX command for that page without fade
+    console.log(`Sending DMX command for key: ${targetDMXKey}`);
+    try {
+      await sendDMXCommand(targetDMXKey);
+      updateStatus(`Programm ${targetDMXKey.toUpperCase()} aktiv.`);
+    } catch (error) {
+      console.error(`Error sending DMX command:`, error);
+      updateStatus(`Fehler beim Aktivieren von Programm ${targetDMXKey.toUpperCase()}`);
     }
     
     // Make sure to reset the screensaver timer after returning from screensaver
@@ -633,6 +673,12 @@ async function returnFromScreensaver() {
     console.log("Return from screensaver completed");
   } catch (error) {
     console.error(`Error returning from screensaver:`, error);
+    updateStatus("Fehler beim Zurückkehren vom Bildschirmschoner");
+    
+    // Try to recover by forcing a page reload
+    setTimeout(() => {
+      window.location.href = `/${currentLang}/0000.html`;
+    }, 2000);
   }
 }
 

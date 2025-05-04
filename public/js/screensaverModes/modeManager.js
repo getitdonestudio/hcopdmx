@@ -8,8 +8,6 @@ class ScreensaverModeManager {
     this.modes = {
       dimToOn: null,   // Dim to all on mode
       dimToOff: null,  // Dim to all off mode
-      pulsating: null, // Pulsating mode
-      cycling: null,   // Cycling mode
       disco: null      // Disco mode - fast random changes
     };
     
@@ -36,12 +34,6 @@ class ScreensaverModeManager {
       
       // Initialize the dim to off mode
       this.modes.dimToOff = new DimToOffMode();
-      
-      // Initialize the pulsating mode
-      this.modes.pulsating = new PulsatingMode();
-      
-      // Initialize the cycling mode
-      this.modes.cycling = new CyclingMode();
       
       // Initialize the disco mode
       this.modes.disco = new DiscoMode();
@@ -170,10 +162,41 @@ class ScreensaverModeManager {
   
   /**
    * Start a specific mode
-   * @param {string} modeKey - The mode to start (dimToOn, dimToOff, pulsating, cycling, disco)
+   * @param {string} modeKey - The mode to start (dimToOn, dimToOff, disco)
    */
-  startMode(modeKey) {
+  async startMode(modeKey) {
     try {
+      console.log(`[ScreensaverModeManager] Starting mode: ${modeKey}`);
+      
+      // Check if mode exists
+      if (!this.modes[modeKey]) {
+        console.error(`[ScreensaverModeManager] Mode not found: ${modeKey}`);
+        
+        // Log to server so we can track this issue
+        try {
+          await fetch('/api/log', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              level: 'error',
+              message: `Screensaver mode not found: ${modeKey}`
+            })
+          });
+        } catch (err) {
+          console.error('[ScreensaverModeManager] Failed to log error to server:', err);
+        }
+        
+        // Try to fall back to dimToOn
+        modeKey = 'dimToOn';
+        
+        if (!this.modes[modeKey]) {
+          console.error('[ScreensaverModeManager] Fallback mode also not found, aborting');
+          return;
+        }
+      }
+      
       // Stop any active mode
       this.stopActiveMode();
       
@@ -183,13 +206,13 @@ class ScreensaverModeManager {
       // Reset the watchdog timer
       this.lastModeChangeTime = Date.now();
       
-      // Handle all modes through the mode objects
+      // Get the mode object
       const mode = this.modes[modeKey];
-      if (mode) {
-        this.activeMode = mode;
-        
-        // Log to server/terminal before starting the mode
-        fetch('/api/log', {
+      this.activeMode = mode;
+      
+      // Log to server/terminal before starting the mode
+      try {
+        await fetch('/api/log', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -198,28 +221,62 @@ class ScreensaverModeManager {
             level: 'info',
             message: `Starting screensaver mode: ${modeKey.toUpperCase()}`
           })
-        }).catch(err => console.error('Failed to log to server:', err));
+        });
+      } catch (err) {
+        console.error('[ScreensaverModeManager] Failed to log to server:', err);
+      }
+      
+      // Start the mode
+      console.log(`[ScreensaverModeManager] Executing start method for mode: ${modeKey}`);
+      try {
+        // Handle async start method
+        await mode.start();
         
-        // Start the mode
-        mode.start();
-        
-        // Only log to console if in development
-        console.log(`Starting screensaver mode: ${modeKey}`);
-        
-        // Reset error count when successfully starting a mode
+        // Log success and reset error count
+        console.log(`[ScreensaverModeManager] Successfully started mode: ${modeKey}`);
         this.errorCount = 0;
-      } else {
-        console.error(`Unknown screensaver mode: ${modeKey}`);
-        // Try to fall back to dimToOn
-        this.activeModeKey = 'dimToOn';
-        this.startMode('dimToOn');
+      } catch (error) {
+        console.error(`[ScreensaverModeManager] Error during mode.start() for ${modeKey}:`, error);
+        // Don't reset error count here, let it increment
+        this.errorCount++;
+        
+        // If start failed, try a fallback
+        if (modeKey !== 'dimToOn' && this.errorCount > this.maxErrors) {
+          console.log('[ScreensaverModeManager] Too many errors, falling back to dimToOn mode');
+          this.stopActiveMode();
+          setTimeout(() => this.startMode('dimToOn'), 1000);
+        }
       }
     } catch (error) {
-      console.error(`Error starting mode ${modeKey}:`, error);
+      console.error(`[ScreensaverModeManager] Critical error starting mode ${modeKey}:`, error);
+      
+      // Try to log the error to the server
+      try {
+        await fetch('/api/log', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            level: 'error',
+            message: `Critical error in screensaver: ${error.message || 'Unknown error'}`
+          })
+        });
+      } catch (err) {
+        // Just log to console if server logging fails
+        console.error('[ScreensaverModeManager] Failed to log critical error:', err);
+      }
+      
       // Fall back to dimToOn
       this.activeMode = null;
-      this.activeModeKey = 'dimToOn';
-      this.startMode('dimToOn');
+      this.activeModeKey = null;
+      
+      // Try again with the most basic mode
+      setTimeout(() => {
+        if (!this.activeMode) {
+          this.startMode('dimToOn');
+        }
+      }, 2000);
     }
   }
   
@@ -229,11 +286,12 @@ class ScreensaverModeManager {
   stopActiveMode() {
     try {
       if (this.activeMode && this.activeMode.isRunning()) {
+        console.log(`[ScreensaverModeManager] Stopping mode: ${this.activeModeKey}`);
         this.activeMode.stop();
-        console.log(`Stopped screensaver mode: ${this.activeModeKey}`);
+        console.log(`[ScreensaverModeManager] Stopped mode: ${this.activeModeKey}`);
       }
     } catch (error) {
-      console.error(`Error stopping mode ${this.activeModeKey}:`, error);
+      console.error(`[ScreensaverModeManager] Error stopping mode ${this.activeModeKey}:`, error);
     } finally {
       // Always reset the state even if there's an error
       this.activeMode = null;
@@ -249,12 +307,11 @@ class ScreensaverModeManager {
   }
   
   /**
-   * Clean up resources when done
+   * Clean up before page unload
    */
   cleanup() {
     this.stopActiveMode();
     this.stopWatchdog();
-    console.log('Screensaver mode manager cleaned up');
   }
 }
 
