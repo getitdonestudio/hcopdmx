@@ -20,17 +20,24 @@ document.addEventListener('DOMContentLoaded', async function() {
   const screensaverLightPowerValue = document.getElementById('screensaverLightPowerValue');
   const screensaverLightPowerPercentage = document.getElementById('screensaverLightPowerPercentage');
   
+  // Disco mode controls
+  const discoActivateButton = document.getElementById('discoActivateButton');
+  const discoSpeedInput = document.getElementById('discoSpeed');
+  const discoSpeedValue = document.getElementById('discoSpeedValue');
+  const discoRandomizeCheckbox = document.getElementById('discoRandomize');
+  
   const saveButton = document.getElementById('saveSettings');
   const resetButton = document.getElementById('resetSettings');
-  const tryModeButton = document.getElementById('tryMode');
   const allOnButton = document.getElementById('allOnButton');
   const allOffButton = document.getElementById('allOffButton');
   const statusElement = document.getElementById('settingsSaveStatus');
   const backLink = document.getElementById('backLink');
   
-  // Track if a mode is currently being tested
-  let isTestingMode = false;
-  let originalButtonText = tryModeButton ? tryModeButton.textContent : 'Try';
+  // Track disco mode state
+  let isDiscoActive = false;
+  let discoInterval = null;
+  let discoSpeed = 500; // Default speed in ms
+  let discoRandomize = true; // Default is random order
 
   // Initialize screensaver mode manager if available
   if (window.screensaverModeManager) {
@@ -38,14 +45,196 @@ document.addEventListener('DOMContentLoaded', async function() {
     console.log('Screensaver mode manager initialized in settings page');
   }
 
+  // Handle disco activate button
+  if (discoActivateButton) {
+    discoActivateButton.addEventListener('click', function() {
+      if (isDiscoActive) {
+        stopDiscoMode();
+      } else {
+        startDiscoMode();
+      }
+    });
+  }
+  
+  // Update disco speed value when slider changes
+  if (discoSpeedInput) {
+    discoSpeedInput.addEventListener('input', function() {
+      const value = parseInt(this.value);
+      discoSpeedValue.textContent = value;
+      discoSpeed = value;
+      
+      // If disco mode is active, restart it with new speed
+      if (isDiscoActive) {
+        stopDiscoMode();
+        startDiscoMode();
+      }
+    });
+    
+    // Save disco speed when slider changes end
+    discoSpeedInput.addEventListener('change', async function() {
+      const value = parseInt(this.value);
+      
+      try {
+        // Get current settings
+        const response = await fetch('/api/settings');
+        if (!response.ok) {
+          console.error('Failed to load settings for update');
+          return;
+        }
+        
+        const currentSettings = await response.json();
+        
+        // Update settings with new disco speed
+        const updatedSettings = {
+          ...currentSettings,
+          disco: {
+            ...currentSettings.disco || {},
+            speed: value
+          }
+        };
+        
+        // Save the updated settings
+        const saveResponse = await fetch('/api/settings', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(updatedSettings)
+        });
+        
+        if (saveResponse.ok) {
+          console.log('Disco speed saved:', value);
+          showStatus('Disco speed saved', 'success');
+        }
+      } catch (error) {
+        console.error('Error saving disco speed:', error);
+      }
+    });
+  }
+  
+  // Handle disco randomize checkbox
+  if (discoRandomizeCheckbox) {
+    discoRandomizeCheckbox.addEventListener('change', async function() {
+      const isRandom = this.checked;
+      discoRandomize = isRandom;
+      
+      try {
+        // Get current settings
+        const response = await fetch('/api/settings');
+        if (!response.ok) {
+          console.error('Failed to load settings for update');
+          return;
+        }
+        
+        const currentSettings = await response.json();
+        
+        // Update settings with new disco randomize value
+        const updatedSettings = {
+          ...currentSettings,
+          disco: {
+            ...currentSettings.disco || {},
+            randomize: isRandom
+          }
+        };
+        
+        // Save the updated settings
+        const saveResponse = await fetch('/api/settings', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(updatedSettings)
+        });
+        
+        if (saveResponse.ok) {
+          console.log('Disco randomize saved:', isRandom);
+          showStatus('Disco randomize setting saved', 'success');
+          
+          // If disco mode is active, restart it with new setting
+          if (isDiscoActive) {
+            stopDiscoMode();
+            startDiscoMode();
+          }
+        }
+      } catch (error) {
+        console.error('Error saving disco randomize setting:', error);
+      }
+    });
+  }
+  
+  /**
+   * Start the disco mode
+   */
+  function startDiscoMode() {
+    if (isDiscoActive) return;
+    
+    isDiscoActive = true;
+    discoActivateButton.textContent = 'Stop';
+    discoActivateButton.classList.add('active');
+    
+    showStatus('Disco mode activated', 'success');
+    
+    let currentIndex = 0;
+    // Default random order array
+    const randomPrograms = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p'];
+    // Specific sequence order
+    const sequentialPrograms = ['a', 'b', 'c', 'e', 'i', 'd', 'g', 'f', 'j', 'k', 'm', 'h', 'l', 'n', 'o', 'p'];
+    
+    // Function to change to next program
+    async function changeProgram() {
+      try {
+        let program;
+        
+        if (discoRandomize) {
+          // Random mode - pick a random program
+          const randomIndex = Math.floor(Math.random() * randomPrograms.length);
+          program = randomPrograms[randomIndex];
+        } else {
+          // Sequential mode - go through the specific order
+          program = sequentialPrograms[currentIndex];
+          currentIndex = (currentIndex + 1) % sequentialPrograms.length;
+        }
+        
+        await fetch(`/dmx/${program}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+      } catch (error) {
+        console.error('Error changing program in disco mode:', error);
+      }
+    }
+    
+    // Start with first program
+    changeProgram();
+    
+    // Set interval to change programs
+    discoInterval = setInterval(changeProgram, discoSpeed);
+  }
+  
+  /**
+   * Stop the disco mode
+   */
+  function stopDiscoMode() {
+    if (!isDiscoActive) return;
+    
+    isDiscoActive = false;
+    discoActivateButton.textContent = 'Activate';
+    discoActivateButton.classList.remove('active');
+    
+    // Clear the interval
+    if (discoInterval) {
+      clearInterval(discoInterval);
+      discoInterval = null;
+    }
+    
+    showStatus('Disco mode deactivated', 'success');
+  }
+
   // Handle All On button click
   if (allOnButton) {
     allOnButton.addEventListener('click', async function() {
-      // Stop any current test
-      if (isTestingMode) {
-        stopTestMode();
-      }
-      
       showStatus('Turning all lights on...', 'success');
       
       try {
@@ -68,11 +257,6 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Handle All Off button click
   if (allOffButton) {
     allOffButton.addEventListener('click', async function() {
-      // Stop any current test
-      if (isTestingMode) {
-        stopTestMode();
-      }
-      
       showStatus('Turning all lights off...', 'success');
       
       try {
@@ -92,14 +276,14 @@ document.addEventListener('DOMContentLoaded', async function() {
     });
   }
 
-  // Handle back button click
+  // Handle back button click - make sure to stop disco mode if active
   if (backLink) {
     backLink.addEventListener('click', function(e) {
       e.preventDefault();
       
-      // Stop any running test mode
-      if (isTestingMode) {
-        stopTestMode();
+      // Stop disco mode if active
+      if (isDiscoActive) {
+        stopDiscoMode();
       }
       
       // Get the last page from session storage, or default to home
@@ -339,93 +523,29 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Stop any running test when the mode selection changes
   if (screensaverModeSelect) {
     screensaverModeSelect.addEventListener('change', function() {
-      if (isTestingMode) {
-        stopTestMode();
-      }
+      // Nothing needed here now, just keep the event listener
     });
   }
 
-  // Function to stop the test mode
-  function stopTestMode() {
-    if (!isTestingMode) return;
-    
-    isTestingMode = false;
-    
-    // Restore the button text
-    if (tryModeButton) {
-      tryModeButton.textContent = originalButtonText;
-      tryModeButton.classList.remove('active');
+  /**
+   * Send a direct DMX command with fade
+   */
+  async function sendDirectDMXCommand(channels, fadeTime = 1000) {
+    try {
+      return fetch('/dmx/direct', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          channels: channels,
+          fadeTime: fadeTime
+        })
+      });
+    } catch (error) {
+      console.error('Error sending DMX command:', error);
+      throw error;
     }
-    
-    // Stop the active mode
-    if (window.screensaverModeManager) {
-      window.screensaverModeManager.stopActiveMode();
-    } else {
-      const cleanupScript = document.createElement('script');
-      cleanupScript.textContent = `
-        if (window.parent && window.parent.screensaverModeManager) {
-          window.parent.screensaverModeManager.stopActiveMode();
-        }
-      `;
-      document.body.appendChild(cleanupScript);
-    }
-    
-    // Reset any status
-    showStatus('Test mode stopped', 'success');
-  }
-
-  // Handle Try button for screensaver mode
-  if (tryModeButton) {
-    tryModeButton.addEventListener('click', async function() {
-      // If already testing, stop the test
-      if (isTestingMode) {
-        stopTestMode();
-        return;
-      }
-      
-      // Get the selected mode
-      const selectedMode = screensaverModeSelect.value;
-      
-      try {
-        isTestingMode = true;
-        originalButtonText = tryModeButton.textContent;
-        
-        // For advanced modes, initialize and start the mode using mode manager
-        if (selectedMode === 'pulsating' || selectedMode === 'cycling' || selectedMode === 'disco') {
-          if (window.screensaverModeManager) {
-            console.log(`Testing mode: ${selectedMode}`);
-            showStatus(`Testing mode: ${selectedMode}...`, 'success');
-            
-            // Stop any previous mode
-            window.screensaverModeManager.stopActiveMode();
-            
-            // Start the new mode
-            window.screensaverModeManager.startMode(selectedMode);
-          } else {
-            // If we can't find the mode manager directly, try to access it through the parent
-            const testScript = document.createElement('script');
-            testScript.textContent = `
-              if (window.parent && window.parent.screensaverModeManager) {
-                window.parent.screensaverModeManager.stopActiveMode();
-                window.parent.screensaverModeManager.startMode('${selectedMode}');
-              }
-            `;
-            document.body.appendChild(testScript);
-          }
-          
-          // Update button to show "Stop"
-          tryModeButton.textContent = 'Stop';
-          tryModeButton.classList.add('active');
-          
-        } else {
-          // For simple modes (dimToOn, dimToOff), just show a message
-          showStatus(`${selectedMode} will dim to on/off when screensaver activates`, 'success');
-        }
-      } catch (error) {
-        console.error('Error testing mode:', error);
-        showStatus('Error testing mode', 'error');
-      }
-    });
   }
 
   // Load current settings
@@ -458,19 +578,32 @@ document.addEventListener('DOMContentLoaded', async function() {
     screensaverLightPowerValue.textContent = settings.screensaver.lightPower;
     screensaverLightPowerPercentage.textContent = Math.round((settings.screensaver.lightPower / 255) * 100);
     
+    // Set disco speed if available
+    if (settings.disco && settings.disco.speed && discoSpeedInput) {
+      discoSpeedInput.value = settings.disco.speed;
+      discoSpeedValue.textContent = settings.disco.speed;
+      discoSpeed = settings.disco.speed;
+    }
+    
+    // Set disco randomize setting if available
+    if (settings.disco && discoRandomizeCheckbox && settings.disco.randomize !== undefined) {
+      discoRandomizeCheckbox.checked = settings.disco.randomize;
+      discoRandomize = settings.disco.randomize;
+    }
+    
     console.log('Settings loaded successfully');
   } catch (error) {
     console.error('Error loading settings:', error);
     showStatus('Error loading settings', 'error');
   }
 
-  // Handle save button click
+  // Handle submit - make sure to update with disco mode settings
   form.addEventListener('submit', async function(e) {
     e.preventDefault();
     
-    // Stop any current test
-    if (isTestingMode) {
-      stopTestMode();
+    // Stop disco mode if active
+    if (isDiscoActive) {
+      stopDiscoMode();
     }
     
     // Get form values
@@ -482,24 +615,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     const screensaverLightPower = linkLightPowersCheckbox.checked ? 
       lightPower : parseInt(screensaverLightPowerInput.value);
     
-    // Track if screensaver settings have changed
-    let screensaverSettingsChanged = false;
-    
-    try {
-      // Get current settings to compare
-      const currentSettingsResponse = await fetch('/api/settings');
-      if (currentSettingsResponse.ok) {
-        const currentSettings = await currentSettingsResponse.json();
-        
-        // Check if screensaver settings have changed
-        screensaverSettingsChanged = 
-          currentSettings.screensaver.timeDelay !== screensaverTime ||
-          currentSettings.screensaver.mode !== screensaverMode ||
-          currentSettings.screensaver.lightPower !== (linkLightPowersCheckbox.checked ? lightPower : screensaverLightPower);
-      }
-    } catch (error) {
-      console.error('Error checking current settings:', error);
-    }
+    // Get disco settings
+    const discoSettingsSpeed = parseInt(discoSpeedInput.value);
+    const discoSettingsRandomize = discoRandomizeCheckbox ? discoRandomizeCheckbox.checked : true;
     
     // Build settings object
     const settings = {
@@ -510,6 +628,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         mode: screensaverMode,
         lightPower: linkLightPowersCheckbox.checked ? lightPower : screensaverLightPower,
         transitionSpeed: 1000 // Fixed for now
+      },
+      disco: {
+        speed: discoSettingsSpeed,
+        randomize: discoSettingsRandomize
       }
     };
     
@@ -563,11 +685,6 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Handle reset button click
   if (resetButton) {
     resetButton.addEventListener('click', async function() {
-      // Stop any test mode
-      if (isTestingMode) {
-        stopTestMode();
-      }
-      
       if (confirm('Reset all settings to defaults?')) {
         try {
           showStatus('Resetting settings...', 'success');

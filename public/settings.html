@@ -81,11 +81,34 @@
                 <select id="screensaverMode">
                   <option value="dimToOn">Dim to all lights on</option>
                   <option value="dimToOff">Dim to all lights off</option>
-                  <option value="pulsating">Pulsating</option>
-                  <option value="cycling">Cycle through options</option>
-                  <option value="disco">Disco (Fast Random)</option>
                 </select>
-                <button type="button" id="tryMode" class="secondary-button">Try</button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="settings-group">
+            <h2>Disco Mode</h2>
+            
+            <div class="setting-item">
+              <div class="disco-controls">
+                <button type="button" id="discoActivateButton" class="primary-button">Activate</button>
+              </div>
+            </div>
+            
+            <div class="setting-item">
+              <label for="discoSpeed">Speed</label>
+              <div class="slider-with-value">
+                <input type="range" id="discoSpeed" min="100" max="2000" step="100" value="500">
+                <span class="percentage-display">
+                  <span id="discoSpeedValue">500</span> ms
+                </span>
+              </div>
+            </div>
+            
+            <div class="setting-item">
+              <div class="checkbox-control">
+                <input type="checkbox" id="discoRandomize" checked>
+                <label for="discoRandomize">Randomize</label>
               </div>
             </div>
           </div>
@@ -115,8 +138,6 @@
   <!-- Load all mode classes -->
   <script src="/js/screensaverModes/dimToOnMode.js"></script>
   <script src="/js/screensaverModes/dimToOffMode.js"></script>
-  <script src="/js/screensaverModes/pulsatingMode.js"></script>
-  <script src="/js/screensaverModes/cyclingMode.js"></script>
   <script src="/js/screensaverModes/discoMode.js"></script>
   
   <!-- Load mode manager after all mode classes -->
