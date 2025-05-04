@@ -72,7 +72,12 @@
             
             <div class="setting-item">
               <label for="screensaverTime">Time to Screensaver (seconds)</label>
-              <input type="number" id="screensaverTime" min="5" max="3600" step="1">
+              <div class="slider-with-value">
+                <input type="range" id="screensaverTime" min="5" max="3600" step="1" value="300">
+                <span class="percentage-display">
+                  <span id="screensaverTimeValue">300</span> s
+                </span>
+              </div>
             </div>
             
             <div class="setting-item">

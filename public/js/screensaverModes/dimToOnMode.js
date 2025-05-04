@@ -8,7 +8,8 @@ class DimToOnMode extends ScreensaverMode {
       ...options,
       updateInterval: 50, // Update every 50ms for smooth transition
       transitionTime: 5000, // 5 seconds transition
-      lightPower: 255 // Default to full power
+      lightPower: 255, // Default to full power
+      heartbeatInterval: 10000 // Heartbeat every 10 seconds
     });
     
     this.currentChannels = new Array(512).fill(0);
@@ -16,6 +17,7 @@ class DimToOnMode extends ScreensaverMode {
     this.startTime = null;
     this.isTransitioning = false;
     this.updateCount = 0;
+    this.heartbeatTimer = null;
   }
   
   /**
@@ -56,6 +58,9 @@ class DimToOnMode extends ScreensaverMode {
     // Register interval for automatic cleanup
     this.registerInterval(intervalId);
     
+    // Start heartbeat timer for keeping DMX interface active
+    this.startHeartbeat();
+    
     this.startTime = Date.now();
     this.isTransitioning = true;
     this.updateCount = 0;
@@ -75,10 +80,53 @@ class DimToOnMode extends ScreensaverMode {
     console.log('[DimToOnMode] Stopping...');
     this.isTransitioning = false;
     
+    // Clear heartbeat timer
+    this.stopHeartbeat();
+    
     // clearAllTimers is called by parent's stop() method
     super.stop();
     console.log('[DimToOnMode] Stopped');
     return true;
+  }
+  
+  /**
+   * Start heartbeat to keep DMX interface active
+   */
+  startHeartbeat() {
+    // Clear any existing heartbeat
+    this.stopHeartbeat();
+    
+    // Set up new heartbeat timer
+    this.heartbeatTimer = setInterval(() => {
+      this.sendHeartbeat();
+    }, this.options.heartbeatInterval);
+    
+    console.log(`[DimToOnMode] Heartbeat started with interval: ${this.options.heartbeatInterval}ms`);
+  }
+  
+  /**
+   * Stop heartbeat timer
+   */
+  stopHeartbeat() {
+    if (this.heartbeatTimer) {
+      clearInterval(this.heartbeatTimer);
+      this.heartbeatTimer = null;
+      console.log('[DimToOnMode] Heartbeat stopped');
+    }
+  }
+  
+  /**
+   * Send heartbeat signal to DMX interface
+   */
+  async sendHeartbeat() {
+    if (!this.running) return;
+    
+    console.log('[DimToOnMode] Sending heartbeat to DMX interface');
+    
+    // If transition is complete, send the target values as heartbeat
+    if (!this.isTransitioning) {
+      await this.applyChannels(this.targetChannels);
+    }
   }
   
   /**

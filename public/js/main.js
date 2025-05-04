@@ -940,13 +940,49 @@ document.addEventListener('DOMContentLoaded', async function() {
   document.body.setAttribute('data-lang', currentLang);
   document.body.setAttribute('data-page', currentPage);
   
-  // Initialize based on current page
+  // Initialize based on current page, but DON'T send DMX commands if we're in screensaver mode
+  // This prevents resetting lights when the page is refreshed during screensaver
   if (currentPage === 'screensaver') {
     document.body.classList.add('screensaver');
-    // Start with all lights on for screensaver
-    sendDMXCommand('q');
+    
+    // Don't send any DMX command when page is refreshed in screensaver mode
+    console.log('Page loaded in screensaver mode, skipping initial DMX command');
+    
+    // But we need to restart the screensaver mode to ensure heartbeat signals continue
+    (async function() {
+      try {
+        // Get the screensaver mode from settings
+        const response = await fetch('/api/settings');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const settings = await response.json();
+        const modeKey = settings.screensaver.mode || 'dimToOn';
+        
+        // Wait for the screensaver mode manager to be ready
+        setTimeout(async () => {
+          if (typeof screensaverModeManager !== 'undefined') {
+            console.log('Restarting screensaver mode after page refresh:', modeKey);
+            
+            try {
+              // Make sure we stop any active mode first
+              screensaverModeManager.stopActiveMode();
+              
+              // Start the selected mode
+              await screensaverModeManager.startMode(modeKey);
+              console.log('Screensaver mode restarted successfully after page refresh');
+            } catch (error) {
+              console.error('Error restarting screensaver mode:', error);
+            }
+          }
+        }, 500); // Small delay to ensure everything is loaded
+      } catch (error) {
+        console.error('Error restarting screensaver after page refresh:', error);
+      }
+    })();
   } else if (binaryToKey[currentPage]) {
-    // Initialize to the DMX program matching the page
+    // Initialize to the DMX program matching the page (only for non-screensaver pages)
     sendDMXCommand(binaryToKey[currentPage]);
   }
   

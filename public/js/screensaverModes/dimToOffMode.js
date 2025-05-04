@@ -10,7 +10,8 @@ class DimToOffMode extends ScreensaverMode {
     this.options = Object.assign({
       transitionTime: 2000, // Time to transition from current state to zero (2 seconds)
       updateInterval: 50, // Update interval (50ms = 20 times per second)
-      lightPower: 255 // Default light power
+      lightPower: 255, // Default light power
+      heartbeatInterval: 10000 // Heartbeat every 10 seconds
     }, options);
     
     this.currentChannels = null;
@@ -18,6 +19,7 @@ class DimToOffMode extends ScreensaverMode {
     this.transitionProgress = 0;
     this.transitionStartTime = 0;
     this.transitionTimer = null;
+    this.heartbeatTimer = null;
   }
   
   /**
@@ -60,6 +62,9 @@ class DimToOffMode extends ScreensaverMode {
       // Start the transition
       this.startTransition();
       
+      // Start heartbeat to keep DMX interface active
+      this.startHeartbeat();
+      
       console.log('Dim to off mode started');
     } catch (error) {
       console.error('Error starting dim to off mode:', error);
@@ -67,6 +72,7 @@ class DimToOffMode extends ScreensaverMode {
       this.currentChannels = Array(512).fill(this.options.lightPower);
       this.targetChannels = Array(512).fill(0);
       this.startTransition();
+      this.startHeartbeat();
     }
   }
   
@@ -81,6 +87,8 @@ class DimToOffMode extends ScreensaverMode {
       clearInterval(this.transitionTimer);
       this.transitionTimer = null;
     }
+    
+    this.stopHeartbeat();
     
     console.log('Dim to off mode stopped');
   }
@@ -135,6 +143,46 @@ class DimToOffMode extends ScreensaverMode {
         this.transitionTimer = null;
       }
       console.log('Dim to off transition complete');
+    }
+  }
+  
+  /**
+   * Start heartbeat to keep DMX interface active
+   */
+  startHeartbeat() {
+    // Clear any existing heartbeat
+    this.stopHeartbeat();
+    
+    // Set up new heartbeat timer
+    this.heartbeatTimer = setInterval(() => {
+      this.sendHeartbeat();
+    }, this.options.heartbeatInterval);
+    
+    console.log(`[DimToOffMode] Heartbeat started with interval: ${this.options.heartbeatInterval}ms`);
+  }
+  
+  /**
+   * Stop heartbeat timer
+   */
+  stopHeartbeat() {
+    if (this.heartbeatTimer) {
+      clearInterval(this.heartbeatTimer);
+      this.heartbeatTimer = null;
+      console.log('[DimToOffMode] Heartbeat stopped');
+    }
+  }
+  
+  /**
+   * Send heartbeat signal to DMX interface
+   */
+  sendHeartbeat() {
+    if (!this.running) return;
+    
+    console.log('[DimToOffMode] Sending heartbeat to DMX interface');
+    
+    // If transition is complete, send the target values as heartbeat
+    if (this.transitionProgress >= 1 || !this.transitionTimer) {
+      this.applyChannels(this.targetChannels);
     }
   }
   

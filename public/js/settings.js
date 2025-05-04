@@ -45,6 +45,17 @@ document.addEventListener('DOMContentLoaded', async function() {
     console.log('Screensaver mode manager initialized in settings page');
   }
 
+  // Update screensaver time value display when slider changes
+  if (screensaverTimeInput) {
+    const screensaverTimeValue = document.getElementById('screensaverTimeValue');
+    
+    if (screensaverTimeValue) {
+      screensaverTimeInput.addEventListener('input', function() {
+        screensaverTimeValue.textContent = this.value;
+      });
+    }
+  }
+
   // Handle disco activate button
   if (discoActivateButton) {
     discoActivateButton.addEventListener('click', function() {
@@ -561,6 +572,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     screensaverTimeInput.value = settings.screensaver.timeDelay / 1000; // Convert ms to seconds
     screensaverModeSelect.value = settings.screensaver.mode;
     
+    // Update the displayed screensaver time value
+    const screensaverTimeValue = document.getElementById('screensaverTimeValue');
+    if (screensaverTimeValue) {
+      screensaverTimeValue.textContent = Math.round(settings.screensaver.timeDelay / 1000);
+    }
+    
     // Set the checkbox state for linking light powers
     if (linkLightPowersCheckbox) {
       linkLightPowersCheckbox.checked = settings.linkLightPowers;
@@ -618,6 +635,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Get disco settings
     const discoSettingsSpeed = parseInt(discoSpeedInput.value);
     const discoSettingsRandomize = discoRandomizeCheckbox ? discoRandomizeCheckbox.checked : true;
+    
+    // Flag to indicate screensaver settings have changed
+    const screensaverSettingsChanged = true;
     
     // Build settings object
     const settings = {
