@@ -91,7 +91,14 @@
             </div>
           </div>
           
-          <div class="settings-group">
+          <div class="setting-actions">
+            <button type="submit" id="saveSettings" class="primary-button">Save</button>
+            <button type="button" id="resetSettings" class="secondary-button">Reset</button>
+          </div>
+          
+          <div id="settingsSaveStatus" class="settings-status"></div>
+          
+          <div class="settings-group" style="margin-top: 20px;">
             <h2>Disco Mode</h2>
             
             <div class="setting-item">
@@ -118,14 +125,8 @@
             </div>
           </div>
           
-          <div class="setting-actions">
-            <button type="submit" id="saveSettings" class="primary-button">Save</button>
-            <button type="button" id="resetSettings" class="secondary-button">Reset</button>
-          </div>
         </form>
 
-        <div id="settingsSaveStatus" class="settings-status"></div>
-        
         <div class="settings-group quick-controls">
           <h2>Quick Controls</h2>
           <div class="quick-control-buttons">
