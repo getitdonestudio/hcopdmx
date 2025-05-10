@@ -15,7 +15,7 @@ int lastState = -1;                    // Letzter Zustand, um Änderungen zu ver
 boolean debugMode = false;              // Debug-Modus aktivieren
 unsigned long lastButtonTimes[4] = {0, 0, 0, 0}; // Zeitstempel der letzten Betätigung
 int buttonPressCount[4] = {0, 0, 0, 0}; // Zähler für Betätigungen
-unsigned long entprellZeit = 200;       // Entprellungszeit in ms
+unsigned long entprellZeit = 300;       // Entprellungszeit in ms
 
 // Zeichen für die Tastatureingabe (Index entspricht binärer Zahl)
 char keyMap[16] = {
