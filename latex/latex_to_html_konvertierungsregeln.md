@@ -61,7 +61,7 @@ Diese Regeln wurden aus der Analyse mehrerer erfolgreicher Konvertierungen von L
   - `\textit{...}` → `<em>...</em>`
 
 - Anführungszeichen:
-  - `\enquote{...}` oder `\enquote*{...}` → `&bdquo;...&ldquo;` (deutsche Anführungszeichen)
+  - `\enquote{...}` oder `\enquote*{...}` → `&raquo;...&laquo;` (deutsche Anführungszeichen)
 
 - Zitate:
   - `\begin{quote}...\end{quote}` → `<blockquote>...</blockquote>`
