@@ -267,15 +267,17 @@ This feature allows for precise control of lighting intensity for both normal op
 DMX programs are defined in the `hcop_dmx-channel.csv` file with the following format:
 - Each row represents a lighting program
 - The first column is the program key (the identifier used in API calls)
-- Each subsequent column represents a DMX channel value (0-255)
+- Each subsequent column represents a DMX channel value (0 or 1)
 
 Example:
 ```
-Key;Channel1;Channel2;Channel3
-a;255;0;0
-b;0;255;0
-c;0;0;255
+Key;Channel1;Channel2;Channel3;Channel4
+a;0;0;1;1
+b;0;1;1;0
+c;1;1;0;0
 ```
+
+The binary values (0/1) are automatically scaled to the appropriate DMX values (0-255) based on the light power setting.
 
 ### Screensaver Modes
 
@@ -327,4 +329,47 @@ The application provides the following API endpoints:
 - `POST /dmx/:key` - Activate a DMX program (replace `:key` with the program identifier from the CSV)
 - `POST /dmx/fade/:key` - Fade to a DMX program with a specified duration
 - `POST /dmx/direct` - Directly set DMX channel values for advanced control
-- `
+
+## Troubleshooting
+
+For detailed troubleshooting information, please refer to the [TROUBLESHOOTING.md](TROUBLESHOOTING.md) file.
+
+The system includes two diagnostic tools to help identify and fix issues:
+
+### 1. Check Dependencies
+```bash
+node check-dependencies.js
+```
+This script checks if all required Node.js dependencies are installed and verifies that essential files exist.
+
+### 2. Check DMX Connectivity
+```bash
+node check-dmx-connectivity.js
+```
+This script tests network connectivity to the DMX controller by attempting to establish a TCP connection to the ArtNet port. It also checks your local network interfaces and DNS resolution.
+
+To use a different DMX IP:
+```bash
+DMX_IP=192.168.1.100 node check-dmx-connectivity.js
+```
+
+**Note**: Some of the tools mentioned in the troubleshooting file like `test-artnet.js`, `server-simple.js`, and various fix scripts may not be included in the current version of the repository. Please contact the developers if you need these additional troubleshooting tools.
+
+## Development
+
+### Arduino Controller Setup
+
+The project includes an Arduino sketch (`hcopButton.ino`) for creating a physical control interface:
+
+- Uses 4 buttons connected to pins 3, 4, 5, and 6
+- Controls 4 relays connected to pins 10, 11, 12, and 13
+- Maps 16 possible button combinations to keyboard keys A-P
+- Sends keystrokes to the host computer running the DMX server
+- Includes debug mode for diagnostic output via serial monitor
+
+To set up the Arduino controller:
+
+1. Connect buttons to pins 3, 4, 5, 6 with appropriate pull-up resistors
+2. Connect relays to pins 10, 11, 12, 13
+3. Upload the `hcopButton.ino` sketch to an Arduino with USB keyboard support (e.g., Arduino Leonardo or Pro Micro)
+4. Connect the Arduino to the same computer running the DMX server

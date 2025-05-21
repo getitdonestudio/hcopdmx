@@ -96,7 +96,7 @@ h1 .katex {
 h1 > span {
   display: flex;
   justify-content: end;
-  /*display: none;*/
+  display: none;
 }
 
 /* Header und Language-Switcher */
@@ -401,6 +401,7 @@ body[data-page="settings"] .nav-separator, body[data-page="settings"] #fontSizeT
   border-radius: 10px;
   backdrop-filter: blur(5px);
   z-index: 1000;
+  display: none;
 }
 
 /* Individuelle übergeordnete Klassen für Seiten können genutzt werden */
@@ -657,7 +658,10 @@ body[data-page="settings"] h1 {
   margin: 1.5em 0;
 }
 .katex { font-size: 1.1em; }
-.katex-display { overflow: auto hidden; }
+.katex-display { overflow: visible !important; }
+.katex .katex-mathml {
+  overflow: visible !important;
+  }
 
 /* Accordion Styles */
 .accordion {
