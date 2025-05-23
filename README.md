@@ -1,73 +1,72 @@
 # HCOP DMX Controller
 
-A Node.js application for controlling DMX lighting via the Art-Net protocol, optimized for use on Raspberry Pi devices.
+Eine Node.js-Anwendung zur Steuerung von DMX-Beleuchtung über das Art-Net-Protokoll, optimiert für den Einsatz auf Raspberry Pi-Geräten.
 
-## Quick Navigation
+## Schnellnavigation
 
-- [Features](#features)
-- [System Requirements](#system-requirements)
-- [Installation](#installation-on-raspberry-pi)
-  - [One-line Bootstrap Installation](#one-line-bootstrap-installation-fresh-os)
-  - [Manual Installation](#manual-installation)
-- [Updating](#updating-the-application)
-- [Managing the Application](#managing-the-application)
-  - [Systemd Commands](#systemd-commands)
-  - [Monitoring with PM2](#monitoring-with-pm2)
-- [Configuration](#configuration)
-  - [DMX Programs](#configuring-dmx-programs)
-  - [Screensaver Modes](#screensaver-modes)
-  - [Logging](#application-logs)
-  - [DMX Channel Scaling](#dmx-channel-scaling)
-  - [Secret Settings Access](#secret-settings-access)
-- [API Endpoints](#api-endpoints)
-- [Troubleshooting](#troubleshooting)
-- [Development](#development)
-  - [Arduino Controller Setup](#arduino-controller-setup)
-  - [Local Development Setup](#local-development-setup)
+- [Funktionen](#funktionen)
+- [Systemanforderungen](#systemanforderungen)
+- [Installation auf Raspberry Pi](#installation-auf-raspberry-pi)
+  - [Ein-Zeilen-Bootstrap-Installation](#ein-zeilen-bootstrap-installation-frisches-os)
+  - [Manuelle Installation](#manuelle-installation)
+- [Anwendung aktualisieren](#anwendung-aktualisieren)
+- [Anwendung verwalten](#anwendung-verwalten)
+  - [Systemd-Befehle](#systemd-befehle)
+  - [Überwachung mit PM2](#überwachung-mit-pm2)
+- [Konfiguration](#konfiguration)
+  - [DMX-Programme](#dmx-programme-konfigurieren)
+  - [Bildschirmschoner-Modi](#bildschirmschoner-modi)
+  - [Protokollierung](#anwendungs-logs)
+  - [DMX-Kanal-Skalierung](#dmx-kanal-skalierung)
+  - [Geheime Einstellungen](#geheime-einstellungen-zugriff)
+- [API-Endpunkte](#api-endpunkte)
+- [Fehlerbehebung](#fehlerbehebung)
+- [Entwicklung](#entwicklung)
+  - [Arduino-Controller-Setup](#arduino-controller-setup)
 
-## Features
+## Funktionen
 
-- Express-based web server with multilingual user interface
-- DMX lighting control via the Art-Net protocol
-- Configurable lighting programs loaded from CSV files
-- Screensaver modes with various animation patterns
-- DMX channel scaling for power management
-- Heartbeat functionality for consistent operation
-- Comprehensive error handling with retry mechanisms
-- Advanced logging system with rotation
-- Resource monitoring for system health control
-- Systemd service for reliable autostart and PM2 for monitoring
-- Font size adjustment for accessibility
-- Mode-specific keyboard navigation
-- Screensaver watchdog for automatic recovery
+- Express-basierter Webserver mit mehrsprachiger Benutzeroberfläche
+- DMX-Beleuchtungssteuerung über das Art-Net-Protokoll
+- Konfigurierbare Beleuchtungsprogramme aus CSV-Dateien geladen
+- Bildschirmschoner-Modi mit verschiedenen Animationsmustern
+- DMX-Kanal-Skalierung für Energieverwaltung
+- Heartbeat-Funktionalität für konsistenten Betrieb
+- Umfassende Fehlerbehandlung mit Wiederholungsmechanismen
+- Erweiterte Protokollierung mit Rotation
+- Ressourcenüberwachung für Systemzustandskontrolle
+- Systemd-Service für zuverlässigen Autostart und PM2 für Überwachung
+- Schriftgrößenanpassung für Barrierefreiheit
+- Modus-spezifische Tastaturnavigation
+- Bildschirmschoner-Watchdog für automatische Wiederherstellung
 
-## System Requirements
+## Systemanforderungen
 
-- Raspberry Pi (3 or newer recommended), RevPi, or compatible computer
-- Raspberry Pi OS Lite (Bullseye or newer) or Debian Bookworm
-- Node.js 20.x or newer
-- Art-Net compatible DMX controller/interface
-- Network connection between Raspberry Pi and DMX interface
+- Raspberry Pi (3 oder neuer empfohlen), RevPi oder kompatibler Computer
+- Raspberry Pi OS Lite (Bullseye oder neuer) oder Debian Bookworm
+- Node.js 20.x oder neuer
+- Art-Net-kompatible DMX-Controller/Schnittstelle
+- Netzwerkverbindung zwischen Raspberry Pi und DMX-Schnittstelle
 
-## Installation on Raspberry Pi
+## Installation auf Raspberry Pi
 
-### One-line Bootstrap Installation (fresh OS)
+### Ein-Zeilen-Bootstrap-Installation (frisches OS)
 
-For a fresh installation of Raspberry Pi OS Lite or RevPi with Debian Bookworm, use our bootstrap script to set up everything in one step:
+Für eine frische Installation von Raspberry Pi OS Lite oder RevPi mit Debian Bookworm verwenden Sie unser Bootstrap-Skript, um alles in einem Schritt einzurichten:
 
-> **Note for RevPi/Bookworm users:** You may need to install curl first:
+> **Hinweis für RevPi/Bookworm-Benutzer:** Sie müssen möglicherweise zuerst curl installieren:
 > ```bash
 > sudo apt-get update
 > sudo apt-get install -y curl
 > ```
 
-Then run the bootstrap script:
+Führen Sie dann das Bootstrap-Skript aus:
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/getitdonestudio/hcopdmx/main/bootstrap-raspi.sh | bash
 ```
 
-Alternatively, if curl is not available, you can use wget (usually pre-installed):
+Alternativ, wenn curl nicht verfügbar ist, können Sie wget verwenden (normalerweise vorinstalliert):
 
 ```bash
 wget https://raw.githubusercontent.com/getitdonestudio/hcopdmx/main/bootstrap-raspi.sh
@@ -75,201 +74,201 @@ chmod +x bootstrap-raspi.sh
 ./bootstrap-raspi.sh
 ```
 
-The script installs all necessary dependencies (Node.js, Git, PM2), sets up the project, and configures the systemd service for automatic startup on boot. It also starts PM2 for monitoring purposes, but the actual autostart is managed through systemd.
+Das Skript installiert alle notwendigen Abhängigkeiten (Node.js, Git, PM2), richtet das Projekt ein und konfiguriert den Systemd-Service für automatischen Start beim Booten. Es startet auch PM2 für Überwachungszwecke, aber der eigentliche Autostart wird über Systemd verwaltet.
 
-### Alternative Installation with Setup Script
+### Alternative Installation mit Setup-Skript
 
-If Git is already installed:
+Wenn Git bereits installiert ist:
 
-1. SSH into your Raspberry Pi
+1. SSH zu Ihrem Raspberry Pi
 ```bash
-ssh pi@your-raspberry-pi-ip
+ssh pi@ihre-raspberry-pi-ip
 ```
 
-2. Download installation script
+2. Installationsskript herunterladen
 ```bash
 wget https://raw.githubusercontent.com/getitdonestudio/hcopdmx/main/setup-raspi.sh
 ```
 
-3. Make the script executable
+3. Skript ausführbar machen
 ```bash
 chmod +x setup-raspi.sh
 ```
 
-4. Run the installation script
+4. Installationsskript ausführen
 ```bash
 ./setup-raspi.sh
 ```
 
-5. You can access the application at `http://your-raspberry-pi-ip:3000`.
+5. Sie können auf die Anwendung unter `http://ihre-raspberry-pi-ip:3000` zugreifen.
 
-### Manual Installation
+### Manuelle Installation
 
-If you prefer to install manually:
+Wenn Sie eine manuelle Installation bevorzugen:
 
-1. Install Node.js (version 20.x or higher)
+1. Node.js installieren (Version 20.x oder höher)
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt-get install -y nodejs
 ```
 
-2. Install Git and other dependencies
+2. Git und andere Abhängigkeiten installieren
 ```bash
 sudo apt-get install -y git curl wget
 ```
 
-3. Optional: Install PM2 for monitoring
+3. Optional: PM2 für Überwachung installieren
 ```bash
 sudo npm install -g pm2
 ```
 
-4. Clone the repository
+4. Repository klonen
 ```bash
 mkdir -p ~/hcopdmx
 cd ~/hcopdmx
 git clone https://github.com/getitdonestudio/hcopdmx.git .
 ```
 
-5. Install dependencies
+5. Abhängigkeiten installieren
 ```bash
 npm install
 ```
 
-6. Configure the application
-   - Edit `server.js` to set the correct IP address for your Art-Net device
-   - Modify `hcop_dmx-channel.csv` if you want to customize the DMX programs
+6. Anwendung konfigurieren
+   - Bearbeiten Sie `server.js`, um die korrekte IP-Adresse für Ihr Art-Net-Gerät zu setzen
+   - Ändern Sie `hcop_dmx-channel.csv`, wenn Sie die DMX-Programme anpassen möchten
 
-7. Set up systemd service for automatic startup
+7. Systemd-Service für automatischen Start einrichten
 ```bash
 ./setup-systemd.sh
 ```
 
-## Updating the Application
+## Anwendung aktualisieren
 
-### Automatic Update (Recommended)
+### Automatisches Update (empfohlen)
 
-1. SSH into your Raspberry Pi
+1. SSH zu Ihrem Raspberry Pi
 ```bash
-ssh pi@your-raspberry-pi-ip
+ssh pi@ihre-raspberry-pi-ip
 ```
 
-2. Run the update script
+2. Update-Skript ausführen
 ```bash
 ~/hcopdmx/update-raspi.sh
 ```
 
-The script will automatically:
-- Fetch the latest changes from GitHub
-- Install new dependencies
-- Restart the application
+Das Skript wird automatisch:
+- Die neuesten Änderungen von GitHub abrufen
+- Neue Abhängigkeiten installieren
+- Die Anwendung neu starten
 
-### Manual Update
+### Manuelles Update
 
-1. SSH into your Raspberry Pi
+1. SSH zu Ihrem Raspberry Pi
 ```bash
-ssh pi@your-raspberry-pi-ip
+ssh pi@ihre-raspberry-pi-ip
 ```
 
-2. Change to the application directory
+2. Zum Anwendungsverzeichnis wechseln
 ```bash
 cd ~/hcopdmx
 ```
 
-3. Fetch the latest changes
+3. Neueste Änderungen abrufen
 ```bash
 git pull origin main
 ```
 
-4. Install new dependencies
+4. Neue Abhängigkeiten installieren
 ```bash
 npm install
 ```
 
-5. Restart the application
+5. Anwendung neu starten
 ```bash
 sudo systemctl restart dmx-server.service
 ```
 
-## Managing the Application
+## Anwendung verwalten
 
-### Systemd Commands
+### Systemd-Befehle
 
-The application runs as a systemd service for reliable autostart. Here are useful commands:
+Die Anwendung läuft als Systemd-Service für zuverlässigen Autostart. Hier sind nützliche Befehle:
 
-- Check service status: `sudo systemctl status dmx-server.service`
-- View application logs: `sudo journalctl -u dmx-server.service -f`
-- Restart application: `sudo systemctl restart dmx-server.service`
-- Stop application: `sudo systemctl stop dmx-server.service`
-- Start application: `sudo systemctl start dmx-server.service`
-- Enable autostart: `sudo systemctl enable dmx-server.service`
-- Disable autostart: `sudo systemctl disable dmx-server.service`
+- Service-Status prüfen: `sudo systemctl status dmx-server.service`
+- Anwendungsprotokolle anzeigen: `sudo journalctl -u dmx-server.service -f`
+- Anwendung neu starten: `sudo systemctl restart dmx-server.service`
+- Anwendung stoppen: `sudo systemctl stop dmx-server.service`
+- Anwendung starten: `sudo systemctl start dmx-server.service`
+- Autostart aktivieren: `sudo systemctl enable dmx-server.service`
+- Autostart deaktivieren: `sudo systemctl disable dmx-server.service`
 
-### Monitoring with PM2
+### Überwachung mit PM2
 
-Although autostart is done through systemd, PM2 is installed for monitoring purposes:
+Obwohl der Autostart über Systemd erfolgt, ist PM2 für Überwachungszwecke installiert:
 
-- Show status: `pm2 status`
-- Real-time monitoring: `pm2 monit`
-- View logs: `pm2 logs dmxserver`
+- Status anzeigen: `pm2 status`
+- Echtzeitüberwachung: `pm2 monit`
+- Protokolle anzeigen: `pm2 logs dmxserver`
 
-## Configuration
+## Konfiguration
 
-### Secret Settings Access
+### Geheime Einstellungen-Zugriff
 
-The application provides a secure way to access the settings page:
+Die Anwendung bietet einen sicheren Weg, auf die Einstellungsseite zuzugreifen:
 
-1. Click 5 times within 3 seconds in the top-right corner of the screen
-2. When prompted, enter the password: `250628`
+1. Klicken Sie 5-mal innerhalb von 3 Sekunden in die obere rechte Ecke des Bildschirms
+2. Wenn Sie dazu aufgefordert werden, geben Sie das Passwort ein: `250628`
 
-This hidden access method is designed to prevent accidental changes to the system configuration while still allowing authorized users to access settings when needed.
+Diese versteckte Zugriffsmethode ist darauf ausgelegt, versehentliche Änderungen an der Systemkonfiguration zu verhindern und dennoch autorisierten Benutzern bei Bedarf Zugang zu den Einstellungen zu gewähren.
 
-### Application Logs
+### Anwendungs-Logs
 
-The application uses a built-in logging system with the following features:
+Die Anwendung verwendet ein eingebautes Protokollierungssystem mit folgenden Funktionen:
 
-- Log levels: `debug`, `info`, `warn`, `error`
-- Log file rotation when size exceeds 5MB
-- Configurable heartbeat logging reduction
-- Optional console output
+- Protokollstufen: `debug`, `info`, `warn`, `error`
+- Protokolldatei-Rotation bei Überschreitung von 5MB
+- Konfigurierbare Heartbeat-Protokollreduzierung
+- Optionale Konsolenausgabe
 
-#### Configuring Logging
+#### Protokollierung konfigurieren
 
-Edit the `LOG_CONFIG` object in `server.js` to customize logging behavior:
+Bearbeiten Sie das `LOG_CONFIG`-Objekt in `server.js`, um das Protokollierungsverhalten anzupassen:
 
 ```javascript
 const LOG_CONFIG = {
     level: process.env.LOG_LEVEL || 'info', // 'debug', 'info', 'warn', 'error'
-    heartbeatInterval: 5, // Only log heartbeat every X times
-    maxFileSize: 5 * 1024 * 1024, // 5MB max log file size
+    heartbeatInterval: 5, // Nur alle X Mal Heartbeat protokollieren
+    maxFileSize: 5 * 1024 * 1024, // 5MB maximale Protokolldateigröße
     logFile: 'dmx-server.log',
     logToConsole: true
 };
 ```
 
-You can also set the `LOG_LEVEL` environment variable when starting the application:
+Sie können auch die `LOG_LEVEL`-Umgebungsvariable beim Start der Anwendung setzen:
 
 ```bash
 LOG_LEVEL=debug node server.js
 ```
 
-### DMX Channel Scaling
+### DMX-Kanal-Skalierung
 
-The application supports two types of DMX channel scaling:
+Die Anwendung unterstützt zwei Arten der DMX-Kanal-Skalierung:
 
-1. **Binary Scaling** - Scales binary (0/1) values from the CSV file to actual DMX values (0-255) based on the light power setting
+1. **Binäre Skalierung** - Skaliert binäre (0/1) Werte aus der CSV-Datei zu tatsächlichen DMX-Werten (0-255) basierend auf der Lichtleistungseinstellung
 
-2. **Advanced Scaling** - Scales any DMX channel values consistently based on a target power level with an option to preserve zeros
+2. **Erweiterte Skalierung** - Skaliert alle DMX-Kanalwerte einheitlich basierend auf einem Zielleistungsniveau mit Option zur Beibehaltung von Nullen
 
-This feature allows for precise control of lighting intensity for both normal operation and screensaver modes.
+Diese Funktion ermöglicht präzise Kontrolle der Beleuchtungsintensität sowohl für normalen Betrieb als auch für Bildschirmschoner-Modi.
 
-### Configuring DMX Programs
+### DMX-Programme konfigurieren
 
-DMX programs are defined in the `hcop_dmx-channel.csv` file with the following format:
-- Each row represents a lighting program
-- The first column is the program key (the identifier used in API calls)
-- Each subsequent column represents a DMX channel value (0 or 1)
+DMX-Programme werden in der Datei `hcop_dmx-channel.csv` mit folgendem Format definiert:
+- Jede Zeile repräsentiert ein Beleuchtungsprogramm
+- Die erste Spalte ist der Programmschlüssel (die Kennung, die in API-Aufrufen verwendet wird)
+- Jede weitere Spalte repräsentiert einen DMX-Kanalwert (0 oder 1)
 
-Example:
+Beispiel:
 ```
 Key;Channel1;Channel2;Channel3;Channel4
 a;0;0;1;1
@@ -277,99 +276,99 @@ b;0;1;1;0
 c;1;1;0;0
 ```
 
-The binary values (0/1) are automatically scaled to the appropriate DMX values (0-255) based on the light power setting.
+Die binären Werte (0/1) werden automatisch auf die entsprechenden DMX-Werte (0-255) basierend auf der Lichtleistungseinstellung skaliert.
 
-### Screensaver Modes
+### Bildschirmschoner-Modi
 
-The application features several screensaver modes:
+Die Anwendung bietet mehrere Bildschirmschoner-Modi:
 
-- **Dim to On** - Gradually brightens channels from zero to full brightness
-- **Dim to Off** - Gradually dims channels from full brightness to zero
-- **Cycling** - Cycles through specified DMX programs with transitions
-- **Pulsating** - Creates a breathing effect by modulating channel brightness
-- **Disco** - Randomly changes colors for a dynamic light show
+- **Dimmen zu An** - Erhellt Kanäle allmählich von null auf volle Helligkeit
+- **Dimmen zu Aus** - Dimmt Kanäle allmählich von voller Helligkeit auf null
+- **Zyklisch** - Durchläuft angegebene DMX-Programme mit Übergängen
+- **Pulsierend** - Erzeugt einen Atmungseffekt durch Modulation der Kanalhelligkeit
+- **Disco** - Ändert zufällig Farben für eine dynamische Lichtshow
 
-Each mode is configurable through the settings interface.
+Jeder Modus ist über die Einstellungsoberfläche konfigurierbar.
 
-#### Screensaver Recovery System
+#### Bildschirmschoner-Wiederherstellungssystem
 
-The application includes a sophisticated recovery system for screensaver modes:
+Die Anwendung enthält ein ausgeklügeltes Wiederherstellungssystem für Bildschirmschoner-Modi:
 
-- **Watchdog Timer** - Detects and recovers from stuck modes automatically
-- **Error Tracking** - Counts errors and switches modes if too many occur
-- **Rate Limiting** - Prevents overwhelming the DMX controller with too many commands
-- **State Refresh** - Periodically refreshes base state to prevent stale data
-- **Graceful Fallback** - Falls back to simpler modes if complex modes fail
+- **Watchdog-Timer** - Erkennt und erholt sich automatisch von hängenden Modi
+- **Fehlerverfolgung** - Zählt Fehler und wechselt Modi bei zu vielen Fehlern
+- **Ratenbegrenzung** - Verhindert Überlastung des DMX-Controllers mit zu vielen Befehlen
+- **Zustandsaktualisierung** - Aktualisiert regelmäßig den Basiszustand, um veraltete Daten zu verhindern
+- **Sanfter Fallback** - Fällt auf einfachere Modi zurück, wenn komplexe Modi fehlschlagen
 
-### User Interface Features
+### Benutzeroberflächen-Funktionen
 
-- **Multilingual Support** - Interface available in German and English
-- **Keyboard Navigation** - Custom key handling for efficient control
-  - Keys A-P: Direct access to DMX programs
-  - Key Q: All lights on / screensaver mode
-  - Key Z: All lights off
-  - In screensaver mode, A-P keys navigate directly to corresponding program
-- **Font Size Controls** - Adjustable text size for accessibility
-- **Quick Controls** - One-click access to commonly used functions
-- **Responsive Design** - Adapts to different screen sizes
+- **Mehrsprachige Unterstützung** - Benutzeroberfläche verfügbar in Deutsch und Englisch
+- **Tastaturnavigation** - Benutzerdefinierte Tastenbehandlung für effiziente Steuerung
+  - Tasten A-P: Direkter Zugriff auf DMX-Programme
+  - Taste Q: Alle Lichter an / Bildschirmschoner-Modus
+  - Taste Z: Alle Lichter aus
+  - Im Bildschirmschoner-Modus navigieren A-P-Tasten direkt zum entsprechenden Programm
+- **Schriftgrößensteuerung** - Anpassbare Textgröße für Barrierefreiheit
+- **Schnellsteuerung** - Ein-Klick-Zugriff auf häufig verwendete Funktionen
+- **Responsives Design** - Passt sich verschiedenen Bildschirmgrößen an
 
-### Error Recovery and Reliability Features
+### Fehlerwiederherstellung und Zuverlässigkeitsfunktionen
 
-The application includes several reliability features:
+Die Anwendung enthält mehrere Zuverlässigkeitsfunktionen:
 
-- **CSV Loading Retry** - Attempts to load the CSV file multiple times with increasing delays if the initial load fails
-- **DMX Packet Transmission Retry** - Sends each DMX packet multiple times with configurable retries
-- **Settings Backup** - Automatically backs up settings and can restore from backup if the main file becomes corrupted
-- **Heartbeat Recovery** - Automatically detects and recovers from connection issues by resending DMX packets
+- **CSV-Ladewiederholung** - Versucht die CSV-Datei mehrmals mit zunehmenden Verzögerungen zu laden, wenn das anfängliche Laden fehlschlägt
+- **DMX-Paketübertragungswiederholung** - Sendet jedes DMX-Paket mehrmals mit konfigurierbaren Wiederholungen
+- **Einstellungssicherung** - Sichert automatisch Einstellungen und kann aus Sicherung wiederherstellen, wenn die Hauptdatei beschädigt wird
+- **Heartbeat-Wiederherstellung** - Erkennt und erholt sich automatisch von Verbindungsproblemen durch erneutes Senden von DMX-Paketen
 
-## API Endpoints
+## API-Endpunkte
 
-The application provides the following API endpoints:
+Die Anwendung bietet folgende API-Endpunkte:
 
-- `POST /dmx/:key` - Activate a DMX program (replace `:key` with the program identifier from the CSV)
-- `POST /dmx/fade/:key` - Fade to a DMX program with a specified duration
-- `POST /dmx/direct` - Directly set DMX channel values for advanced control
+- `POST /dmx/:key` - DMX-Programm aktivieren (ersetzen Sie `:key` durch die Programmkennung aus der CSV)
+- `POST /dmx/fade/:key` - Zu einem DMX-Programm mit angegebener Dauer einblenden
+- `POST /dmx/direct` - DMX-Kanalwerte direkt für erweiterte Steuerung setzen
 
-## Troubleshooting
+## Fehlerbehebung
 
-For detailed troubleshooting information, please refer to the [TROUBLESHOOTING.md](TROUBLESHOOTING.md) file.
+Für detaillierte Informationen zur Fehlerbehebung lesen Sie bitte die Datei [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
 
-The system includes two diagnostic tools to help identify and fix issues:
+Das System enthält zwei Diagnosetools zur Identifizierung und Behebung von Problemen:
 
-### 1. Check Dependencies
+### 1. Abhängigkeiten prüfen
 ```bash
 node check-dependencies.js
 ```
-This script checks if all required Node.js dependencies are installed and verifies that essential files exist.
+Dieses Skript prüft, ob alle erforderlichen Node.js-Abhängigkeiten installiert sind und ob wichtige Dateien existieren.
 
-### 2. Check DMX Connectivity
+### 2. DMX-Konnektivität prüfen
 ```bash
 node check-dmx-connectivity.js
 ```
-This script tests network connectivity to the DMX controller by attempting to establish a TCP connection to the ArtNet port. It also checks your local network interfaces and DNS resolution.
+Dieses Skript testet die Netzwerkverbindung zum DMX-Controller, indem es versucht, eine TCP-Verbindung zum ArtNet-Port herzustellen. Es prüft auch Ihre lokalen Netzwerkschnittstellen und DNS-Auflösung.
 
-To use a different DMX IP:
+Um eine andere DMX-IP zu verwenden:
 ```bash
 DMX_IP=192.168.1.100 node check-dmx-connectivity.js
 ```
 
-**Note**: Some of the tools mentioned in the troubleshooting file like `test-artnet.js`, `server-simple.js`, and various fix scripts may not be included in the current version of the repository. Please contact the developers if you need these additional troubleshooting tools.
+**Hinweis**: Einige der in der Fehlerbehebungsdatei erwähnten Tools wie `test-artnet.js`, `server-simple.js` und verschiedene Fix-Skripte sind möglicherweise nicht in der aktuellen Version des Repositories enthalten. Wenden Sie sich an die Entwickler, wenn Sie diese zusätzlichen Fehlerbehebungstools benötigen.
 
-## Development
+## Entwicklung
 
-### Arduino Controller Setup
+### Arduino-Controller-Setup
 
-The project includes an Arduino sketch (`hcopButton.ino`) for creating a physical control interface:
+Das Projekt enthält einen Arduino-Sketch (`hcopButton.ino`) zum Erstellen einer physischen Steuerungsschnittstelle:
 
-- Uses 4 buttons connected to pins 3, 4, 5, and 6
-- Controls 4 relays connected to pins 10, 11, 12, and 13
-- Maps 16 possible button combinations to keyboard keys A-P
-- Sends keystrokes to the host computer running the DMX server
-- Includes debug mode for diagnostic output via serial monitor
+- Verwendet 4 Tasten verbunden mit Pins 3, 4, 5 und 6
+- Steuert 4 Relais verbunden mit Pins 10, 11, 12 und 13
+- Ordnet 16 mögliche Tastenkombinationen den Tastaturtasten A-P zu
+- Sendet Tastendrücke an den Host-Computer, der den DMX-Server betreibt
+- Enthält Debug-Modus für Diagnoseausgabe über den seriellen Monitor
 
-To set up the Arduino controller:
+Um den Arduino-Controller einzurichten:
 
-1. Connect buttons to pins 3, 4, 5, 6 with appropriate pull-up resistors
-2. Connect relays to pins 10, 11, 12, 13
-3. Upload the `hcopButton.ino` sketch to an Arduino with USB keyboard support (e.g., Arduino Leonardo or Pro Micro)
-4. Connect the Arduino to the same computer running the DMX server
+1. Verbinden Sie Tasten mit Pins 3, 4, 5, 6 mit entsprechenden Pull-up-Widerständen
+2. Verbinden Sie Relais mit Pins 10, 11, 12, 13
+3. Laden Sie den `hcopButton.ino`-Sketch auf einen Arduino mit USB-Tastaturunterstützung hoch (z.B. Arduino Leonardo oder Pro Micro)
+4. Verbinden Sie den Arduino mit demselben Computer, der den DMX-Server betreibt 
