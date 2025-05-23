@@ -63,8 +63,8 @@ try {
 const nodeVersion = process.version;
 console.log(`Node.js version: ${nodeVersion}`);
 const versionNumber = Number(nodeVersion.match(/^v(\d+)/)[1]);
-if (versionNumber < 18) {
-    console.error(`❌ Node.js version ${nodeVersion} may be too old. Version 18 or higher is recommended.`);
+if (versionNumber < 20) {
+    console.error(`❌ Node.js version ${nodeVersion} may be too old. Version 20 or higher is recommended.`);
 } else {
     console.log('✅ Node.js version is sufficient');
 }
